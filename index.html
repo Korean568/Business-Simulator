@@ -1,0 +1,2454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국밥 타이쿤 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --wood3:#4a2c18; --cream:#fff3dc; --paper:#fdf6e8;
+  --red:#c62d1f; --red2:#8e1c12; --ink:#2a1a10; --gold:#f2b632; --green:#4caf50;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;overflow:hidden;background:#1c120b;font-family:'Jua','Malgun Gothic','Apple SD Gothic Neo',sans-serif;color:var(--ink);user-select:none;-webkit-user-select:none}
+button{font-family:inherit;cursor:pointer}
+#scene{position:fixed;inset:0;width:100vw;height:100vh;display:block;touch-action:none}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;gap:8px;padding:8px 14px;background:linear-gradient(rgba(25,14,8,.92),rgba(25,14,8,.55) 75%,transparent);color:var(--cream);font-size:20px;flex-wrap:wrap;pointer-events:none}
+#hud > *{pointer-events:auto}
+.hud-name{color:var(--gold);font-size:24px;margin-right:auto;white-space:nowrap;text-shadow:0 2px 0 #000}
+.hud-item{background:rgba(0,0,0,.45);padding:4px 12px;border-radius:10px;white-space:nowrap}
+.hud-item.neg{color:#ff7b6b}
+.timer.low{color:#ff6b5b;animation:blink 1s infinite}
+.combo{background:#c62d1f;color:#fff;animation:pop .3s}
+.combo:empty{display:none}
+.stars{position:relative;display:inline-block}
+.stars .bg{color:#6a5646}
+.stars .fg{position:absolute;left:0;top:0;overflow:hidden;white-space:nowrap;color:var(--gold)}
+.icon-btn{background:rgba(0,0,0,.45);border:none;color:var(--cream);font-size:18px;border-radius:10px;padding:5px 10px}
+.icon-btn:hover{background:rgba(255,255,255,.2)}
+
+/* ---------- 3D 라벨 ---------- */
+#labels{position:fixed;inset:0;pointer-events:none;z-index:5;overflow:hidden}
+.cust-ui{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;will-change:transform}
+.cust-ui .line{font-size:15px;color:#4a2c18;background:rgba(255,255,255,.85);padding:2px 10px;border-radius:10px;margin-bottom:5px;white-space:nowrap}
+.cust-ui .line:empty{display:none}
+.cust-ui.st-waiting .line{animation:lineFade 3.8s forwards}
+.cust-ui.st-happy .line{font-size:18px;animation:pop .3s}
+.cust-ui.st-sad .line{font-size:18px;background:#dbe9ff;color:#1d4e9a;animation:pop .3s}
+.bubble{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:5px 9px 7px;text-align:center;position:relative;margin-bottom:10px;min-width:130px;box-shadow:0 4px 0 rgba(0,0,0,.25);pointer-events:auto;cursor:pointer;transition:background .15s}
+.bubble:after{content:'';position:absolute;bottom:-10px;left:50%;margin-left:-8px;border-width:9px 8px 0;border-style:solid;border-color:var(--ink) transparent transparent}
+.o-soup{font-size:19px;white-space:nowrap}
+.o-tops{font-size:14px;color:#6b5040;display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:3px;max-width:190px}
+.chip{background:#f3e6cf;border-radius:6px;padding:1px 5px;white-space:nowrap}
+.chip.plain{background:#eee;color:#888}
+.cust-ui.vip .bubble{border-color:#d4145a;background:#fff0f6}
+.cust-ui.vip .bubble:after{border-top-color:#d4145a}
+.vip-tag{position:absolute;right:-10px;top:-12px;background:#d4145a;color:#fff;font-size:13px;padding:0 6px;border-radius:6px;transform:rotate(12deg)}
+.cust-ui.targetable .bubble{box-shadow:0 0 0 4px var(--gold),0 4px 0 rgba(0,0,0,.25)}
+.cust-ui.match .bubble{background:#eaffd9}
+.cust-ui .keyhint{position:absolute;left:-10px;top:-10px;background:var(--ink);color:#fff;border-radius:6px;padding:0 6px;font-size:13px}
+.plabel{position:absolute;left:0;top:0;background:rgba(20,12,8,.78);color:#eee;border-radius:10px;padding:3px 10px 5px;font-size:15px;text-align:center;white-space:nowrap;min-width:90px;will-change:transform}
+.plabel small{display:block;font-size:13px;color:#bbb}
+.plabel .bbar{height:7px;background:#000;border-radius:5px;overflow:hidden;margin-top:3px}
+.plabel .bbar i{display:block;height:100%;width:0;background:var(--gold)}
+.plabel .k{position:absolute;left:-8px;top:-8px;background:#eee;color:#222;border-radius:5px;padding:0 5px;font-size:12px}
+.plabel.ready{border:2px solid var(--green)} .plabel.ready small{color:#9f9}
+.plabel.warn{border:2px solid #ff8a1e;animation:shake .5s infinite} .plabel.warn small{color:#ffb35c}
+.plabel.burnt small{color:#ff7b6b}
+.plabel.empty{opacity:.55}
+.plabel.tray{background:rgba(90,55,25,.85)}
+.plabel.tray.sel{border:2px solid var(--gold)}
+.plabel.prep{background:rgba(30,40,70,.85);border:2px solid #8fb0ff}
+.plabel.prep.idle{opacity:.5;border-color:transparent}
+@media (max-width:1000px){.plabel{font-size:12px;padding:2px 6px 4px;min-width:70px}.plabel small{font-size:11px}}
+
+/* ---------- 하단 조작부 ---------- */
+.controls{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:center;align-items:flex-end;gap:14px;padding:8px 10px 10px;background:linear-gradient(transparent,rgba(20,12,8,.85) 35%);flex-wrap:wrap}
+.cgroup{display:flex;flex-direction:column;gap:4px}
+.ctitle{color:var(--gold);font-size:15px;padding-left:4px;text-shadow:0 2px 0 #000}
+.crow{display:flex;gap:6px}
+.cbtn{width:92px;background:var(--paper);border:none;border-radius:12px;padding:5px 3px 6px;font-size:15px;box-shadow:0 5px 0 #b99b72;position:relative;color:var(--ink);line-height:1.1}
+.cbtn:hover{background:#fff;transform:translateY(-2px)}
+.cbtn:active{transform:translateY(3px);box-shadow:0 2px 0 #b99b72}
+.cbtn .ic{font-size:26px;display:block;line-height:1.2}
+.cbtn small{display:block;font-size:11px;color:#8a6e55}
+.cbtn .key{position:absolute;right:4px;top:3px;font-size:11px;background:rgba(0,0,0,.12);border-radius:4px;padding:0 4px;color:#6b5040}
+.cbtn.on{background:#ffd966;box-shadow:0 5px 0 #c79a1e}
+.cbtn.locked,.cbtn.soldout{opacity:.4;filter:grayscale(1);cursor:not-allowed}
+.cbtn.soldout small{color:#c62d1f}
+.cbtn.trash{background:#7a2e22;color:#fff;box-shadow:0 5px 0 #3d140e}
+.cbtn.trash small{color:#fcc}
+.pgroup{background:rgba(0,0,0,.4);border-radius:12px;padding:4px 6px 6px;display:flex;flex-direction:column;gap:3px}
+.pg-title{color:var(--gold);font-size:15px;text-shadow:0 2px 0 #000}
+.pg-info{color:#eee;font-size:12px;white-space:nowrap}
+.pstep{width:88px;background:var(--paper);border:none;border-radius:10px;padding:4px 3px 5px;box-shadow:0 4px 0 #b99b72;position:relative;color:var(--ink);font-size:14px;line-height:1.1}
+.pstep:hover{background:#fff;transform:translateY(-2px)}
+.pstep:active{transform:translateY(3px);box-shadow:0 1px 0 #b99b72}
+.pstep .ic{font-size:22px;display:block}
+.pstep .key{position:absolute;right:3px;top:2px;font-size:10px;background:rgba(0,0,0,.12);border-radius:4px;padding:0 3px;color:#6b5040}
+.pstep .bbar{height:5px;background:#e2d6c0;border-radius:4px;overflow:hidden;margin-top:3px}
+.pstep .bbar i{display:block;height:100%;width:0;background:var(--gold)}
+.pstep.off{opacity:.45}
+.pcard{width:158px;background:var(--paper);border:none;border-radius:12px;padding:6px 8px 8px;box-shadow:0 5px 0 #b99b72;position:relative;color:var(--ink);text-align:center;font-size:17px;line-height:1.15}
+.pcard:hover{background:#fff;transform:translateY(-2px)}
+.pcard:active{transform:translateY(3px);box-shadow:0 2px 0 #b99b72}
+.pcard .ic{font-size:30px;display:block}
+.pcard small{display:block;font-size:13px;color:#6b4a2a;min-height:16px;margin-top:2px}
+.pcard .key{position:absolute;right:5px;top:4px;font-size:11px;background:rgba(0,0,0,.12);border-radius:4px;padding:0 4px;color:#6b5040}
+.pcard .bbar{height:7px;background:#e2d6c0;border-radius:5px;overflow:hidden;margin-top:4px}
+.pcard .bbar i{display:block;height:100%;width:0;background:var(--gold)}
+.pcard.done{opacity:.55}
+.prep-sum{color:var(--cream);font-size:16px;text-align:center;text-shadow:0 2px 0 #000}
+.start-btn{background:var(--red);color:#fff;border:none;font-size:22px;padding:12px 22px;border-radius:14px;box-shadow:0 6px 0 var(--red2);position:relative}
+.start-btn:hover{filter:brightness(1.1)}
+.start-btn .key{font-size:11px;background:rgba(0,0,0,.2);border-radius:4px;padding:0 4px;margin-left:6px;vertical-align:middle}
+
+/* ---------- 오버레이 ---------- */
+.overlay{position:fixed;inset:0;background:rgba(20,10,5,.62);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;backdrop-filter:blur(2px)}
+.overlay.light{background:rgba(20,10,5,.25);backdrop-filter:none}
+.card{background:var(--paper);border-radius:22px;border:5px solid var(--wood3);padding:22px 28px;max-width:680px;width:100%;max-height:94vh;overflow:auto;box-shadow:0 10px 0 rgba(0,0,0,.35);text-align:center;animation:popIn .3s}
+.card.wide{max-width:860px}
+.card h2{margin:0 0 8px;font-weight:normal;font-size:32px;color:var(--wood3)}
+.big-btn{background:var(--red);color:#fff;border:none;font-size:25px;padding:12px 36px;border-radius:14px;box-shadow:0 6px 0 var(--red2);margin-top:14px}
+.big-btn:hover{filter:brightness(1.1)}
+.big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--red2)}
+.big-btn:disabled{background:#999;box-shadow:0 6px 0 #666;cursor:not-allowed;filter:none}
+.sub-btn{background:#e8d9c0;color:var(--ink);border:none;font-size:18px;padding:9px 22px;border-radius:12px;box-shadow:0 4px 0 #b99b72;margin:10px 4px 0}
+.sign{display:inline-block;background:var(--red);color:#fff;font-size:52px;padding:6px 34px;border-radius:14px;border:5px solid #fff3dc;box-shadow:0 0 0 5px var(--red),0 10px 0 5px rgba(0,0,0,.3);margin:10px 0 16px;letter-spacing:2px}
+.sign sup{font-size:24px;color:var(--gold)}
+.subtitle{font-size:20px;color:#6b4a2a;margin:6px 0 14px}
+.name-row{font-size:20px;margin:6px 0}
+.name-row input{font-family:inherit;font-size:20px;padding:6px 12px;border-radius:10px;border:3px solid var(--wood3);width:200px;text-align:center;background:#fff}
+.howto{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0 8px;text-align:left}
+.step{background:#f3e6cf;border-radius:12px;padding:8px 12px;font-size:16px;color:#4a2c18}
+.step b{display:inline-block;width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;text-align:center;line-height:24px;margin-right:6px;font-weight:normal}
+.step em{font-style:normal;color:var(--red)}
+.keys-help{font-size:14px;color:#8a6e55;margin-top:6px}
+.best{margin-top:10px;font-size:17px;color:#7a5a30}
+.day-big{font-size:72px;color:var(--red);line-height:1;margin:6px 0}
+.day-note{font-size:21px;color:#4a2c18;margin:10px 0}
+.day-flow{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:10px 0;font-size:17px}
+.day-flow span{background:#f3e6cf;border-radius:10px;padding:4px 10px}
+.unlock{display:inline-block;background:#fff0c2;border:3px solid var(--gold);border-radius:12px;padding:6px 14px;margin:4px;font-size:19px;animation:pop .4s}
+.sum{width:100%;max-width:420px;margin:10px auto;border-collapse:collapse;font-size:19px}
+.sum td{padding:5px 8px;border-bottom:2px dashed #e2d2b6}
+.sum td:last-child{text-align:right}
+.sum .plus{color:#2e7d32}.sum .minus{color:#c62d1f}
+.sum tr.total td{font-size:24px;border-bottom:none;padding-top:10px}
+.waste{font-size:16px;color:#7a5a40;background:#f3e6cf;border-radius:10px;padding:6px 10px;display:inline-block}
+.shop-money{font-size:20px;margin-bottom:10px}
+.shop-money b{color:var(--red);font-weight:normal;font-size:24px}
+.shop-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.up-card{background:#f3e6cf;border-radius:14px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.up-card.maxed{opacity:.6}
+.up-ic{font-size:36px}
+.up-name{font-size:19px;color:var(--wood3)}
+.up-desc{font-size:14px;color:#7a5a40;min-height:34px}
+.dots{display:flex;gap:4px;margin:3px 0}
+.dots i{width:12px;height:12px;border-radius:50%;background:#d8c4a2}
+.dots i.on{background:var(--gold)}
+.buy{background:#3f8f47;color:#fff;border:none;border-radius:10px;padding:6px 14px;font-size:17px;box-shadow:0 4px 0 #245a2a;margin-top:auto}
+.buy:disabled{background:#aaa;box-shadow:0 4px 0 #777;cursor:not-allowed}
+.ending-ic{font-size:96px;line-height:1.1;animation:bounce .6s infinite alternate}
+.ending-title{font-size:36px;color:var(--red);margin:6px 0}
+.mk-list{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.mk-row{display:grid;grid-template-columns:52px 1fr 120px 150px 100px;align-items:center;gap:8px;background:#f3e6cf;border-radius:14px;padding:8px 14px;text-align:left}
+.mk-ic{font-size:38px;text-align:center}
+.mk-name{font-size:21px}
+.mk-name small{display:block;font-size:14px;color:#8a6e55}
+.mk-price{font-size:17px;color:#6b4a2a}
+.mk-qty{display:flex;align-items:center;justify-content:center;gap:10px;font-size:24px}
+.mk-qty span{min-width:54px;text-align:center;white-space:nowrap}
+.qty{width:40px;height:40px;border-radius:50%;border:none;background:var(--red);color:#fff;font-size:26px;line-height:1;box-shadow:0 3px 0 var(--red2);padding:0}
+.qty:active{transform:translateY(2px);box-shadow:0 1px 0 var(--red2)}
+.mk-sub{text-align:right;font-size:18px}
+.mk-info{font-size:17px;color:#4a2c18;background:#fff0c2;border-radius:10px;padding:6px 10px}
+.mk-total{font-size:21px;margin-top:10px}
+.mk-total b{color:var(--red);font-weight:normal}
+.mk-warn{color:#c62d1f;font-size:16px;min-height:20px;margin-top:4px}
+
+#toast{position:fixed;top:64px;left:50%;transform:translate(-50%,-20px);background:rgba(30,18,10,.92);color:var(--cream);padding:10px 22px;border-radius:14px;font-size:20px;z-index:70;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;border:2px solid var(--gold);white-space:nowrap}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.float{position:fixed;pointer-events:none;font-size:26px;color:var(--gold);text-shadow:0 2px 0 #000,0 0 6px #000;animation:floatUp 1.2s forwards;z-index:60;transform:translate(-50%,0);white-space:nowrap}
+#loadError{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff3dc;font-size:22px;text-align:center;z-index:100;background:#1c120b;padding:20px;line-height:1.6}
+
+@keyframes pop{0%{transform:scale(.4)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes floatUp{to{transform:translate(-50%,-70px);opacity:0}}
+@keyframes blink{50%{opacity:.4}}
+@keyframes shake{0%,100%{translate:0 0}25%{translate:-4px 0}75%{translate:4px 0}}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+@keyframes lineFade{0%,80%{opacity:1}100%{opacity:0}}
+
+@media (max-width:1000px){
+  .cbtn{width:66px;font-size:12px}
+  .cbtn .ic{font-size:20px}
+  .cbtn small{display:none}
+  .pcard{width:120px;font-size:14px}
+  .shop-grid{grid-template-columns:repeat(2,1fr)}
+  .howto{grid-template-columns:1fr}
+  .bubble{min-width:100px;padding:3px 6px}
+  .o-soup{font-size:15px}
+  .o-tops{font-size:11px;max-width:130px}
+  .mk-row{grid-template-columns:40px 1fr 120px;}
+  .mk-price,.mk-sub{display:none}
+}
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div id="labels"></div>
+<div id="hud">
+  <div class="hud-name" id="hudName">🍲 국밥 타이쿤 3D</div>
+  <div class="hud-item" id="hudDay">DAY 1</div>
+  <div class="hud-item timer" id="hudTime">⏱ 1:30</div>
+  <div class="hud-item" id="hudMoney">💰 0원</div>
+  <div class="hud-item" id="hudGoal">🎯 100만원</div>
+  <div class="hud-item"><span class="stars"><span class="bg">★★★★★</span><span class="fg" id="hudRep">★★★★★</span></span> <span id="hudRepNum">3.0</span></div>
+  <div class="hud-item combo" id="hudCombo"></div>
+  <button class="icon-btn" id="muteBtn" title="소리 켜기/끄기">🔊</button>
+  <button class="icon-btn" id="pauseBtn" title="일시정지 (Esc)">⏸</button>
+</div>
+<div class="controls" id="lunchControls">
+  <div class="cgroup"><div class="ctitle">🥘 국밥 — 눌러서 가마솥에 끓이기</div><div class="crow" id="soups"></div></div>
+  <div class="cgroup"><div class="ctitle">🧂 토핑 — 조립대 그릇에 올리기</div><div class="crow" id="toppings"></div></div>
+  <div class="cgroup"><div class="ctitle">&nbsp;</div><div class="crow"><button class="cbtn trash" id="trashBtn"><span class="ic">🗑️</span>버리기<small>Backspace</small></button></div></div>
+</div>
+<div class="controls" id="prepControls" hidden>
+  <div class="pgroup">
+    <div class="pg-title">🥩 돼지고기</div><div class="pg-info" id="pi-pork"></div>
+    <div class="crow">
+      <button class="pstep" data-prep="chop"><span class="key">1</span><span class="ic">🔪</span>썰기<div class="bbar"><i></i></div></button>
+      <button class="pstep" data-prep="fridge"><span class="key">2</span><span class="ic">🧊</span>냉장고에<div class="bbar"><i></i></div></button>
+    </div>
+  </div>
+  <div class="pgroup">
+    <div class="pg-title">🌱 콩나물</div><div class="pg-info" id="pi-kong"></div>
+    <div class="crow">
+      <button class="pstep" data-prep="washKong"><span class="key">3</span><span class="ic">🚿</span>씻기<div class="bbar"><i></i></div></button>
+      <button class="pstep" data-prep="trim"><span class="key">4</span><span class="ic">✂️</span>다듬기<div class="bbar"><i></i></div></button>
+    </div>
+  </div>
+  <div class="pgroup">
+    <div class="pg-title">🍲 맑은 육수</div><div class="pg-info" id="pi-broth"></div>
+    <div class="crow">
+      <button class="pstep" data-prep="washBones"><span class="key">5</span><span class="ic">🚿</span>뼈 씻기<div class="bbar"><i></i></div></button>
+      <button class="pstep" data-prep="boil"><span class="key">6</span><span class="ic">🔥</span>끓이기<div class="bbar"><i></i></div></button>
+    </div>
+  </div>
+  <div class="pgroup">
+    <div class="pg-title">🌶️ 매운 육수 (뼈해장국)</div><div class="pg-info" id="pi-spicy"></div>
+    <div class="crow">
+      <button class="pstep" data-prep="washSpine"><span class="key">7</span><span class="ic">🚿</span>등뼈 씻기<div class="bbar"><i></i></div></button>
+      <button class="pstep" data-prep="spicy"><span class="key">8</span><span class="ic">🌶️</span>양념+끓이기<div class="bbar"><i></i></div></button>
+    </div>
+  </div>
+  <div class="cgroup">
+    <div class="prep-sum" id="prepSum"></div>
+    <button class="start-btn" id="startLunchBtn">☀️ 점심 영업 시작<span class="key">Enter</span></button>
+  </div>
+</div>
+<div id="overlay" class="overlay" hidden></div>
+<div id="toast"></div>
+
+<script>
+if (typeof THREE === 'undefined'){
+  document.body.insertAdjacentHTML('beforeend', `<div id="loadError">😢 3D 엔진(Three.js)을 불러오지 못했어요.<br>인터넷 연결을 확인한 뒤 새로고침 해주세요.</div>`);
+  throw new Error('THREE not loaded');
+}
+
+// ================= 데이터 =================
+const DAY_LEN = 90, SEAT_COUNT = 4, BURN_TIME = 9, START_MONEY = 300000, GOAL = 1000000;
+const SEAT_KEYS = ['KeyZ','KeyX','KeyC','KeyV'];
+const BURNER_KEYS = ['KeyA','KeyS','KeyD','KeyF'];
+const SOUP_KEYS = ['KeyQ','KeyW','KeyE'];
+const keyLabel = code => code.replace('Key','').replace('Digit','');
+
+// needs: 한 그릇에 쓰는 준비 재료
+const SOUPS = [
+  {id:'pork', name:'돼지국밥',   icon:'🐖', price:9000,  broth:'#f1e4c8', needs:{pork:1, broth:1}},
+  {id:'kong', name:'콩나물국밥', icon:'🌱', price:7000,  broth:'#efe5bb', needs:{kong:1, broth:1}},
+  {id:'bone', name:'뼈해장국',   icon:'🦴', price:10000, broth:'#b8472a', needs:{spicy:1}},
+];
+// 점심 영업에 쓰는 준비된 재료
+const STOCKS = {
+  pork:  {name:'냉장고 고기',   icon:'🥩'},
+  kong:  {name:'다듬은 콩나물', icon:'🌱'},
+  broth: {name:'맑은 육수',     icon:'🍲'},
+  spicy: {name:'매운 육수',     icon:'🌶️'},
+};
+// 새벽 시장에서 사는 원재료
+const INGREDIENTS = [
+  {id:'pork',  name:'돼지고기',  unit:'근',   icon:'🥩', price:12000, yield:4, stock:'pork',  desc:'썰어서 냉장고에 보관 → 돼지국밥 4인분'},
+  {id:'kong',  name:'콩나물',    unit:'봉지', icon:'🌱', price:3000,  yield:5, stock:'kong',  desc:'씻고 다듬어서 → 콩나물국밥 5인분'},
+  {id:'bones', name:'사골뼈',    unit:'세트', icon:'🍖', price:8000,  yield:8, stock:'broth', desc:'씻고 끓여서 → 맑은 육수 8인분 (돼지·콩나물국밥용)'},
+  {id:'spine', name:'돼지 등뼈', unit:'세트', icon:'🦴', price:15000, yield:5, stock:'spicy', desc:'씻고 매운 양념 넣어 끓여서 → 뼈해장국 5인분'},
+];
+const WASH_CLICKS = {kong: 2, bones: 3, spine: 3};
+const PREP_ACTIONS = ['chop', 'fridge', 'washKong', 'trim', 'washBones', 'boil', 'washSpine', 'spicy'];
+const TOPPINGS = [
+  {id:'dadaegi',  name:'다대기', icon:'🌶️', unlock:1},
+  {id:'buchu',    name:'부추',   icon:'🌿', unlock:1},
+  {id:'saeu',     name:'새우젓', icon:'🦐', unlock:2},
+  {id:'deulkkae', name:'들깨',   icon:'🌰', unlock:3},
+];
+const CUSTOMERS = [
+  {id:'worker',   tip:1.0, minDay:1, weight:3, lines:['점심 먹으러 왔어요!','오늘도 든든하게~','오늘도 야근각...']},
+  {id:'grandpa',  tip:0.8, minDay:1, weight:2, lines:['국밥은 뜨끈해야 제맛이지','천천히 해도 돼~','옛날 생각나는구먼']},
+  {id:'student',  tip:0.5, minDay:1, weight:2, lines:['든든하게 한 그릇이요!','시험 끝나고 국밥이죠','가성비 최고!']},
+  {id:'hangover', tip:1.4, minDay:2, weight:2, force:['dadaegi'], lines:['어제 너무 달렸어요...','속 좀 풀어주세요...','다대기 듬뿍이요...']},
+  {id:'grandma',  tip:1.1, minDay:2, weight:1, lines:['우리 손주 같네~','맛있게 해줘요~','여기 단골이야~']},
+  {id:'youtuber', tip:3.0, minDay:3, weight:0.7, vip:true, lines:['구독자 여러분 여기가 그 집!','맛없으면 리뷰 씁니다 ㅎ','오늘의 먹방 장소!']},
+];
+const UPGRADES = [
+  {id:'burner',   name:'가마솥 추가', icon:'🍲', desc:'동시에 끓이는 뚝배기 +1',       costs:[40000, 90000]},
+  {id:'fire',     name:'화력 강화',   icon:'🔥', desc:'국밥이 더 빨리 끓어요',          costs:[30000, 70000]},
+  {id:'tray',     name:'조립대 확장', icon:'🪵', desc:'그릇 2개를 동시에 준비',         costs:[35000]},
+  {id:'knife',    name:'명품 식칼',   icon:'🔪', desc:'고기 썰기가 2배 빨라져요',        costs:[25000]},
+  {id:'stockpot', name:'대형 육수솥', icon:'🥘', desc:'육수·매운 육수를 2세트씩 빠르게', costs:[30000]},
+  {id:'kkak',     name:'깍두기 맛집', icon:'🥬', desc:'팁 +40%',                        costs:[30000, 60000]},
+  {id:'sign',     name:'네온 간판',   icon:'🏮', desc:'손님이 더 자주 와요 · 평판 +0.5', costs:[45000]},
+];
+function dayNote(d){
+  if (d === 1) return '새벽 시장에서 재료를 사고, 손질해서 점심 장사를 준비해요! 목표는 100만원!';
+  if (d === 2) return '해장 손님이 오기 시작해요. 해장 손님은 항상 다대기를 원해요!';
+  if (d === 3) return '먹방 유튜버가 올지도? 완벽하게 주면 평판이 크게 올라요!';
+  if (d < 6) return '소문이 나서 손님이 늘어요. 재료를 넉넉히 준비하세요!';
+  return '손님들이 몰려옵니다! 100만원까지 힘내요!';
+}
+
+// ================= 유틸 =================
+const $ = id => document.getElementById(id);
+const fmt = n => (n < 0 ? '-' : '') + Math.abs(Math.round(n)).toLocaleString('ko-KR') + '원';
+const rand = (a, b) => a + Math.random() * (b - a);
+const randInt = (a, b) => Math.floor(rand(a, b + 1));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const prand = i => { const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const soupById = id => SOUPS.find(s => s.id === id);
+const topById = id => TOPPINGS.find(t => t.id === id);
+const ingById = id => INGREDIENTS.find(t => t.id === id);
+const topIndex = id => TOPPINGS.findIndex(t => t.id === id);
+function pickWeighted(arr, wf){
+  const total = arr.reduce((s, x) => s + wf(x), 0);
+  let r = Math.random() * total;
+  for (const x of arr){ r -= wf(x); if (r <= 0) return x; }
+  return arr[arr.length - 1];
+}
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function loadBest(){ try { return JSON.parse(localStorage.getItem('gukbap_best') || 'null'); } catch(e){ return null; } }
+function saveBest(b){ try { localStorage.setItem('gukbap_best', JSON.stringify(b)); } catch(e){} }
+
+// ================= 사운드 =================
+let AC = null, muted = false;
+function tone(f, d, type = 'sine', v = 0.08, f2 = null, delay = 0){
+  if (muted) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + d);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d + 0.02);
+  } catch(e){}
+}
+const sfx = {
+  click: () => tone(520, 0.05, 'triangle', 0.06),
+  coin:  () => { tone(988, 0.08, 'square', 0.04); tone(1319, 0.22, 'square', 0.04, null, 0.08); },
+  bell:  () => { tone(1400, 0.12, 'sine', 0.05); tone(1050, 0.28, 'sine', 0.05, null, 0.1); },
+  err:   () => tone(220, 0.16, 'square', 0.05, 150),
+  sad:   () => tone(500, 0.4, 'triangle', 0.06, 250),
+  ready: () => { tone(700, 0.08, 'sine', 0.07, 900); tone(900, 0.12, 'sine', 0.06, 1300, 0.08); },
+  pour:  () => tone(300, 0.2, 'triangle', 0.06, 520),
+  trash: () => tone(420, 0.25, 'sawtooth', 0.04, 80),
+  burnt: () => tone(160, 0.5, 'sawtooth', 0.05, 60),
+  whoosh:() => tone(800, 0.18, 'triangle', 0.04, 300),
+  chop:  () => { tone(140, 0.08, 'sine', 0.14, 70); tone(1800, 0.03, 'square', 0.02); },
+  pluck: () => tone(900, 0.06, 'triangle', 0.05, 1400),
+  splash:() => { tone(1200, 0.12, 'sine', 0.04, 400); tone(700, 0.1, 'triangle', 0.03, 1500, 0.05); },
+  rooster: () => { tone(600, 0.15, 'sawtooth', 0.03, 900); tone(900, 0.35, 'sawtooth', 0.03, 700, 0.15); },
+  fanfare: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.25, 'square', 0.04, null, i * 0.13)),
+};
+
+// =====================================================================
+// ============================  3D 월드  ===============================
+// =====================================================================
+let renderer, scene, camera, raycaster, T = 0;
+const CAMS = {
+  lunch: {look: new THREE.Vector3(0, 1.8, 0.4),  base: new THREE.Vector3(0, 12.3, 14.05), pos: new THREE.Vector3()},
+  prep:  {look: new THREE.Vector3(1.0, 0.6, 1.6), base: new THREE.Vector3(1.0, 10.5, 12.8),  pos: new THREE.Vector3()},
+};
+const curLook = CAMS.lunch.look.clone();
+const SEAT_X = [-6, -2, 2, 6], SEAT_Z = -2.15, COUNTER_TOP = 1.32;
+const STOVE_X = -2.6, PREP_X = 5.0, TABLE_Z = 2.35, TABLE_TOP = 1.0;
+const W = {
+  mode: 'lunch', seatHits: [], binHits: [], burnerViews: [], trayViews: [], bins: [],
+  seatViews: [null, null, null, null], leaving: [], particles: [], tweens: [], coins: [],
+  shake: 0, hover: null,
+};
+const LIGHTS = {
+  lunch: {bg: new THREE.Color(0x2a1a10), hemi: new THREE.Color(0xfff1dc), hemiI: .75, sun: new THREE.Color(0xffe2b8), sunI: .85},
+  prep:  {bg: new THREE.Color(0x101830), hemi: new THREE.Color(0x9db2ff), hemiI: .5,  sun: new THREE.Color(0x8ea6ff), sunI: .35},
+};
+
+const matCache = {};
+function std(color, o = {}){
+  const key = color + JSON.stringify(o);
+  if (!matCache[key]) matCache[key] = new THREE.MeshStandardMaterial(Object.assign({color, roughness: 0.7}, o));
+  return matCache[key];
+}
+function mesh(geo, mat, x = 0, y = 0, z = 0, shadow = true){
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, y, z);
+  m.castShadow = shadow; m.receiveShadow = true;
+  return m;
+}
+function canvasTex(w, h, draw){
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const ctx = c.getContext('2d'); draw(ctx, w, h);
+  const t = new THREE.CanvasTexture(c); t.anisotropy = 4;
+  t.userData = {canvas: c, ctx, draw};
+  return t;
+}
+function redrawTex(t){
+  const {canvas, ctx, draw} = t.userData;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  draw(ctx, canvas.width, canvas.height);
+  t.needsUpdate = true;
+}
+const GEO = {};
+function geo(key, make){ return GEO[key] || (GEO[key] = make()); }
+const hitMat = new THREE.MeshBasicMaterial({visible: false});
+function hitBox(w, h, d, x, y, z, data){
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), hitMat);
+  m.position.set(x, y, z); m.userData = data;
+  return m;
+}
+
+function woodTex(base, line, n = 8, vertical = false){
+  const t = canvasTex(512, 512, (x, w, h) => {
+    x.fillStyle = base; x.fillRect(0, 0, w, h);
+    const L = vertical ? w : h;
+    for (let i = 0; i < n; i++){
+      const p = i * L / n;
+      x.fillStyle = `rgba(0,0,0,${0.03 + prand(i) * 0.12})`;
+      vertical ? x.fillRect(p, 0, L / n, h) : x.fillRect(0, p, w, L / n);
+      x.fillStyle = line;
+      vertical ? x.fillRect(p, 0, 4, h) : x.fillRect(0, p, w, 4);
+    }
+    x.strokeStyle = 'rgba(0,0,0,.07)';
+    for (let k = 0; k < 70; k++){
+      x.lineWidth = 1 + prand(k + 99) * 2;
+      const o = prand(k) * L;
+      x.beginPath();
+      if (vertical){ x.moveTo(o, 0); x.bezierCurveTo(o + 12, h * .3, o - 12, h * .6, o + 6, h); }
+      else { x.moveTo(0, o); x.bezierCurveTo(w * .3, o + 12, w * .6, o - 12, w, o + 6); }
+      x.stroke();
+    }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+
+function init3D(){
+  renderer = new THREE.WebGLRenderer({canvas: $('scene'), antialias: true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x2a1a10);
+  scene.fog = new THREE.Fog(0x2a1a10, 22, 45);
+  camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  raycaster = new THREE.Raycaster();
+
+  W.hemi = new THREE.HemisphereLight(0xfff1dc, 0x4a3422, 0.75);
+  scene.add(W.hemi);
+  W.sun = new THREE.DirectionalLight(0xffe2b8, 0.85);
+  W.sun.position.set(-5, 14, 8);
+  W.sun.castShadow = true;
+  W.sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(W.sun.shadow.camera, {left: -14, right: 14, top: 12, bottom: -8, near: 1, far: 40});
+  W.sun.shadow.camera.updateProjectionMatrix();
+  W.sun.shadow.bias = -0.0008;
+  scene.add(W.sun);
+  const fill = new THREE.PointLight(0xffc98a, 0.5, 20);
+  fill.position.set(0, 5, 5);
+  scene.add(fill);
+
+  W.steamTex = canvasTex(64, 64, (x) => {
+    const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.5, 'rgba(255,255,255,.45)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+  });
+
+  buildRoom();
+  buildPrepStation();
+  onResize();
+  window.addEventListener('resize', onResize);
+}
+
+function onResize(){
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  const k = clamp(1.75 / camera.aspect, 1, 2.3);
+  for (const c of Object.values(CAMS)) c.pos.copy(c.look).add(c.base.clone().sub(c.look).multiplyScalar(k));
+  camera.updateProjectionMatrix();
+}
+
+// ---------------- 가게 ----------------
+function buildRoom(){
+  const floorTex = woodTex('#8a5a36', '#5e3b22', 10);
+  floorTex.repeat.set(6, 4);
+  const floor = mesh(new THREE.PlaneGeometry(50, 30), std(0xffffff, {map: floorTex, roughness: .85}), 0, 0, -3, false);
+  floor.rotation.x = -Math.PI / 2;
+  scene.add(floor);
+  const tileTex = canvasTex(256, 256, (x, w, h) => {
+    x.fillStyle = '#d9d2c3'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#c9c0ae'; x.fillRect(0, 0, w / 2, h / 2); x.fillRect(w / 2, h / 2, w / 2, h / 2);
+    x.strokeStyle = '#9d9483'; x.lineWidth = 4; x.strokeRect(0, 0, w, h); x.beginPath(); x.moveTo(w / 2, 0); x.lineTo(w / 2, h); x.moveTo(0, h / 2); x.lineTo(w, h / 2); x.stroke();
+  });
+  tileTex.wrapS = tileTex.wrapT = THREE.RepeatWrapping; tileTex.repeat.set(14, 5);
+  const tiles = mesh(new THREE.PlaneGeometry(40, 12), std(0xffffff, {map: tileTex, roughness: .5}), 0, 0.01, 5, false);
+  tiles.rotation.x = -Math.PI / 2;
+  scene.add(tiles);
+
+  const wallTex = woodTex('#e6cb98', '#c7a46e', 16, true);
+  wallTex.repeat.set(5, 1);
+  scene.add(mesh(new THREE.PlaneGeometry(40, 12), std(0xffffff, {map: wallTex, roughness: .9}), 0, 6, -5.6, false));
+  scene.add(mesh(new THREE.BoxGeometry(40, 2.2, .3), std(0x6b4226), 0, 1.1, -5.5, false));
+  scene.add(mesh(new THREE.BoxGeometry(40, .25, .4), std(0x4a2c18), 0, 2.25, -5.45, false));
+  for (const sx of [-1, 1]){
+    const side = mesh(new THREE.PlaneGeometry(14, 12), std(0xffffff, {map: wallTex, roughness: .9}), sx * 13, 6, 0, false);
+    side.rotation.y = -sx * Math.PI / 2;
+    scene.add(side);
+  }
+
+  W.menuTex = canvasTex(1024, 256, drawMenuBoard);
+  const bm = std(0x2a170b);
+  scene.add(mesh(new THREE.BoxGeometry(8.4, 2.1, .15), [bm, bm, bm, bm, new THREE.MeshStandardMaterial({map: W.menuTex, roughness: .8}), bm], 0, 4.6, -5.45));
+  W.signTex = canvasTex(1024, 256, drawSign);
+  const sm = std(0x7a1a10);
+  scene.add(mesh(new THREE.BoxGeometry(6.4, 1.6, .25), [sm, sm, sm, sm, new THREE.MeshStandardMaterial({map: W.signTex, emissive: 0x551008, emissiveIntensity: .35, roughness: .6}), sm], 0, 7.1, -5.35));
+
+  for (const sx of [-1, 1]){
+    const shelf = new THREE.Group();
+    shelf.position.set(sx * 8.4, 4.4, -5.25);
+    shelf.add(mesh(new THREE.BoxGeometry(3.4, .14, .7), std(0x5a3620)));
+    for (let k = 0; k < 5; k++){
+      const bx = -1.3 + k * .65;
+      const glass = std(k % 2 ? 0x2f8f4e : 0x3fa35f, {roughness: .15, metalness: .1, transparent: true, opacity: .88});
+      shelf.add(mesh(new THREE.CylinderGeometry(.17, .17, .7, 12), glass, bx, .42, 0));
+      shelf.add(mesh(new THREE.CylinderGeometry(.06, .15, .3, 12), glass, bx, .92, 0));
+      shelf.add(mesh(new THREE.CylinderGeometry(.065, .065, .08, 12), std(0x2a7a3a), bx, 1.1, 0));
+    }
+    scene.add(shelf);
+  }
+  const clockTex = canvasTex(256, 256, (x) => {
+    x.fillStyle = '#fffaf0'; x.beginPath(); x.arc(128, 128, 120, 0, Math.PI * 2); x.fill();
+    x.lineWidth = 12; x.strokeStyle = '#4a2c18'; x.stroke();
+    x.fillStyle = '#4a2c18';
+    for (let i = 0; i < 12; i++){ const a = i / 12 * Math.PI * 2; x.beginPath(); x.arc(128 + Math.sin(a) * 95, 128 - Math.cos(a) * 95, 8, 0, Math.PI * 2); x.fill(); }
+  });
+  const clock = mesh(new THREE.CylinderGeometry(.75, .75, .12, 32), [std(0x4a2c18), new THREE.MeshStandardMaterial({map: clockTex}), std(0x4a2c18)], 11.2, 6.2, -5.45);
+  clock.rotation.x = Math.PI / 2;
+  scene.add(clock);
+  W.clockHand = mesh(new THREE.BoxGeometry(.06, .55, .02), std(0x2a1a10), 0, 0, 0, false);
+  W.clockHand.geometry.translate(0, .25, 0);
+  W.clockHand.position.set(11.2, 6.2, -5.36);
+  scene.add(W.clockHand);
+
+  const onggiGeo = new THREE.LatheGeometry([[0, 0], [.55, 0], [.85, .5], [.95, 1.0], [.8, 1.55], [.5, 1.75], [.5, 1.85], [0, 1.85]].map(p => new THREE.Vector2(p[0], p[1])), 24);
+  [[-10.8, -4.3, 1], [-9.4, -4.6, .75], [10.4, -4.4, .9]].forEach(([x, z, s]) => {
+    const j = mesh(onggiGeo, std(0x5a3222, {roughness: .35}), x, 0, z);
+    j.scale.setScalar(s * 1.1);
+    scene.add(j);
+  });
+
+  W.lanterns = [];
+  for (const sx of [-1, 1]){
+    const pivot = new THREE.Group();
+    pivot.position.set(sx * 5.2, 9.5, -3.6);
+    pivot.add(mesh(new THREE.CylinderGeometry(.02, .02, 2.2, 6), std(0x222222), 0, -1.1, 0, false));
+    const lamp = new THREE.Group(); lamp.position.y = -2.9;
+    const body = mesh(new THREE.SphereGeometry(.6, 24, 16), new THREE.MeshStandardMaterial({color: 0xd8321f, emissive: 0xc0200e, emissiveIntensity: .9, roughness: .5}), 0, 0, 0, false);
+    body.scale.set(1, 1.3, 1);
+    lamp.add(body);
+    lamp.add(mesh(new THREE.CylinderGeometry(.35, .35, .15, 16), std(0x3a2a14), 0, .78, 0, false));
+    lamp.add(mesh(new THREE.CylinderGeometry(.35, .35, .15, 16), std(0x3a2a14), 0, -.78, 0, false));
+    lamp.add(mesh(new THREE.CylinderGeometry(.05, .18, .6, 8), std(0xd8321f), 0, -1.15, 0, false));
+    lamp.add(new THREE.PointLight(0xff8a4a, .7, 13));
+    pivot.add(lamp);
+    scene.add(pivot);
+    W.lanterns.push(pivot);
+  }
+
+  const counterTex = woodTex('#7a4a26', '#5a3218', 6, true);
+  counterTex.repeat.set(4, 1);
+  scene.add(mesh(new THREE.BoxGeometry(18, 1.2, 1.0), std(0xffffff, {map: counterTex}), 0, .6, -.7));
+  const topTex = woodTex('#b37a45', '#8a5a30', 4);
+  topTex.repeat.set(5, 1);
+  scene.add(mesh(new THREE.BoxGeometry(18.4, .12, 1.4), std(0xffffff, {map: topTex, roughness: .45}), 0, 1.26, -.7));
+
+  SEAT_X.forEach((x, i) => {
+    scene.add(mesh(new THREE.CylinderGeometry(.45, .4, .12, 20), std(0xb0302a), x, .95, SEAT_Z + .1));
+    scene.add(mesh(new THREE.CylinderGeometry(.08, .08, .9, 8), std(0x888888, {metalness: .6, roughness: .3}), x, .45, SEAT_Z + .1));
+    const plate = new THREE.Group(); plate.position.set(x + 1.05, COUNTER_TOP, -.6);
+    plate.add(mesh(new THREE.CylinderGeometry(.32, .26, .06, 20), std(0xf5f5f0, {roughness: .3}), 0, .03, 0));
+    for (let k = 0; k < 6; k++){
+      const cube = mesh(new THREE.BoxGeometry(.11, .11, .11), std(0xd9432e, {roughness: .5}), (prand(k * 3 + i) - .5) * .3, .11 + (k > 3 ? .09 : 0), (prand(k * 7 + i) - .5) * .3);
+      cube.rotation.set(prand(k) * 3, prand(k + 1) * 3, 0);
+      plate.add(cube);
+    }
+    scene.add(plate);
+    scene.add(mesh(new THREE.CylinderGeometry(.16, .13, .38, 16), std(0xcfd6dc, {metalness: .8, roughness: .25}), x - 1.05, COUNTER_TOP + .19, -.55));
+    const hit = hitBox(2.4, 3.4, 1.6, x, 2.6, SEAT_Z, {kind: 'seat', i});
+    scene.add(hit);
+    W.seatHits.push(hit);
+  });
+
+  scene.add(mesh(new THREE.BoxGeometry(10, TABLE_TOP, 2.2), std(0xa9b2b8, {metalness: .55, roughness: .35}), STOVE_X, TABLE_TOP / 2, TABLE_Z));
+  scene.add(mesh(new THREE.BoxGeometry(10.1, .06, 2.3), std(0xc4ccd1, {metalness: .6, roughness: .25}), STOVE_X, TABLE_TOP, TABLE_Z));
+  const prepTex = woodTex('#c8955e', '#a06f3e', 5);
+  scene.add(mesh(new THREE.BoxGeometry(4.6, TABLE_TOP, 2.2), std(0x8a5a36), PREP_X, TABLE_TOP / 2, TABLE_Z));
+  scene.add(mesh(new THREE.BoxGeometry(4.7, .08, 2.3), std(0xffffff, {map: prepTex, roughness: .6}), PREP_X, TABLE_TOP, TABLE_Z));
+
+  TOPPINGS.forEach((t, k) => {
+    const g = new THREE.Group();
+    g.position.set(PREP_X - 1.84 + k * .92, TABLE_TOP + .04, TABLE_Z - .78);
+    g.add(mesh(new THREE.CylinderGeometry(.36, .3, .3, 20, 1, true), std(0xd8dde0, {metalness: .7, roughness: .25, side: THREE.DoubleSide}), 0, .15, 0));
+    g.add(mesh(new THREE.CylinderGeometry(.3, .3, .02, 20), std(0x9aa0a4, {metalness: .6}), 0, .01, 0));
+    const fill = new THREE.Group(); fill.position.y = .22;
+    fill.add(makeToppingPile(t.id));
+    g.add(fill);
+    const lid = mesh(new THREE.CylinderGeometry(.38, .38, .05, 20), std(0x6a6a6a, {metalness: .5}), 0, .32, 0);
+    g.add(lid);
+    const hit = hitBox(.9, .8, .8, 0, .3, 0, {kind: 'top', id: t.id});
+    g.add(hit);
+    scene.add(g);
+    W.bins.push({g, lid, fill, id: t.id});
+    W.binHits.push(hit);
+  });
+}
+
+function drawMenuBoard(x, w, h){
+  x.fillStyle = '#3a2414'; x.fillRect(0, 0, w, h);
+  x.strokeStyle = '#c9935c'; x.lineWidth = 10; x.strokeRect(12, 12, w - 24, h - 24);
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillStyle = '#f2b632'; x.font = '64px Jua, "Malgun Gothic", sans-serif';
+  x.fillText('차림표', 130, h / 2);
+  SOUPS.forEach((s, i) => {
+    const cx = 380 + i * 235;
+    x.fillStyle = '#fff3dc'; x.font = '42px Jua, "Malgun Gothic", sans-serif';
+    x.fillText(s.name, cx, h / 2 - 32);
+    x.fillStyle = '#f2b632'; x.font = '38px Jua, "Malgun Gothic", sans-serif';
+    x.fillText(s.price.toLocaleString() + '원', cx, h / 2 + 38);
+  });
+}
+function drawSign(x, w, h){
+  const name = G ? G.name : '국밥 타이쿤';
+  const g = x.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#d8321f'); g.addColorStop(1, '#a51f12');
+  x.fillStyle = g; x.fillRect(0, 0, w, h);
+  x.strokeStyle = '#fff3dc'; x.lineWidth = 12; x.strokeRect(16, 16, w - 32, h - 32);
+  x.fillStyle = '#fff3dc'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.font = '120px Jua, "Malgun Gothic", sans-serif';
+  x.fillText(name, w / 2, h / 2 + 8);
+}
+
+// ---------------- 뚝배기 & 국밥 ----------------
+function ttukGeo(r, h){
+  const pts = [[0, 0], [r * .6, 0], [r * .8, h * .12], [r * .95, h * .45], [r, h * .85], [r * .98, h], [r * .88, h], [r * .86, h * .85], [r * .78, h * .4], [0, h * .3]];
+  return new THREE.LatheGeometry(pts.map(p => new THREE.Vector2(p[0], p[1])), 32);
+}
+function makeSprout(len = .35){
+  const g = new THREE.Group();
+  g.add(mesh(geo('sprStem' + len, () => { const q = new THREE.CylinderGeometry(.014, .012, len, 5); q.translate(0, len / 2, 0); return q; }), std(0xf4efd6, {roughness: .5}), 0, 0, 0, false));
+  g.add(mesh(geo('sprHead', () => new THREE.SphereGeometry(.032, 8, 6)), std(0xf0cf45, {roughness: .5}), 0, len, 0, false));
+  return g;
+}
+function makeFlames(r = .42, n = 10, h = .3){
+  const flames = new THREE.Group();
+  const fmat = new THREE.MeshBasicMaterial({color: 0xff8a1e, transparent: true, opacity: .9});
+  const bmat = new THREE.MeshBasicMaterial({color: 0x3aa0ff, transparent: true, opacity: .9});
+  for (let k = 0; k < n; k++){
+    const a = k / n * Math.PI * 2;
+    const f = new THREE.Mesh(geo('flame' + h, () => { const q = new THREE.ConeGeometry(.07, h, 6); q.translate(0, h / 2, 0); return q; }), k % 2 ? fmat : bmat);
+    f.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+    flames.add(f);
+  }
+  return flames;
+}
+
+function makeToppingPile(id, R = .3){
+  const g = new THREE.Group();
+  if (id === 'dadaegi'){
+    const m = mesh(new THREE.SphereGeometry(R * .7, 16, 10), std(0xc4221a, {roughness: .6}), 0, 0, 0, false);
+    m.scale.y = .45; g.add(m);
+  } else if (id === 'buchu'){
+    for (let k = 0; k < 9; k++){
+      const m = mesh(geo('buchu', () => new THREE.CylinderGeometry(.022, .022, 1, 5)), std(0x3f9a3a), (prand(k) - .5) * R * 1.2, .03, (prand(k + 5) - .5) * R * 1.2, false);
+      m.scale.y = R * 1.9; m.rotation.z = Math.PI / 2; m.rotation.y = prand(k + 9) * Math.PI;
+      g.add(m);
+    }
+  } else if (id === 'saeu'){
+    for (let k = 0; k < 8; k++) g.add(mesh(geo('saeu', () => new THREE.SphereGeometry(.045, 8, 6)), std(0xf4a38a, {roughness: .4}), (prand(k) - .5) * R * 1.2, .02 + prand(k + 3) * .04, (prand(k + 7) - .5) * R * 1.2, false));
+  } else if (id === 'deulkkae'){
+    for (let k = 0; k < 22; k++) g.add(mesh(geo('kkae', () => new THREE.SphereGeometry(.025, 6, 4)), std(0xd8c29a), (prand(k) - .5) * R * 1.6, .02, (prand(k + 11) - .5) * R * 1.6, false));
+  }
+  return g;
+}
+
+function makeContents(soupId, tops, R, burnt){
+  const g = new THREE.Group();
+  const s = soupById(soupId);
+  const broth = mesh(new THREE.CircleGeometry(R, 28), std(burnt ? 0x1a1410 : s.broth, {roughness: .2}), 0, 0, 0, false);
+  broth.rotation.x = -Math.PI / 2;
+  g.add(broth);
+  if (burnt) return g;
+  // 모든 국밥은 밥이 말아져 나가요
+  const rice = mesh(geo('riceMound', () => new THREE.SphereGeometry(1, 16, 10)), std(0xfafaf2, {roughness: .9}), -.05 * R, 0, .05 * R, false);
+  rice.scale.set(R * .42, R * .16, R * .42);
+  g.add(rice);
+  if (soupId === 'bone'){
+    for (let k = 0; k < 3; k++){
+      const b = makeBonePiece(true);
+      tintGroup(b, k === 1 ? 0xb07a52 : 0xc9946a);
+      b.scale.setScalar(R * 1.1);
+      const a = k / 3 * Math.PI * 2 + .3;
+      b.position.set(Math.cos(a) * R * .5, .06, Math.sin(a) * R * .5);
+      b.rotation.set(.3, a, .2);
+      g.add(b);
+    }
+    for (let k = 0; k < 5; k++){
+      const leaf = mesh(geo('ugeoji', () => new THREE.BoxGeometry(.08, .02, .3)), std(0x5f6e2e), (prand(k + 60) - .5) * R * 1.2, .05, (prand(k + 65) - .5) * R * 1.2, false);
+      leaf.rotation.y = prand(k + 70) * 3;
+      g.add(leaf);
+    }
+  } else if (soupId === 'pork'){
+    for (let k = 0; k < 5; k++){
+      const a = k / 5 * Math.PI * 2 + .5;
+      const m = mesh(new THREE.BoxGeometry(R * .42, .035, R * .26), std(0xf2d6bd, {roughness: .6}), Math.cos(a) * R * .45, .02 + k * .006, Math.sin(a) * R * .45, false);
+      m.rotation.y = -a + .3;
+      g.add(m);
+    }
+  } else {
+    for (let k = 0; k < 16; k++){
+      const sp = makeSprout(R * .7);
+      sp.rotation.z = Math.PI / 2; sp.rotation.y = prand(k + 70) * Math.PI * 2;
+      sp.position.set((prand(k + 80) - .5) * R * 1.1, .03 + k * .003, (prand(k + 90) - .5) * R * 1.1);
+      g.add(sp);
+    }
+  }
+  for (let k = 0; k < 6; k++){
+    const pa = mesh(geo('pa', () => new THREE.TorusGeometry(.035, .012, 4, 8)), std(0x7cc35a), (prand(k + 40) - .5) * R * 1.3, .06, (prand(k + 50) - .5) * R * 1.3, false);
+    pa.rotation.x = Math.PI / 2;
+    g.add(pa);
+  }
+  const spots = {dadaegi: [0, .08, 0], buchu: [-.45, .07, .25], saeu: [.45, .07, .3], deulkkae: [0, .1, 0]};
+  tops.forEach(t => {
+    const p = makeToppingPile(t, R * .55);
+    const sp = spots[t];
+    p.position.set(sp[0] * R, sp[1], sp[2] * R);
+    g.add(p);
+  });
+  return g;
+}
+
+function makeBowl(soupId, tops, r = .6){
+  const g = new THREE.Group();
+  const h = r * .9;
+  g.add(mesh(new THREE.CylinderGeometry(r * 1.15, r * 1.05, .06, 24), std(0x7a4a26), 0, .03, 0));
+  g.add(mesh(ttukGeo(r, h), std(0x3a2a22, {roughness: .45, side: THREE.DoubleSide}), 0, .06, 0));
+  const c = makeContents(soupId, tops, r * .84, false);
+  c.position.y = .06 + h * .82;
+  g.add(c);
+  return g;
+}
+
+// ---------------- 새벽 준비 공간 ----------------
+function makeStockPot(x, brothColor){
+  const potG = new THREE.Group(); potG.position.set(x, TABLE_TOP + .03, TABLE_Z - .1);
+  potG.add(mesh(new THREE.CylinderGeometry(1.1, 1.15, .14, 24), std(0x2a2a2a, {metalness: .5}), 0, .07, 0));
+  const flames = makeFlames(.7, 16, .38); flames.position.y = .12; potG.add(flames);
+  const pot = new THREE.Group(); pot.position.y = .2; potG.add(pot);
+  const steel = std(0xc9d0d5, {metalness: .3, roughness: .3, side: THREE.DoubleSide});
+  pot.add(mesh(new THREE.CylinderGeometry(1.05, 1.0, 1.4, 32, 1, true), steel, 0, .7, 0));
+  pot.add(mesh(new THREE.CylinderGeometry(1.0, 1.0, .04, 32), steel, 0, .02, 0));
+  pot.add(mesh(new THREE.TorusGeometry(1.05, .05, 8, 32), steel, 0, 1.4, 0).rotateX(Math.PI / 2));
+  pot.add(mesh(new THREE.BoxGeometry(.25, .12, .5), steel, -1.15, 1.15, 0), mesh(new THREE.BoxGeometry(.25, .12, .5), steel, 1.15, 1.15, 0));
+  const broth = mesh(new THREE.CircleGeometry(1.0, 32), new THREE.MeshStandardMaterial({color: brothColor, roughness: .2}), 0, .6, 0, false);
+  broth.rotation.x = -Math.PI / 2; pot.add(broth);
+  const bubbles = [];
+  for (let k = 0; k < 10; k++){
+    const b = mesh(geo('bubble2', () => new THREE.SphereGeometry(.09, 8, 6)), std(0xffffff, {transparent: true, opacity: .7, roughness: .1}), 0, 0, 0, false);
+    broth.add(b); bubbles.push(b);
+  }
+  return {potG, flames, pot, broth, bubbles, steamT: 0};
+}
+
+function makeBonePiece(spine){
+  const b = new THREE.Group();
+  if (spine){
+    b.add(mesh(geo('vert', () => new THREE.BoxGeometry(.34, .22, .3)), std(0xffffff), 0, 0, 0));
+    b.add(mesh(geo('vspike', () => new THREE.ConeGeometry(.08, .3, 6)), std(0xffffff), 0, .22, 0));
+    b.add(mesh(geo('vmeat', () => new THREE.SphereGeometry(.15, 10, 8)), std(0xffffff), .12, -.05, .1));
+  } else {
+    b.add(mesh(geo('bshaft', () => new THREE.CylinderGeometry(.07, .07, .7, 8)), std(0xffffff), 0, 0, 0));
+    const endGeo = geo('bend', () => new THREE.SphereGeometry(.13, 10, 8));
+    b.add(mesh(endGeo, std(0xffffff), 0, .35, 0), mesh(endGeo, std(0xffffff), 0, -.35, 0));
+  }
+  return b;
+}
+function tintGroup(grp, color){
+  if (grp.userData.tint === color) return;
+  grp.userData.tint = color;
+  const m = std(color, {roughness: .55});
+  grp.children.forEach(ch => { ch.material = m; });
+}
+function makeBoneCrate(x, z, spine){
+  const g = new THREE.Group(); g.position.set(x, TABLE_TOP + .04, z);
+  g.add(mesh(new THREE.BoxGeometry(1.4, .28, .95), std(0x9a6a3a), 0, .14, 0));
+  const items = [];
+  for (let k = 0; k < 4; k++){
+    const b = makeBonePiece(spine);
+    if (spine){ b.position.set(-.45 + k * .3, .42 + (k % 2) * .06, (k % 2 - .5) * .3); b.rotation.set(0, k * .9, (k % 2 - .5) * .5); }
+    else { b.rotation.set(Math.PI / 2, 0, k * .8); b.position.set(-.45 + k * .3, .38 + (k % 2) * .08, (k % 2 - .5) * .3); }
+    g.add(b); items.push(b);
+  }
+  return {g, items};
+}
+function sproutPile(parent, n, seed, spread = .7, height = .2){
+  const list = [];
+  for (let k = 0; k < n; k++){
+    const sp = makeSprout(.34);
+    sp.position.set((prand(k + seed) - .5) * spread, .05 + prand(k + seed + 10) * height, (prand(k + seed + 20) - .5) * spread);
+    sp.rotation.set((prand(k + seed + 30) - .5) * 2.6, prand(k + seed + 40) * 6, (prand(k + seed + 50) - .5) * 2.6);
+    parent.add(sp); list.push(sp);
+  }
+  return list;
+}
+
+function buildPrepStation(){
+  const P = W.prep = {labels: {}, chopT: 0, fridgeT: 0, washT: 0, washKind: null, hits: [], hov: {}, fridgeOpen: 0};
+  const g = P.g = new THREE.Group(); g.visible = false; scene.add(g);
+  const top = TABLE_TOP + .04;
+  const steel = std(0xc9d0d5, {metalness: .3, roughness: .3, side: THREE.DoubleSide});
+  const sliceGeo = geo('slice', () => new THREE.BoxGeometry(.34, .04, .22));
+
+  // 도마 + 돼지고기 + 식칼
+  const bx = PREP_X - 1.1, bz = TABLE_Z + .3;
+  P.board = new THREE.Group(); P.board.position.set(bx, top, bz); g.add(P.board);
+  P.board.add(mesh(new THREE.BoxGeometry(2.3, .14, 1.3), std(0xe3b77f, {roughness: .75}), 0, .07, 0));
+  P.block = new THREE.Group(); P.block.position.set(-1.0, .14, 0); P.board.add(P.block);
+  P.block.add(mesh(new THREE.BoxGeometry(1.2, .36, .7), std(0xd8736a, {roughness: .5}), .6, .18, 0));
+  P.block.add(mesh(new THREE.BoxGeometry(1.2, .12, .7), std(0xf6e6da, {roughness: .5}), .6, .42, 0));
+  P.block.add(mesh(new THREE.BoxGeometry(1.21, .04, .71), std(0xf6e6da), .6, .16, 0));
+  P.spare = [];
+  for (let k = 0; k < 3; k++){
+    const sb = new THREE.Group(); sb.position.set(PREP_X - 2.0, top + .2 + k * .47, TABLE_Z - .75);
+    sb.add(mesh(new THREE.BoxGeometry(.9, .36, .5), std(0xd8736a, {roughness: .5}), 0, 0, 0));
+    sb.add(mesh(new THREE.BoxGeometry(.9, .1, .5), std(0xf6e6da), 0, .23, 0));
+    g.add(sb); P.spare.push(sb);
+  }
+  P.knife = new THREE.Group(); P.knife.position.set(.3, .44, .75); P.board.add(P.knife);
+  P.knife.add(mesh(new THREE.BoxGeometry(.03, .32, 1.0), std(0xdfe6ea, {metalness: .6, roughness: .2}), 0, 0, -.85));
+  P.knife.add(mesh(new THREE.BoxGeometry(.08, .12, .45), std(0x3a2414), 0, .05, -.12));
+  // 썬 고기 접시 (아직 냉장고에 안 넣은 것)
+  P.plate = new THREE.Group(); P.plate.position.set(PREP_X + .55, top, TABLE_Z + .85); g.add(P.plate);
+  P.plate.add(mesh(new THREE.CylinderGeometry(.55, .45, .06, 24), std(0xf7f7f2, {roughness: .3}), 0, .03, 0));
+  P.slices = [];
+  for (let k = 0; k < 16; k++){
+    const a = k * 2.4;
+    const sl = mesh(sliceGeo, std(0xe99a8a, {roughness: .5}), Math.cos(a) * .22 * (k % 3 ? 1 : .3), .08 + k * .025, Math.sin(a) * .22 * (k % 3 ? 1 : .3), false);
+    sl.rotation.y = a; P.plate.add(sl); P.slices.push(sl);
+  }
+
+  // 냉장고 (항상 보이는 가구)
+  const F = P.fridge = new THREE.Group(); F.position.set(8.75, 0, 1.9); scene.add(F);
+  const white = std(0xe9eef1, {roughness: .35});
+  F.add(mesh(new THREE.BoxGeometry(1.6, 3.4, .06), white, 0, 1.7, -.57));
+  F.add(mesh(new THREE.BoxGeometry(.06, 3.4, 1.2), white, -.77, 1.7, 0), mesh(new THREE.BoxGeometry(.06, 3.4, 1.2), white, .77, 1.7, 0));
+  F.add(mesh(new THREE.BoxGeometry(1.6, .06, 1.2), white, 0, 3.37, 0), mesh(new THREE.BoxGeometry(1.6, .12, 1.2), white, 0, .06, 0));
+  F.add(mesh(new THREE.BoxGeometry(1.46, 3.2, .02), new THREE.MeshStandardMaterial({color: 0xdff4ff, emissive: 0x9fd8ff, emissiveIntensity: .35}), 0, 1.7, -.52, false));
+  P.fridgeSlices = [];
+  [1.0, 1.85, 2.7].forEach(y => {
+    F.add(mesh(new THREE.BoxGeometry(1.46, .04, 1.05), std(0xbfe3f0, {transparent: true, opacity: .7}), 0, y, 0, false));
+    for (let k = 0; k < 6; k++){
+      const sl = mesh(sliceGeo, std(0xe99a8a, {roughness: .5}), -.55 + k * .22, y + .05, k % 2 ? .1 : -.1, false);
+      sl.rotation.y = Math.PI / 2; F.add(sl); P.fridgeSlices.push(sl);
+    }
+  });
+  P.door = new THREE.Group(); P.door.position.set(-.8, 0, .6); F.add(P.door);
+  P.door.add(mesh(new THREE.BoxGeometry(1.6, 3.4, .1), white, .8, 1.7, .05));
+  P.door.add(mesh(new THREE.BoxGeometry(.07, 1.1, .1), std(0x8a9aa4, {metalness: .4}), 1.45, 1.9, .14));
+  P.door.add(mesh(new THREE.BoxGeometry(1.4, .04, .02), std(0xc9d5dc), .8, 2.3, .11));
+
+  // 싱크대
+  P.sink = new THREE.Group(); P.sink.position.set(STOVE_X - 3.8, top, TABLE_Z); g.add(P.sink);
+  const wall = (w, h, d, x, y, z) => P.sink.add(mesh(new THREE.BoxGeometry(w, h, d), steel, x, y, z));
+  wall(1.9, .05, 1.5, 0, .025, 0); wall(1.9, .45, .06, 0, .225, -.72); wall(1.9, .45, .06, 0, .225, .72); wall(.06, .45, 1.5, -.92, .225, 0); wall(.06, .45, 1.5, .92, .225, 0);
+  const water = mesh(new THREE.PlaneGeometry(1.78, 1.38), new THREE.MeshStandardMaterial({color: 0x7ec8f0, transparent: true, opacity: .55, roughness: .1}), 0, .28, 0, false);
+  water.rotation.x = -Math.PI / 2; P.sink.add(water);
+  P.sink.add(mesh(new THREE.CylinderGeometry(.05, .05, .9, 10), steel, 0, .9, -.85));
+  P.sink.add(mesh(new THREE.BoxGeometry(.08, .08, .55), steel, 0, 1.33, -.6));
+  P.stream = mesh(new THREE.CylinderGeometry(.03, .03, 1.0, 8), new THREE.MeshBasicMaterial({color: 0xaee3ff, transparent: true, opacity: .7}), 0, .82, -.36, false);
+  P.sink.add(P.stream);
+  P.sinkItems = {kong: new THREE.Group(), bones: makeBonePiece(false), spine: makeBonePiece(true)};
+  sproutPile(P.sinkItems.kong, 14, 500, .6, .1);
+  tintGroup(P.sinkItems.bones, 0xefe6d2); tintGroup(P.sinkItems.spine, 0xe0bfa6);
+  P.sinkItems.bones.rotation.set(Math.PI / 2, 0, .6);
+  for (const it of Object.values(P.sinkItems)){ it.position.set(0, .32, .1); P.sink.add(it); }
+
+  // 콩나물: 바구니(안 씻음) → 소쿠리(씻음) → 볼(다듬음)
+  P.basket = new THREE.Group(); P.basket.position.set(PREP_X + 1.7, top, TABLE_Z - .6); g.add(P.basket);
+  P.basket.add(mesh(new THREE.CylinderGeometry(.6, .45, .45, 20, 1, true), std(0xb07a3e, {roughness: .9, side: THREE.DoubleSide}), 0, .225, 0));
+  P.basket.add(mesh(new THREE.CylinderGeometry(.45, .45, .03, 20), std(0x8a5a2b), 0, .02, 0));
+  P.rawSprouts = sproutPile(P.basket, 40, 200);
+  P.colander = new THREE.Group(); P.colander.position.set(PREP_X + .55, top, TABLE_Z - .6); g.add(P.colander);
+  P.colander.add(mesh(new THREE.LatheGeometry([[0, 0], [.3, 0], [.48, .14], [.52, .34], [.48, .34], [.42, .15], [.26, .04], [0, .04]].map(p => new THREE.Vector2(p[0], p[1])), 24), std(0x4caf50, {roughness: .6, side: THREE.DoubleSide})));
+  P.washedSprouts = sproutPile(P.colander, 40, 400, .6);
+  P.bowl = new THREE.Group(); P.bowl.position.set(PREP_X + 1.7, top, TABLE_Z + .7); g.add(P.bowl);
+  P.bowl.add(mesh(new THREE.LatheGeometry([[0, 0], [.35, 0], [.55, .15], [.62, .38], [.58, .38], [.5, .16], [.3, .04], [0, .04]].map(p => new THREE.Vector2(p[0], p[1])), 28), std(0xd8dde0, {metalness: .3, roughness: .3, side: THREE.DoubleSide})));
+  P.cleanSprouts = sproutPile(P.bowl, 40, 300, .7, .22);
+
+  // 육수솥 두 개 + 뼈 상자 두 개
+  P.clear = makeStockPot(STOVE_X - 1.1, 0xe9dcc0); g.add(P.clear.potG);
+  P.spicyPot = makeStockPot(STOVE_X + 1.6, 0xc0392b); g.add(P.spicyPot.potG);
+  P.bonesCrate = makeBoneCrate(STOVE_X + 3.95, TABLE_Z - .6, false); g.add(P.bonesCrate.g);
+  P.spineCrate = makeBoneCrate(STOVE_X + 3.95, TABLE_Z + .6, true); g.add(P.spineCrate.g);
+
+  // 클릭 영역
+  const H = (w, h, d, x, y, z, id) => { const m = hitBox(w, h, d, x, y, z, {kind: 'prep', id}); g.add(m); P.hits.push(m); };
+  H(2.4, 1.2, 1.4, bx, top + .5, bz, 'chop');
+  H(1.2, 1.0, 1.2, P.plate.position.x, top + .4, P.plate.position.z, 'fridge');
+  H(1.9, 3.8, 1.8, 8.75, 1.8, 2.0, 'fridge');
+  H(1.3, 1.2, 1.2, P.basket.position.x, top + .5, P.basket.position.z, 'washKong');
+  H(1.1, 1.0, 1.1, P.colander.position.x, top + .4, P.colander.position.z, 'trim');
+  H(1.3, 1.0, 1.3, P.bowl.position.x, top + .4, P.bowl.position.z, 'trim');
+  H(2.1, 1.6, 1.8, P.sink.position.x, top + .6, TABLE_Z, 'sink');
+  H(2.3, 2.4, 2.3, P.clear.potG.position.x, top + 1, TABLE_Z - .1, 'boil');
+  H(2.3, 2.4, 2.3, P.spicyPot.potG.position.x, top + 1, TABLE_Z - .1, 'spicy');
+  H(1.5, .9, 1.1, P.bonesCrate.g.position.x, top + .4, P.bonesCrate.g.position.z, 'washBones');
+  H(1.5, .9, 1.1, P.spineCrate.g.position.x, top + .4, P.spineCrate.g.position.z, 'washSpine');
+  P.hoverObjs = {chop: [P.board], fridge: [P.fridge, P.plate], washKong: [P.basket], trim: [P.colander, P.bowl], sink: [P.sink], boil: [P.clear.pot], spicy: [P.spicyPot.pot], washBones: [P.bonesCrate.g], washSpine: [P.spineCrate.g]};
+
+  for (const id of ['chop', 'fridge', 'sink', 'trim', 'boil', 'spicy']){
+    const el = document.createElement('div'); el.className = 'plabel prep'; el.hidden = true;
+    $('labels').appendChild(el); P.labels[id] = el;
+  }
+}
+
+// ---------------- 손님 모델 ----------------
+const LOOKS = {
+  worker:   {skin: 0xffd9b3, shirt: 0x2f3d5c, pants: 0x22283a},
+  grandpa:  {skin: 0xf2c9a0, shirt: 0x7a5b3a, pants: 0x555555},
+  student:  {skin: 0xffdcb8, shirt: 0x4f9d69, pants: 0x3a4a6a},
+  hangover: {skin: 0xdfe6b8, shirt: 0xe6e6e6, pants: 0x333333},
+  grandma:  {skin: 0xf5cfa8, shirt: 0x8e5b9a, pants: 0x5a4a6a},
+  youtuber: {skin: 0xffe0c0, shirt: 0xff7eb3, pants: 0x2d2d4d},
+};
+const faceCache = {};
+function faceTex(kind, mood){
+  const key = kind + '|' + mood;
+  if (faceCache[key]) return faceCache[key];
+  const t = canvasTex(256, 256, (x) => {
+    x.lineCap = 'round'; x.lineJoin = 'round';
+    const ink = '#2a1a10';
+    const dot = (cx, cy, r, c) => { x.fillStyle = c; x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); };
+    const line = (pts, w = 10, c = ink) => { x.strokeStyle = c; x.lineWidth = w; x.beginPath(); x.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) x.lineTo(pts[i], pts[i + 1]); x.stroke(); };
+    const arc = (cx, cy, r, a0, a1, w = 10, c = ink) => { x.strokeStyle = c; x.lineWidth = w; x.beginPath(); x.arc(cx, cy, r, a0, a1); x.stroke(); };
+    dot(62, 165, 24, 'rgba(255,110,110,.35)');
+    dot(194, 165, 24, 'rgba(255,110,110,.35)');
+    const eyes = () => { dot(88, 128, 14, ink); dot(168, 128, 14, ink); dot(93, 122, 5, '#fff'); dot(173, 122, 5, '#fff'); };
+    if (mood === 'happy'){ arc(88, 138, 20, Math.PI * 1.15, Math.PI * 1.85, 11); arc(168, 138, 20, Math.PI * 1.15, Math.PI * 1.85, 11); }
+    else if (mood === 'worried'){ eyes(); line([60, 104, 110, 88], 9); line([196, 104, 146, 88], 9); x.fillStyle = '#6ec6ff'; x.beginPath(); x.moveTo(218, 60); x.quadraticCurveTo(236, 96, 218, 100); x.quadraticCurveTo(200, 96, 218, 60); x.fill(); }
+    else if (mood === 'sick'){ for (const cx of [88, 168]){ x.strokeStyle = ink; x.lineWidth = 5; x.beginPath(); for (let a = 0; a < 14; a += .3){ const r = a * 1.3; x.lineTo(cx + Math.cos(a) * r, 128 + Math.sin(a) * r); } x.stroke(); } }
+    else if (mood === 'meh' || mood === 'annoyed'){ line([70, 130, 106, 130], 10); line([150, 130, 186, 130], 10); if (mood === 'annoyed'){ line([62, 108, 110, 116], 8); line([194, 108, 146, 116], 8); } }
+    else eyes();
+    if (kind === 'grandpa'){ arc(88, 128, 30, 0, Math.PI * 2, 6, '#333'); arc(168, 128, 30, 0, Math.PI * 2, 6, '#333'); line([118, 128, 138, 128], 6, '#333'); x.fillStyle = '#d8d8d8'; x.beginPath(); x.ellipse(128, 168, 40, 13, 0, 0, Math.PI * 2); x.fill(); }
+    if (mood === 'happy'){ x.fillStyle = '#8a1f1f'; x.beginPath(); x.arc(128, 178, 32, 0, Math.PI); x.closePath(); x.fill(); dot(128, 198, 12, '#ff7b7b'); }
+    else if (mood === 'annoyed') arc(128, 215, 22, Math.PI * 1.25, Math.PI * 1.75, 9);
+    else if (mood === 'worried') arc(128, 222, 26, Math.PI * 1.2, Math.PI * 1.8, 9);
+    else if (mood === 'sick'){ x.strokeStyle = ink; x.lineWidth = 8; x.beginPath(); x.moveTo(100, 195); x.quadraticCurveTo(114, 183, 128, 195); x.quadraticCurveTo(142, 207, 156, 195); x.stroke(); }
+    else if (mood === 'meh') line([108, 195, 148, 195], 9);
+    else if (kind !== 'grandpa') arc(128, 170, 24, Math.PI * .15, Math.PI * .85, 9);
+    else arc(128, 185, 16, Math.PI * .2, Math.PI * .8, 7);
+  });
+  faceCache[key] = t;
+  return t;
+}
+
+function makeCustomer(type){
+  const L = LOOKS[type.id];
+  const g = new THREE.Group();
+  const skinMat = new THREE.MeshStandardMaterial({color: L.skin, roughness: .6});
+  const shirt = std(L.shirt), pants = std(L.pants);
+  const P = {skinMat};
+
+  const legGeo = geo('leg', () => { const q = new THREE.CylinderGeometry(.15, .13, 1.0, 10); q.translate(0, -.5, 0); return q; });
+  P.legL = mesh(legGeo, pants, -.24, 1.0, 0); P.legR = mesh(legGeo, pants, .24, 1.0, 0);
+  g.add(P.legL, P.legR);
+  g.add(mesh(new THREE.CylinderGeometry(.5, .62, 1.35, 20), shirt, 0, 1.65, 0));
+  const sh = mesh(new THREE.SphereGeometry(.52, 20, 12), shirt, 0, 2.28, 0); sh.scale.set(1.15, .45, 1); g.add(sh);
+  const armGeo = geo('arm', () => { const q = new THREE.CylinderGeometry(.13, .11, .9, 10); q.translate(0, -.45, 0); return q; });
+  P.armL = new THREE.Group(); P.armL.position.set(-.66, 2.25, 0);
+  P.armR = new THREE.Group(); P.armR.position.set(.66, 2.25, 0);
+  for (const arm of [P.armL, P.armR]){
+    arm.add(mesh(armGeo, shirt));
+    arm.add(mesh(geo('hand', () => new THREE.SphereGeometry(.13, 10, 8)), skinMat, 0, -.95, 0));
+    g.add(arm);
+  }
+  P.armL.rotation.z = -.15; P.armR.rotation.z = .15;
+
+  const head = new THREE.Group(); head.position.y = 2.95;
+  head.add(mesh(new THREE.SphereGeometry(.62, 32, 24), skinMat));
+  const earGeo = geo('ear', () => new THREE.SphereGeometry(.12, 10, 8));
+  head.add(mesh(earGeo, skinMat, -.61, 0, 0), mesh(earGeo, skinMat, .61, 0, 0));
+  const faceMat = new THREE.MeshStandardMaterial({map: faceTex(type.id, type.id === 'hangover' ? 'sick' : 'normal'), transparent: true, depthWrite: false, roughness: .8});
+  const face = new THREE.Mesh(geo('face', () => new THREE.SphereGeometry(.628, 32, 16, Math.PI / 2 - .85, 1.7, Math.PI / 2 - .8, 1.55)), faceMat);
+  head.add(face);
+  head.rotation.x = -.18;
+  P.head = head; P.face = face; P.mood = '';
+  g.add(head);
+
+  const hair = (color, cut = 1.15) => mesh(new THREE.SphereGeometry(.66, 24, 12, 0, Math.PI * 2, 0, cut), std(color, {roughness: .8}), 0, .04, -.03);
+  switch (type.id){
+    case 'worker':
+      head.add(hair(0x2b2118));
+      g.add(mesh(new THREE.BoxGeometry(.16, .7, .06), std(0xc62d1f), 0, 1.95, .56));
+      g.add(mesh(new THREE.BoxGeometry(.5, .16, .1), std(0xffffff), 0, 2.33, .42));
+      break;
+    case 'grandpa': {
+      head.add(mesh(new THREE.CylinderGeometry(.6, .66, .26, 24), std(0xbfa37a), 0, .5, -.02));
+      const brim = mesh(new THREE.BoxGeometry(.7, .05, .45), std(0xa88c62), 0, .4, .55); brim.rotation.x = .2; head.add(brim);
+      break;
+    }
+    case 'student':
+      head.add(hair(0x3a2616));
+      head.add(mesh(new THREE.TorusGeometry(.68, .06, 8, 24, Math.PI), std(0x222222), 0, .05, 0));
+      head.add(mesh(new THREE.CylinderGeometry(.2, .2, .16, 16), std(0x333333), -.7, 0, 0).rotateZ(Math.PI / 2));
+      head.add(mesh(new THREE.CylinderGeometry(.2, .2, .16, 16), std(0x333333), .7, 0, 0).rotateZ(Math.PI / 2));
+      g.add(mesh(new THREE.BoxGeometry(.8, .9, .35), std(0xe0a030), 0, 1.75, -.7));
+      break;
+    case 'hangover':
+      head.add(hair(0x5a3b24, 1.0));
+      for (let k = 0; k < 6; k++){
+        const sp = mesh(geo('spike', () => new THREE.ConeGeometry(.14, .4, 6)), std(0x5a3b24), (prand(k) - .5) * .8, .55, (prand(k + 3) - .5) * .6);
+        sp.rotation.set((prand(k + 1) - .5) * 1.2, 0, (prand(k + 2) - .5) * 1.2); head.add(sp);
+      }
+      { const tie = mesh(new THREE.BoxGeometry(.16, .6, .06), std(0x3a6fd8), .12, 1.95, .56); tie.rotation.z = .35; g.add(tie); }
+      break;
+    case 'grandma':
+      head.add(hair(0xd6d6d6));
+      head.add(mesh(new THREE.SphereGeometry(.28, 16, 12), std(0xd6d6d6, {roughness: .8}), 0, .55, -.35));
+      g.add(mesh(new THREE.TorusGeometry(.42, .045, 8, 24), std(0xfff8f0, {roughness: .2}), 0, 2.3, .12).rotateX(Math.PI / 2 - .25));
+      break;
+    case 'youtuber': {
+      head.add(mesh(new THREE.SphereGeometry(.67, 24, 12, 0, Math.PI * 2, 0, 1.2), std(0xe0282e), 0, .04, 0));
+      const cbrim = mesh(new THREE.BoxGeometry(.6, .05, .5), std(0xe0282e), 0, .38, -.62); cbrim.rotation.x = -.25; head.add(cbrim);
+      P.armR.rotation.z = 2.5;
+      P.armR.add(mesh(new THREE.CylinderGeometry(.03, .03, 1.0, 6), std(0x222222), 0, -1.4, 0));
+      P.armR.add(mesh(new THREE.BoxGeometry(.5, .28, .05), std(0x111111), 0, -1.95, .05));
+      P.phoneLight = mesh(new THREE.SphereGeometry(.05, 8, 6), new THREE.MeshBasicMaterial({color: 0xff2244}), .18, -1.95, .1, false);
+      P.armR.add(P.phoneLight);
+      break;
+    }
+  }
+  g.traverse(o => { if (o.isMesh && o !== face) o.castShadow = true; });
+  g.userData = P;
+  return g;
+}
+
+// ---------------- 화구 & 조립대 뷰 ----------------
+function clearViews(list){
+  list.forEach(v => { scene.remove(v.g); v.label && v.label.remove(); });
+  list.length = 0;
+}
+
+function buildBurners(n){
+  clearViews(W.burnerViews);
+  for (let i = 0; i < n; i++){
+    const x = STOVE_X + (i - (n - 1) / 2) * 2.45;
+    const g = new THREE.Group(); g.position.set(x, TABLE_TOP + .03, TABLE_Z - .1);
+    g.add(mesh(new THREE.CylinderGeometry(.75, .8, .12, 24), std(0x2a2a2a, {metalness: .5, roughness: .5}), 0, .06, 0));
+    g.add(mesh(new THREE.TorusGeometry(.55, .05, 6, 20), std(0x111111, {metalness: .6}), 0, .15, 0).rotateX(Math.PI / 2));
+    const flames = makeFlames(); flames.position.y = .12;
+    g.add(flames);
+    const ringMat = new THREE.MeshBasicMaterial({color: 0x4caf50, transparent: true, opacity: .85});
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.0, .06, 8, 40), ringMat);
+    ring.rotation.x = Math.PI / 2; ring.position.y = .08;
+    g.add(ring);
+    const pot = new THREE.Group(); pot.position.y = .16;
+    const r = .85, h = .78;
+    pot.add(mesh(ttukGeo(r, h), std(0x33241c, {roughness: .4, side: THREE.DoubleSide})));
+    const contents = new THREE.Group(); contents.position.y = h * .8;
+    pot.add(contents);
+    const bubbles = [];
+    for (let k = 0; k < 6; k++){
+      const b = mesh(geo('bubble', () => new THREE.SphereGeometry(.07, 8, 6)), std(0xffffff, {transparent: true, opacity: .7, roughness: .1}), 0, 0, 0, false);
+      b.visible = false; contents.add(b); bubbles.push(b);
+    }
+    g.add(pot);
+    const hit = hitBox(2.2, 2.2, 2.2, 0, .8, 0, {kind: 'burner', i});
+    g.add(hit);
+    g.visible = W.mode === 'lunch';
+    scene.add(g);
+    const label = document.createElement('div');
+    label.className = 'plabel'; label.hidden = true;
+    $('labels').appendChild(label);
+    W.burnerViews.push({g, pot, contents, bubbles, flames, ring, ringMat, hit, label, key: null, emitT: 0, scale: 1});
+  }
+}
+
+function buildTrays(n){
+  clearViews(W.trayViews);
+  const xs = n === 1 ? [PREP_X] : [PREP_X - 1.15, PREP_X + 1.15];
+  xs.forEach((x, i) => {
+    const g = new THREE.Group(); g.position.set(x, TABLE_TOP + .04, TABLE_Z + .45);
+    g.add(mesh(new THREE.BoxGeometry(2.0, .1, 1.3), std(0xa36b3a, {roughness: .6}), 0, .05, 0));
+    const sel = new THREE.Mesh(new THREE.BoxGeometry(2.16, .06, 1.46), new THREE.MeshBasicMaterial({color: 0xf2b632}));
+    sel.position.y = .02; g.add(sel);
+    const holder = new THREE.Group(); holder.position.y = .1;
+    g.add(holder);
+    const hit = hitBox(2.1, 1.6, 1.4, 0, .6, 0, {kind: 'tray', i});
+    g.add(hit);
+    g.visible = W.mode === 'lunch';
+    scene.add(g);
+    const label = document.createElement('div');
+    label.className = 'plabel tray'; label.hidden = true;
+    $('labels').appendChild(label);
+    W.trayViews.push({g, sel, holder, hit, label, key: null, pop: 1, emitT: 0, scale: 1});
+  });
+}
+
+function setWorldMode(mode){
+  W.mode = mode;
+  const lunch = mode === 'lunch';
+  W.prep.g.visible = !lunch;
+  W.burnerViews.forEach(v => { v.g.visible = lunch; v.label.hidden = true; });
+  W.trayViews.forEach(v => { v.g.visible = lunch; v.label.hidden = true; });
+  W.bins.forEach(b => { b.g.visible = lunch; });
+  Object.values(W.prep.labels).forEach(l => { l.hidden = true; });
+  $('lunchControls').hidden = !lunch;
+  $('prepControls').hidden = lunch;
+  W.hover = null;
+}
+
+// ---------------- 파티클 / 트윈 ----------------
+function emitSteam(pos, dark = false, big = 1){
+  if (W.particles.length > 220) return;
+  const mat = new THREE.SpriteMaterial({map: W.steamTex, transparent: true, depthWrite: false, opacity: 0, color: dark ? 0x333333 : 0xffffff});
+  const s = new THREE.Sprite(mat);
+  s.position.copy(pos).add(new THREE.Vector3(rand(-.3, .3), 0, rand(-.3, .3)));
+  const size = rand(.4, .7) * big;
+  s.scale.setScalar(size);
+  scene.add(s);
+  W.particles.push({s, life: 0, max: rand(1.2, 1.9), vy: rand(.7, 1.2), vx: rand(-.15, .15), size, alpha: dark ? .8 : .55});
+}
+function emitCoins(pos){
+  for (let k = 0; k < 10; k++){
+    const c = mesh(geo('coin', () => new THREE.CylinderGeometry(.14, .14, .04, 14)), std(0xf2b632, {metalness: .8, roughness: .25}), pos.x, pos.y, pos.z, false);
+    scene.add(c);
+    W.coins.push({m: c, v: new THREE.Vector3(rand(-2.5, 2.5), rand(3, 6), rand(0, 2)), life: 0});
+  }
+}
+function emitDrops(pos, color, n = 8){
+  for (let k = 0; k < n; k++){
+    const d = mesh(geo('drop', () => new THREE.SphereGeometry(.05, 6, 4)), std(color, {roughness: .2}), pos.x, pos.y, pos.z, false);
+    scene.add(d);
+    W.coins.push({m: d, v: new THREE.Vector3(rand(-1.5, 1.5), rand(2, 4), rand(-1, 1.5)), life: .3});
+  }
+}
+function tweenArc(obj, to, dur, height, onDone){
+  W.tweens.push({obj, from: obj.position.clone(), to: to.clone(), dur, t: 0, height, onDone});
+}
+function updateFx(dt){
+  for (let i = W.particles.length - 1; i >= 0; i--){
+    const p = W.particles[i];
+    p.life += dt;
+    const k = p.life / p.max;
+    p.s.position.y += p.vy * dt; p.s.position.x += p.vx * dt;
+    p.s.scale.setScalar(p.size * (1 + k * 1.6));
+    p.s.material.opacity = Math.sin(Math.min(k, 1) * Math.PI) * p.alpha;
+    if (k >= 1){ scene.remove(p.s); p.s.material.dispose(); W.particles.splice(i, 1); }
+  }
+  for (let i = W.coins.length - 1; i >= 0; i--){
+    const c = W.coins[i];
+    c.life += dt; c.v.y -= 14 * dt;
+    c.m.position.addScaledVector(c.v, dt);
+    c.m.rotation.x += dt * 10; c.m.rotation.z += dt * 6;
+    if (c.life > 1.0){ scene.remove(c.m); W.coins.splice(i, 1); }
+  }
+  for (let i = W.tweens.length - 1; i >= 0; i--){
+    const tw = W.tweens[i];
+    tw.t += dt;
+    const k = clamp(tw.t / tw.dur, 0, 1), e = k * k * (3 - 2 * k);
+    tw.obj.position.lerpVectors(tw.from, tw.to, e);
+    tw.obj.position.y += Math.sin(k * Math.PI) * tw.height;
+    if (tw.spin) tw.obj.rotation.y += dt * tw.spin;
+    if (k >= 1){ W.tweens.splice(i, 1); tw.onDone && tw.onDone(); }
+  }
+}
+
+// ---------------- 화면 좌표 ----------------
+const _v = new THREE.Vector3();
+function toScreen(x, y, z){
+  _v.set(x, y, z).project(camera);
+  return {x: (_v.x + 1) / 2 * window.innerWidth, y: (1 - _v.y) / 2 * window.innerHeight};
+}
+function place(el, p, up = false){ el.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, ${up ? '-100%' : '0'})`; }
+
+// =====================================================================
+// ============================  게임 로직  =============================
+// =====================================================================
+let G = null;
+const DEMO = {
+  seats: [
+    {id: -1, type: CUSTOMERS[1], soup: 'pork', tops: [], state: 'happy', face: '😋', line: '', v: 0},
+    null,
+    {id: -2, type: CUSTOMERS[0], soup: 'kong', tops: [], state: 'happy', face: '😋', line: '', v: 0},
+    {id: -3, type: CUSTOMERS[5], soup: 'bone', tops: [], state: 'happy', face: '😋', line: '', v: 0},
+  ],
+  burners: [{state: 'ready', soup: 'bone', t: 0}, {state: 'cooking', soup: 'kong', t: 2}],
+  trays: [{soup: 'pork', tops: ['dadaegi', 'buchu', 'saeu']}],
+};
+
+function cookTime(){ return [7, 5.2, 3.8][G.up.fire]; }
+function unlockedTops(){ return TOPPINGS.filter(t => t.unlock <= G.day); }
+function rentToday(){ return 10000 + (G.day - 1) * 1500; }
+function inPhase(p){ return G && G.phase === p; }
+function canAct(){ return inPhase('lunch') && G.running && !G.paused; }
+function canPrep(){ return inPhase('prep') && $('overlay').hidden; }
+
+function showTitle(){
+  G = null;
+  const best = loadBest();
+  $('hudName').textContent = '🍲 국밥 타이쿤 3D';
+  clearCustomers();
+  buildBurners(2);
+  buildTrays(1);
+  setWorldMode('lunch');
+  buildButtons(1);
+  redrawTex(W.menuTex); redrawTex(W.signTex);
+  showOverlay(`
+    <div class="card">
+      <div class="sign">🍲 국밥 타이쿤 <sup>3D</sup></div>
+      <div class="subtitle">기초자금 30만원으로 시작해서 <b style="color:var(--red);font-weight:normal">100만원</b>을 모아라!</div>
+      <div class="name-row">가게 이름 <input id="shopName" maxlength="8" value="${esc(best?.name || '할매국밥')}"></div>
+      <button class="big-btn" onclick="startGame()">장사 시작하기 🔔</button>
+      <div class="howto">
+        <div class="step"><b>1</b>🌅 <em>새벽 시장</em>에서 오늘 쓸 재료 사기</div>
+        <div class="step"><b>2</b>🔪 <em>고기 썰어 냉장고에</em> · <em>콩나물 씻고 다듬기</em> · <em>뼈 씻고 육수·매운 육수 끓이기</em></div>
+        <div class="step"><b>3</b>☀️ <em>점심 영업</em>: 돼지국밥·콩나물국밥·뼈해장국을 끓이고 토핑 올려 서빙!</div>
+        <div class="step"><b>4</b>손님은 느긋하게 기다려줘요. 대신 <em>재료가 떨어지면 품절</em>!</div>
+      </div>
+      <div class="keys-help">⌨️ 준비: 1~8 손질 · Enter 영업 시작 &nbsp;|&nbsp; 영업: Q W E 국밥 · A S D F 가마솥 · 1~4 토핑 · Z X C V 서빙 · Tab 조립대 · Backspace 버리기 · Esc 일시정지</div>
+      ${best && best.days ? `<div class="best">🏆 최단 기록: ${esc(best.name)} — ${best.days}일 만에 100만원 (${esc(best.grade)})</div>` : ''}
+    </div>`, true);
+  setTimeout(() => { const i = $('shopName'); if (i){ i.focus(); i.select(); i.addEventListener('keydown', e => { if (e.key === 'Enter') startGame(); }); } }, 50);
+}
+
+function startGame(){
+  const name = ($('shopName')?.value || '').trim() || '할매국밥';
+  G = {
+    name, day: 1, money: START_MONEY, rep: 3, totalProfit: 0, totalServed: 0, totalPerfect: 0,
+    up: {burner: 0, fire: 0, tray: 0, knife: 0, stockpot: 0, kkak: 0, sign: 0},
+    phase: 'intro', running: false, paused: false, over: false, custId: 0,
+  };
+  $('hudName').textContent = '🍲 ' + name;
+  sfx.click();
+  showDayIntro();
+}
+
+function showDayIntro(){
+  G.phase = 'intro';
+  buildDay();
+  setWorldMode('prep');
+  const newTops = TOPPINGS.filter(t => t.unlock === G.day && G.day > 1);
+  const unlocks = newTops.map(t => `<span class="unlock">🆕 토핑: ${t.icon} ${t.name}</span>`).join('');
+  sfx.rooster();
+  showOverlay(`
+    <div class="card">
+      <div style="font-size:20px;color:#8a6e55">${esc(G.name)}</div>
+      <div class="day-big">DAY ${G.day}</div>
+      <div class="day-note">${dayNote(G.day)}</div>
+      ${goalBar()}
+      <div class="day-flow"><span>🌅 새벽 시장</span>→<span>🔪 재료 준비</span>→<span>☀️ 점심 영업</span></div>
+      <div>${unlocks}</div>
+      <div style="font-size:16px;color:#8a6e55;margin-top:8px">오늘의 임대료: ${fmt(rentToday())} · 점심 영업 ${DAY_LEN}초</div>
+      <button class="big-btn" onclick="showMarket()">🌅 새벽 시장 가기</button>
+    </div>`, true);
+}
+
+function buildButtons(day){
+  $('soups').innerHTML = SOUPS.map((s, i) =>
+    `<button class="cbtn" data-soup="${s.id}"><span class="ic">${s.icon}</span>${s.name}<small>&nbsp;</small><span class="key">${keyLabel(SOUP_KEYS[i])}</span></button>`
+  ).join('');
+  $('toppings').innerHTML = TOPPINGS.map((t, i) => {
+    const locked = t.unlock > day;
+    return `<button class="cbtn ${locked ? 'locked' : ''}" data-top="${t.id}"><span class="ic">${locked ? '🔒' : t.icon}</span>${t.name}<small>${locked ? `DAY ${t.unlock} 해금` : '&nbsp;'}</small><span class="key">${i + 1}</span></button>`;
+  }).join('');
+  W.bins.forEach(b => { const locked = topById(b.id).unlock > day; b.lid.visible = locked; b.fill.visible = !locked; });
+}
+
+function buildDay(){
+  Object.assign(G, {
+    time: DAY_LEN, spawnT: 1.2, combo: 0, rushShown: false,
+    seats: Array(SEAT_COUNT).fill(null),
+    burners: Array.from({length: 2 + G.up.burner}, () => ({state: 'empty'})),
+    trays: Array(1 + G.up.tray).fill(null),
+    sel: 0,
+    raw: {pork: 0, kong: 0, bones: 0, spine: 0},
+    stock: {pork: 0, kong: 0, broth: 0, spicy: 0},
+    prep: {
+      porkChop: 0, porkPart: 0, cut: 0,
+      kongWash: 0, washedKong: 0, kongPart: 0,
+      bonesWash: 0, washedBones: 0, boil: null,
+      spineWash: 0, washedSpine: 0, spicyBoil: null,
+      warned: false,
+    },
+    cart: null,
+    stats: {sales: 0, tips: 0, purchase: 0, served: 0, perfect: 0, soldout: 0},
+    running: false, paused: false,
+  });
+  clearCustomers();
+  buildBurners(G.burners.length);
+  buildTrays(G.trays.length);
+  buildButtons(G.day);
+  redrawTex(W.menuTex); redrawTex(W.signTex);
+}
+
+// ---------------- 새벽 시장 ----------------
+function avgInterval(){
+  let base = Math.max(3.5, 8.5 - G.day * 0.6);
+  base *= (1.25 - G.rep * 0.07);
+  if (G.up.sign) base *= 0.8;
+  return base;
+}
+function forecast(){
+  const b = avgInterval();
+  const n = DAY_LEN * (0.75 / b + 0.25 / (b * 0.6)) + 3;
+  return {n: Math.round(n), lo: Math.round(n * .8), hi: Math.round(n * 1.2)};
+}
+function cartPortions(c){ return {pork: c.pork * 4, kong: c.kong * 5, broth: c.bones * 8, spicy: c.spine * 5}; }
+function cartTotal(){ return INGREDIENTS.reduce((s, i) => s + G.cart[i.id] * i.price, 0); }
+
+function showMarket(){
+  G.phase = 'market';
+  sfx.click();
+  const est = forecast();
+  if (!G.cart){
+    // 추천: 세 메뉴에 손님을 1/3씩, 맑은 육수는 고기+콩나물 인분만큼. 돈이 모자라면 줄이기
+    const third = est.n / 3;
+    const c = {pork: Math.ceil(third / 4), kong: Math.ceil(third / 5), bones: 0, spine: Math.ceil(third / 5)};
+    const fit = () => { c.bones = Math.ceil((c.pork * 4 + c.kong * 5) / 8); };
+    const total = () => INGREDIENTS.reduce((s, i) => s + c[i.id] * i.price, 0);
+    fit();
+    while (total() > G.money && c.pork + c.kong + c.spine > 0){
+      const big = [['pork', c.pork * 4], ['kong', c.kong * 5], ['spine', c.spine * 5]].filter(x => c[x[0]] > 0).sort((a, b) => b[1] - a[1])[0][0];
+      c[big]--; fit();
+    }
+    G.cart = c;
+  }
+  showOverlay(`
+    <div class="card wide">
+      <h2>🌅 새벽 시장</h2>
+      <div class="mk-info">📈 오늘 예상 손님 <b>${est.lo}~${est.hi}명</b> &nbsp;·&nbsp; 🗑️ 남은 재료는 영업이 끝나면 폐기돼요</div>
+      <div class="mk-list">${INGREDIENTS.map(ing => `
+        <div class="mk-row">
+          <div class="mk-ic">${ing.icon}</div>
+          <div class="mk-name">${ing.name}<small>${ing.desc}</small></div>
+          <div class="mk-price">${fmt(ing.price)} / ${ing.unit}</div>
+          <div class="mk-qty"><button class="qty" onclick="cartAdd('${ing.id}',-1)">−</button><span id="q-${ing.id}"></span><button class="qty" onclick="cartAdd('${ing.id}',1)">+</button></div>
+          <div class="mk-sub" id="s-${ing.id}"></div>
+        </div>`).join('')}
+      </div>
+      <div class="mk-info" id="mkMake"></div>
+      <div class="mk-total">합계 <b id="mkTotal"></b> &nbsp;·&nbsp; 보유 ${fmt(G.money)} → 남는 돈 <b id="mkLeft"></b></div>
+      <div class="mk-warn" id="mkWarn"></div>
+      <button class="big-btn" id="mkBuy" onclick="buyIngredients()">🛒 사서 주방으로 가기</button>
+    </div>`, true);
+  updateMarket();
+}
+function cartAdd(id, d){
+  G.cart[id] = clamp(G.cart[id] + d, 0, 20);
+  sfx.click();
+  updateMarket();
+}
+function updateMarket(){
+  INGREDIENTS.forEach(ing => {
+    $('q-' + ing.id).textContent = G.cart[ing.id] + ing.unit;
+    $('s-' + ing.id).textContent = fmt(G.cart[ing.id] * ing.price);
+  });
+  const total = cartTotal(), left = G.money - total, p = cartPortions(G.cart);
+  $('mkMake').innerHTML = `준비하면: 🥩 고기 <b>${p.pork}</b> · 🌱 콩나물 <b>${p.kong}</b> · 🍲 맑은 육수 <b>${p.broth}</b> · 🌶️ 매운 육수 <b>${p.spicy}</b>인분 → 최대 <b>${Math.min(p.pork + p.kong, p.broth) + p.spicy}그릇</b>`;
+  $('mkTotal').textContent = fmt(total);
+  $('mkLeft').textContent = fmt(left);
+  let warn = '';
+  if (left < 0) warn = '💸 돈이 부족해요!';
+  else if (p.broth < p.pork + p.kong) warn = '⚠️ 맑은 육수가 고기·콩나물보다 적어요. 돼지국밥·콩나물국밥엔 맑은 육수가 꼭 필요해요!';
+  else if (p.pork + p.kong + p.spicy === 0) warn = '⚠️ 재료가 하나도 없으면 장사를 못 해요!';
+  $('mkWarn').textContent = warn;
+  $('mkBuy').disabled = left < 0;
+}
+function buyIngredients(){
+  const total = cartTotal();
+  if (total > G.money){ sfx.err(); return; }
+  G.money -= total;
+  G.stats.purchase = total;
+  G.raw = {...G.cart};
+  G.phase = 'prep';
+  hideOverlay();
+  setWorldMode('prep');
+  sfx.coin();
+  toast('🔪 고기는 썰어서 냉장고에! 콩나물·뼈는 씻어서 손질하세요');
+}
+
+// ---------------- 재료 준비 ----------------
+function chopsPer(){ return G.up.knife ? 1 : 2; }
+function blockScale(){
+  const partial = (G.prep.porkPart + G.prep.porkChop / chopsPer()) / 4;
+  return Math.max(.1, 1 - partial);
+}
+function prepCan(id){
+  const r = G.raw, p = G.prep;
+  return {
+    chop: r.pork > 0, fridge: p.cut > 0,
+    washKong: r.kong > 0, trim: p.washedKong > 0,
+    washBones: r.bones > 0, boil: p.washedBones > 0 && !p.boil,
+    washSpine: r.spine > 0, spicy: p.washedSpine > 0 && !p.spicyBoil,
+  }[id];
+}
+function flyPiece(obj, from, to, dur = .35){
+  obj.position.copy(from);
+  scene.add(obj);
+  W.tweens.push({obj, from: from.clone(), to: to.clone(), dur, t: 0, height: .8, spin: 10, onDone: () => scene.remove(obj)});
+}
+function slicePiece(){ return mesh(geo('slice', () => new THREE.BoxGeometry(.34, .04, .22)), std(0xe99a8a, {roughness: .5}), 0, 0, 0, false); }
+
+function prepAction(id){
+  if (!canPrep()) return;
+  const P = W.prep, r = G.raw, p = G.prep;
+  if (id === 'sink') id = r.kong > 0 ? 'washKong' : r.bones > 0 ? 'washBones' : r.spine > 0 ? 'washSpine' : null;
+  if (!id){ toast('씻을 재료가 없어요'); sfx.err(); return; }
+  if (!prepCan(id)){
+    toast({
+      chop: '썰 돼지고기가 없어요',
+      fridge: '도마 위에 썬 고기가 없어요 (먼저 1번 썰기)',
+      washKong: '씻을 콩나물이 없어요',
+      trim: r.kong > 0 ? '먼저 콩나물을 씻어주세요! (3번)' : '다듬을 콩나물이 없어요',
+      washBones: '씻을 사골뼈가 없어요',
+      boil: p.boil ? '맑은 육수가 끓고 있어요... 다른 재료를 손질하세요!' : r.bones > 0 ? '먼저 사골뼈를 씻어주세요! (5번)' : '끓일 사골뼈가 없어요',
+      washSpine: '씻을 등뼈가 없어요',
+      spicy: p.spicyBoil ? '매운 육수가 끓고 있어요... 다른 재료를 손질하세요!' : r.spine > 0 ? '먼저 등뼈를 씻어주세요! (7번)' : '끓일 등뼈가 없어요',
+    }[id]);
+    sfx.err();
+    return;
+  }
+  switch (id){
+    case 'chop': {
+      p.porkChop++; P.chopT = .16; sfx.chop();
+      if (p.porkChop >= chopsPer()){
+        p.porkChop = 0; p.porkPart++; p.cut++;
+        const from = P.board.position.clone().add(new THREE.Vector3(-1.0 + 1.2 * blockScale() + .1, .5, 0));
+        flyPiece(slicePiece(), from, P.plate.position.clone().add(new THREE.Vector3(0, .5, 0)));
+        if (p.porkPart >= 4){ p.porkPart = 0; r.pork--; }
+      }
+      break;
+    }
+    case 'fridge': {
+      const n = p.cut;
+      G.stock.pork += n; p.cut = 0;
+      P.fridgeT = 1.3;
+      sfx.whoosh();
+      const to = P.fridge.position.clone().add(new THREE.Vector3(0, 1.9, .3));
+      for (let k = 0; k < Math.min(n, 6); k++) flyPiece(slicePiece(), P.plate.position.clone().add(new THREE.Vector3(0, .4 + k * .05, 0)), to, .45 + k * .06);
+      floatWorld(8.75, 3.9, 1.9, `🧊 고기 ${n}인분 냉장 보관!`, '#aee3ff');
+      break;
+    }
+    case 'washKong': case 'washBones': case 'washSpine': {
+      const kind = {washKong: 'kong', washBones: 'bones', washSpine: 'spine'}[id];
+      const washKey = kind + 'Wash';
+      p[washKey]++;
+      P.washT = .7; P.washKind = kind;
+      sfx.splash();
+      emitDrops(P.sink.position.clone().add(new THREE.Vector3(0, .5, .1)), 0x8fd3ff, 6);
+      if (p[washKey] >= WASH_CLICKS[kind]){
+        p[washKey] = 0; r[kind]--;
+        p[{kong: 'washedKong', bones: 'washedBones', spine: 'washedSpine'}[kind]]++;
+        floatWorld(P.sink.position.x, P.sink.position.y + 1.5, P.sink.position.z, {kong: '🌱 콩나물 1봉지 씻기 완료!', bones: '🍖 사골뼈 1세트 씻기 완료!', spine: '🦴 등뼈 1세트 씻기 완료!'}[kind], '#aee3ff');
+      }
+      break;
+    }
+    case 'trim': {
+      p.kongPart++; G.stock.kong++;
+      sfx.pluck();
+      const bunch = new THREE.Group();
+      sproutPile(bunch, 4, p.kongPart * 7 + G.stock.kong, .2, .05);
+      flyPiece(bunch, P.colander.position.clone().add(new THREE.Vector3(0, .4, 0)), P.bowl.position.clone().add(new THREE.Vector3(0, .3, 0)));
+      if (p.kongPart >= 5){ p.kongPart = 0; p.washedKong--; }
+      break;
+    }
+    case 'boil': case 'spicy': {
+      const washedKey = id === 'boil' ? 'washedBones' : 'washedSpine';
+      const sets = Math.min(p[washedKey], 1 + G.up.stockpot);
+      p[washedKey] -= sets;
+      p[id === 'boil' ? 'boil' : 'spicyBoil'] = {sets, t: 0, dur: G.up.stockpot ? 2.5 : 4};
+      sfx.pour();
+      const pp = (id === 'boil' ? P.clear : P.spicyPot).potG.position;
+      if (id === 'spicy') emitDrops(pp.clone().add(new THREE.Vector3(0, 2.2, 0)), 0xd62a1a, 14);
+      floatWorld(pp.x, pp.y + 2.4, pp.z, id === 'boil' ? `🍖 사골뼈 ${sets}세트 투입!` : `🌶️ 등뼈 ${sets}세트 + 매운 양념!`, '#fff3dc');
+      break;
+    }
+  }
+}
+
+function updatePrep(dt){
+  for (const [key, stockKey, yieldN, potKey, label] of [['boil', 'broth', 8, 'clear', '🍲 맑은 육수'], ['spicyBoil', 'spicy', 5, 'spicyPot', '🌶️ 매운 육수']]){
+    const b = G.prep[key];
+    if (!b) continue;
+    b.t += dt;
+    if (b.t >= b.dur){
+      G.stock[stockKey] += b.sets * yieldN;
+      G.prep[key] = null;
+      sfx.ready();
+      const pp = W.prep[potKey].potG.position;
+      floatWorld(pp.x, pp.y + 2.4, pp.z, `${label} +${b.sets * yieldN}인분 완성!`, '#f2b632');
+    }
+  }
+}
+function unfinishedPrep(){
+  const r = G.raw, p = G.prep;
+  if (p.cut > 0) return '🧊 썬 고기를 냉장고에 안 넣었어요! (그대로 두면 버려져요)';
+  if (p.boil || p.spicyBoil) return '⏳ 육수가 아직 끓는 중이에요!';
+  if (p.washedKong > 0) return '✂️ 씻어둔 콩나물을 아직 안 다듬었어요!';
+  if (p.washedBones > 0 || p.washedSpine > 0) return '🔥 씻은 뼈를 아직 안 끓였어요!';
+  if (r.pork + r.kong + r.bones + r.spine > 0) return '⚠️ 손질 안 한 재료가 남았어요!';
+  return null;
+}
+function startLunch(){
+  if (!canPrep()) return;
+  const msg = unfinishedPrep();
+  if (msg && !G.prep.warned){
+    G.prep.warned = true;
+    toast(msg + ' 한 번 더 누르면 시작');
+    sfx.err();
+    return;
+  }
+  for (const [key, stockKey, yieldN] of [['boil', 'broth', 8], ['spicyBoil', 'spicy', 5]]){
+    const b = G.prep[key];
+    if (b){ G.stock[stockKey] += Math.floor(b.sets * yieldN * b.t / b.dur); G.prep[key] = null; }
+  }
+  G.phase = 'lunch';
+  setWorldMode('lunch');
+  G.running = true;
+  sfx.bell();
+  toast(`☀️ DAY ${G.day} 점심 영업 시작!`);
+}
+
+// ---------------- 손님 ----------------
+function supply(){
+  const prog = {}, need = {};
+  SOUPS.forEach(s => { prog[s.id] = 0; need[s.id] = 0; });
+  G.burners.forEach(b => { if (b.state === 'cooking' || b.state === 'ready') prog[b.soup]++; });
+  G.trays.forEach(t => { if (t) prog[t.soup]++; });
+  G.seats.forEach(c => { if (c && c.state === 'waiting') need[c.soup]++; });
+  return {prog, need};
+}
+// 아직 안 만든 주문(ex)에 필요한 재료가 재고보다 많은지(short)
+function usage(need, prog){
+  const ex = {}, use = {pork: 0, kong: 0, broth: 0, spicy: 0};
+  SOUPS.forEach(s => {
+    ex[s.id] = Math.max(0, need[s.id] - prog[s.id]);
+    for (const k in s.needs) use[k] += ex[s.id] * s.needs[k];
+  });
+  return {ex, short: Object.keys(use).filter(k => use[k] > G.stock[k])};
+}
+function canAccept(soupId){
+  const {prog, need} = supply();
+  need[soupId]++;
+  return usage(need, prog).short.length === 0;
+}
+function checkSoldOut(){
+  for (let guard = 0; guard < SEAT_COUNT; guard++){
+    const {prog, need} = supply();
+    const {ex, short} = usage(need, prog);
+    if (!short.length) return;
+    let victim = -1;
+    G.seats.forEach((c, i) => {
+      if (!c || c.state !== 'waiting' || ex[c.soup] === 0) return;
+      if (!short.some(k => soupById(c.soup).needs[k])) return;
+      if (victim < 0 || c.id > G.seats[victim].id) victim = i;
+    });
+    if (victim < 0) return;
+    const c = G.seats[victim];
+    c.state = 'sad'; c.t = 2.0; c.v++;
+    c.line = pick(['품절이라니... 다음에 올게요 ㅠ', '에고, 재료가 떨어졌구나~', '아쉽다... 내일 또 올게요']);
+    G.combo = 0; G.stats.soldout++;
+    addRep(-0.2);
+    sfx.sad();
+    floatWorld(SEAT_X[victim], 4.1, SEAT_Z, '품절 😢', '#8fb0ff');
+  }
+}
+
+function spawnCustomer(){
+  const free = G.seats.map((s, i) => s ? -1 : i).filter(i => i >= 0);
+  if (!free.length) return false;
+  const soups = SOUPS.filter(s => canAccept(s.id));
+  if (!soups.length) return false;
+  const i = pick(free);
+  const type = pickWeighted(CUSTOMERS.filter(c => c.minDay <= G.day), c => c.weight);
+  const soup = pick(soups);
+  const tops = shuffle(unlockedTops().map(t => t.id));
+  const maxN = Math.min(tops.length, 1 + Math.floor(G.day / 2));
+  const chosen = tops.slice(0, randInt(0, maxN));
+  (type.force || []).forEach(f => { if (!chosen.includes(f)) chosen.push(f); });
+  chosen.sort((a, b) => topIndex(a) - topIndex(b));
+  G.seats[i] = {id: ++G.custId, type, soup: soup.id, tops: chosen, state: 'waiting', line: pick(type.lines), v: 0, t: 0};
+  sfx.bell();
+  return true;
+}
+
+function nextInterval(){
+  let base = avgInterval();
+  const prog = 1 - G.time / DAY_LEN;
+  if (prog > 0.4 && prog < 0.65) base *= 0.6;
+  return base * rand(0.7, 1.3);
+}
+
+function addRep(d){
+  G.rep = clamp(G.rep + d, 0, 5);
+  if (G.rep <= 0 && G.running && !G.over){
+    G.over = true; G.running = false;
+    setTimeout(() => showEnding('rep'), 1200);
+  }
+}
+
+// ---------------- 점심 영업 행동 ----------------
+function orderSoup(id){
+  const s = soupById(id);
+  if (!s) return;
+  const out = Object.keys(s.needs).find(k => G.stock[k] < s.needs[k]);
+  if (out){ toast(`${STOCKS[out].icon} ${STOCKS[out].name}이(가) 다 떨어졌어요!`); sfx.err(); return; }
+  const b = G.burners.findIndex(b => b.state === 'empty');
+  if (b < 0){ toast('빈 가마솥이 없어요!'); sfx.err(); return; }
+  G.burners[b] = {state: 'cooking', soup: id, t: 0};
+  for (const k in s.needs) G.stock[k] -= s.needs[k];
+  sfx.pour();
+}
+
+function clickBurner(i){
+  const b = G.burners[i];
+  if (!b) return;
+  if (b.state === 'ready'){
+    const t = G.trays[G.sel] === null ? G.sel : G.trays.findIndex(x => x === null);
+    if (t < 0){ toast('조립대가 꽉 찼어요! 서빙하거나 버리세요'); sfx.err(); return; }
+    const from = W.burnerViews[i].g.position, to = W.trayViews[t].g.position;
+    const fly = makeBowl(b.soup, [], .6);
+    fly.position.set(from.x, from.y + .6, from.z);
+    scene.add(fly);
+    const soup = b.soup;
+    G.burners[i] = {state: 'empty'};
+    W.trayViews[t].pendingKey = true;
+    tweenArc(fly, new THREE.Vector3(to.x, to.y + .1, to.z), .35, 1.2, () => { scene.remove(fly); W.trayViews[t].pendingKey = false; });
+    G.trays[t] = {soup, tops: []};
+    G.sel = t;
+    sfx.whoosh();
+  } else if (b.state === 'burnt'){
+    G.burners[i] = {state: 'empty'};
+    sfx.trash(); toast('탄 국밥을 버렸어요 😢');
+  } else if (b.state === 'cooking'){
+    toast('아직 끓는 중이에요... 🔥');
+  } else {
+    toast('👇 아래 국밥 버튼을 눌러서 끓이세요');
+  }
+}
+
+function toggleTop(id){
+  const t = topById(id);
+  if (!t) return;
+  if (t.unlock > G.day){ toast(`🔒 DAY ${t.unlock}에 해금돼요`); sfx.err(); return; }
+  const tr = G.trays[G.sel];
+  if (!tr){ toast('조립대에 그릇이 없어요! 가마솥에서 옮겨오세요'); sfx.err(); return; }
+  const k = tr.tops.indexOf(id);
+  if (k >= 0) tr.tops.splice(k, 1); else tr.tops.push(id);
+  tr.tops.sort((a, b) => topIndex(a) - topIndex(b));
+  const bin = W.bins.find(b => b.id === id);
+  if (bin) bin.bounce = 1;
+  sfx.click();
+}
+
+function trashTray(){
+  if (!G.trays[G.sel]) return;
+  const p = W.trayViews[G.sel].g.position;
+  for (let k = 0; k < 4; k++) emitSteam(new THREE.Vector3(p.x, p.y + .5, p.z), true, .8);
+  G.trays[G.sel] = null;
+  sfx.trash();
+  switchToFilledTray();
+}
+
+function switchToFilledTray(){
+  const j = G.trays.findIndex(x => x !== null);
+  if (j >= 0) G.sel = j;
+}
+
+function serve(i){
+  const c = G.seats[i];
+  if (!c || c.state !== 'waiting') return;
+  const tr = G.trays[G.sel];
+  const hx = SEAT_X[i], hy = 4.1, hz = SEAT_Z;
+  if (!tr){ toast('서빙할 국밥이 없어요! 조립대에 그릇을 준비하세요'); sfx.err(); return; }
+  if (tr.soup !== c.soup){
+    c.line = '이거 제가 시킨 거 아닌데요?'; c.v++;
+    const v = W.seatViews[i]; if (v) v.shakeT = .5;
+    sfx.err(); floatWorld(hx, hy, hz, '메뉴가 달라요!', '#ff6b5b');
+    return;
+  }
+  const missing = c.tops.filter(t => !tr.tops.includes(t)).length;
+  const extra = tr.tops.filter(t => !c.tops.includes(t)).length;
+  const mistakes = missing + extra;
+  const s = soupById(c.soup);
+  let price = s.price;
+  let tip = 1500 * c.type.tip * (1 + 0.4 * G.up.kkak);
+  let msg, color = '#f2b632';
+
+  if (mistakes === 0){
+    G.combo++;
+    tip *= 1 + Math.min(G.combo - 1, 10) * 0.1;
+    G.stats.perfect++;
+    addRep(c.type.vip ? 0.5 : 0.08);
+    msg = G.combo >= 2 ? `완벽! 콤보 x${G.combo}` : '완벽해요!';
+    c.face = '😋';
+    c.line = pick(['캬~ 이 맛이지!','국밥은 역시 여기!','잘 먹었습니다!','또 올게요!','뜨끈~하다!']);
+    if (c.type.vip) toast('🤳 유튜버가 극찬했어요! 평판 대폭 상승!');
+  } else if (mistakes === 1){
+    G.combo = 0; tip *= 0.3;
+    msg = '조금 아쉬워요'; color = '#ffd27a';
+    c.face = '🙂'; c.line = missing ? '뭐가 하나 빠졌네요...' : '이건 안 시켰는데...';
+    if (c.type.vip){ addRep(-0.3); toast('🤳 유튜버: "음... 쏘쏘하네요"'); }
+  } else {
+    G.combo = 0; tip = 0; price = Math.round(s.price * 0.7);
+    msg = '주문이랑 너무 달라요'; color = '#ff8a7a';
+    c.face = '😒'; c.line = '다음엔 제대로 주세요...';
+    addRep(c.type.vip ? -0.7 : -0.15);
+    if (c.type.vip) toast('🤳 유튜버가 혹평 영상을 올렸어요...');
+  }
+  tip = Math.round(tip / 100) * 100;
+  G.money += price + tip;
+  G.stats.sales += price; G.stats.tips += tip; G.stats.served++;
+
+  const tv = W.trayViews[G.sel], v = W.seatViews[i];
+  const bowl = makeBowl(tr.soup, tr.tops, .6);
+  bowl.position.copy(tv.g.position).add(new THREE.Vector3(0, .1, 0));
+  scene.add(bowl);
+  tweenArc(bowl, new THREE.Vector3(SEAT_X[i], COUNTER_TOP, -.75), .45, 2.2, () => { if (mistakes === 0) emitCoins(new THREE.Vector3(SEAT_X[i], 3.2, SEAT_Z + .5)); });
+  if (v){ if (v.bowl) scene.remove(v.bowl); v.bowl = bowl; } else setTimeout(() => scene.remove(bowl), 2000);
+
+  G.trays[G.sel] = null;
+  switchToFilledTray();
+  c.state = 'happy'; c.t = 2.0; c.v++;
+  floatWorld(hx, hy, hz, '+' + fmt(price + tip), '#f2b632');
+  floatWorld(hx, hy, hz, msg, color, 34);
+  sfx.coin();
+}
+
+// ---------------- 영업 업데이트 ----------------
+function update(dt){
+  if (G.time > 0){
+    G.time -= dt;
+    if (!G.rushShown && G.time < DAY_LEN * 0.6){ G.rushShown = true; toast('🔥 점심 러시! 손님이 몰려와요!'); }
+    if (G.time <= 0){ G.time = 0; toast('🔔 영업 마감! 남은 손님만 받아요'); }
+  }
+  if (G.time > 0){
+    G.spawnT -= dt;
+    if (G.spawnT <= 0) G.spawnT = spawnCustomer() ? nextInterval() : 0.8;
+  }
+  const ct = cookTime();
+  G.burners.forEach(b => {
+    if (b.state === 'cooking'){
+      b.t += dt;
+      if (b.t >= ct){ b.state = 'ready'; b.t = 0; sfx.ready(); }
+    } else if (b.state === 'ready'){
+      b.t += dt;
+      if (b.t >= BURN_TIME){ b.state = 'burnt'; sfx.burnt(); toast('💨 국밥이 타버렸어요!'); }
+    }
+  });
+  G.seats.forEach((c, i) => {
+    if (c && c.state !== 'waiting'){
+      c.t -= dt;
+      if (c.t <= 0) G.seats[i] = null;
+    }
+  });
+  checkSoldOut();
+  if (G.time > 0){
+    const {prog} = supply();
+    if (!SOUPS.some(s => canAccept(s.id)) && prog.pork + prog.kong === 0){
+      G.time = 0;
+      toast('🥲 재료가 다 떨어졌어요! 남은 손님만 받고 마감해요');
+    }
+  }
+  if (G.time <= 0 && G.seats.every(s => !s) && G.running) endDay();
+}
+
+// =====================================================================
+// ============================  3D 동기화  =============================
+// =====================================================================
+function clearCustomers(){
+  W.seatViews.forEach(v => v && removeCustomerView(v));
+  W.leaving.forEach(removeCustomerView);
+  W.seatViews = [null, null, null, null];
+  W.leaving = [];
+}
+function removeCustomerView(v){
+  scene.remove(v.g);
+  if (v.bowl) scene.remove(v.bowl);
+  v.el.remove();
+}
+
+function syncCustomers(seats, dt, curTray, live){
+  seats.forEach((c, i) => {
+    let v = W.seatViews[i];
+    if (v && (!c || v.id !== c.id)){
+      v.leavingDir = v.g.position.x < 0 ? -1 : 1;
+      v.el.remove();
+      W.leaving.push(v);
+      W.seatViews[i] = v = null;
+    }
+    if (c && !v){
+      const g = makeCustomer(c.type);
+      const fromLeft = i < 2 ? Math.random() < .8 : Math.random() < .2;
+      g.position.set(live ? (fromLeft ? -14 : 14) : SEAT_X[i], 0, SEAT_Z);
+      scene.add(g);
+      const el = document.createElement('div');
+      el.className = 'cust-ui';
+      $('labels').appendChild(el);
+      v = W.seatViews[i] = {id: c.id, seat: i, g, el, walking: live, walkT: 0, key: null, shakeT: 0, bowl: null};
+    }
+    if (v) updateCustomerView(v, c, dt, curTray, live);
+  });
+  for (let k = W.leaving.length - 1; k >= 0; k--){
+    const v = W.leaving[k];
+    v.walkT += dt;
+    v.g.rotation.y = v.leavingDir * Math.PI / 2;
+    v.g.position.x += v.leavingDir * 7 * dt;
+    v.g.position.y = Math.abs(Math.sin(v.walkT * 11)) * .12;
+    const P = v.g.userData;
+    P.legL.rotation.x = Math.sin(v.walkT * 11) * .6; P.legR.rotation.x = -P.legL.rotation.x;
+    if (v.bowl && v.walkT > .15){ scene.remove(v.bowl); v.bowl = null; }
+    if (Math.abs(v.g.position.x) > 15){ removeCustomerView(v); W.leaving.splice(k, 1); }
+  }
+}
+
+function updateCustomerView(v, c, dt, curTray, live){
+  const g = v.g, P = g.userData, tx = SEAT_X[v.seat];
+  v.walkT += dt;
+  if (v.walking){
+    const dx = tx - g.position.x;
+    g.position.x += Math.sign(dx) * Math.min(Math.abs(dx), 7 * dt);
+    g.rotation.y = dx > 0 ? Math.PI / 2 : -Math.PI / 2;
+    g.position.y = Math.abs(Math.sin(v.walkT * 11)) * .12;
+    P.legL.rotation.x = Math.sin(v.walkT * 11) * .6; P.legR.rotation.x = -P.legL.rotation.x;
+    if (Math.abs(dx) < .02){ v.walking = false; P.legL.rotation.x = P.legR.rotation.x = 0; }
+  } else {
+    g.rotation.y = lerp(g.rotation.y, 0, Math.min(1, dt * 10));
+    g.position.y = c.state === 'happy' ? Math.abs(Math.sin(v.walkT * 8)) * .18 : 0;
+    if (v.shakeT > 0){ v.shakeT -= dt; g.position.x = tx + Math.sin(v.walkT * 50) * .06; } else g.position.x = tx;
+    g.rotation.z = c.state === 'sad' ? Math.sin(v.walkT * 3) * .05 : 0;
+  }
+  const hovered = W.hover && W.hover.kind === 'seat' && W.hover.i === v.seat && c.state === 'waiting';
+  g.scale.setScalar(lerp(g.scale.x, hovered ? 1.07 : 1, Math.min(1, dt * 12)));
+
+  let mood = c.type.id === 'hangover' ? 'sick' : 'normal';
+  if (c.state === 'sad') mood = 'worried';
+  if (c.state === 'happy') mood = {'😋': 'happy', '🙂': 'meh', '😒': 'annoyed'}[c.face] || 'happy';
+  if (P.mood !== mood){ P.mood = mood; P.face.material.map = faceTex(c.type.id, mood); }
+  if (c.state === 'happy' && v.bowl) P.armL.rotation.x = -.9 + Math.sin(v.walkT * 12) * .25;
+  if (P.phoneLight) P.phoneLight.visible = Math.sin(v.walkT * 6) > 0;
+
+  if (!live){ v.el.hidden = true; return; }
+  const key = `${c.state}|${c.v}`;
+  if (v.key !== key){
+    v.key = key;
+    const s = soupById(c.soup);
+    let html = `<div class="line">${esc(c.line || '')}</div>`;
+    if (c.state === 'waiting'){
+      const tops = c.tops.length
+        ? c.tops.map(t => { const T = topById(t); return `<span class="chip">${T.icon}${T.name}</span>`; }).join('')
+        : `<span class="chip plain">토핑 없이</span>`;
+      html += `<div class="bubble" data-seat="${v.seat}"><span class="keyhint">${keyLabel(SEAT_KEYS[v.seat])}</span>${c.type.vip ? '<span class="vip-tag">VIP</span>' : ''}<div class="o-soup">${s.icon} ${s.name}</div><div class="o-tops">${tops}</div></div>`;
+    }
+    v.el.innerHTML = html;
+    v.el.className = 'cust-ui st-' + c.state + (c.type.vip ? ' vip' : '');
+  }
+  v.el.hidden = false;
+  const waiting = c.state === 'waiting';
+  v.el.classList.toggle('targetable', !!(waiting && curTray));
+  v.el.classList.toggle('match', !!(waiting && curTray && curTray.soup === c.soup));
+  place(v.el, toScreen(g.position.x, 3.75 + g.position.y, SEAT_Z), true);
+}
+
+function syncBurners(burners, dt, ct, live){
+  burners.forEach((b, i) => {
+    const v = W.burnerViews[i];
+    if (!v) return;
+    const key = b.state + '|' + (b.soup || '');
+    if (v.key !== key){
+      v.key = key;
+      v.contents.children.filter(ch => !v.bubbles.includes(ch)).forEach(ch => v.contents.remove(ch));
+      if (b.state !== 'empty') v.contents.add(makeContents(b.soup, [], .85 * .84, b.state === 'burnt'));
+    }
+    const pos = v.g.position;
+    const cooking = b.state === 'cooking', ready = b.state === 'ready', burnt = b.state === 'burnt';
+    const warn = ready && b.t > BURN_TIME * .55;
+    v.flames.visible = cooking || ready;
+    v.flames.children.forEach((f, k) => { f.scale.y = (cooking ? 1 : .45) * (.7 + Math.abs(Math.sin(T * 20 + k * 1.7)) * .6); });
+    v.bubbles.forEach((bb, k) => {
+      bb.visible = cooking || ready;
+      const ph = (T * (cooking ? 1.6 : .9) + k / 6) % 1;
+      bb.position.set(Math.cos(k * 2.3) * .35 * (1 - ph * .3), .04 + ph * .05, Math.sin(k * 2.3) * .35);
+      bb.scale.setScalar(Math.sin(ph * Math.PI) * 1.1 + .01);
+    });
+    v.ring.visible = ready || burnt;
+    if (ready) v.ringMat.color.set(warn ? (Math.sin(T * 14) > 0 ? 0xff3d00 : 0xffa000) : 0x4caf50);
+    if (burnt) v.ringMat.color.set(0x555555);
+    v.ring.scale.setScalar(ready ? 1 + Math.sin(T * 6) * .04 : 1);
+    v.pot.position.x = warn ? Math.sin(T * 45) * .035 : 0;
+    const hovered = W.hover && W.hover.kind === 'burner' && W.hover.i === i;
+    v.scale = lerp(v.scale, hovered ? 1.08 : 1, Math.min(1, dt * 12));
+    v.pot.scale.setScalar(v.scale);
+    v.emitT -= dt;
+    if (v.emitT <= 0 && (cooking || ready || burnt)){
+      emitSteam(new THREE.Vector3(pos.x, pos.y + 1.0, pos.z), burnt, burnt ? 1.2 : 1);
+      v.emitT = cooking ? .28 : ready ? .12 : .18;
+    }
+    if (!live){ v.label.hidden = true; return; }
+    v.label.hidden = false;
+    const lk = key + (warn ? 'w' : '');
+    if (v.label.dataset.key !== lk){
+      v.label.dataset.key = lk;
+      const s = b.soup ? soupById(b.soup) : null;
+      const txt = {empty: '빈 가마솥', cooking: '끓는 중...', ready: warn ? '곧 타요! 빨리!' : '완성! 클릭', burnt: '탔어요! 클릭=버리기'}[b.state];
+      v.label.innerHTML = `<span class="k">${keyLabel(BURNER_KEYS[i])}</span>${s ? `${s.icon} ${s.name}` : '🍲'}<small>${txt}</small><div class="bbar"><i></i></div>`;
+      v.label.className = 'plabel ' + b.state + (warn ? ' warn' : '');
+    }
+    const bar = v.label.querySelector('.bbar i');
+    if (cooking){ bar.style.width = (b.t / ct * 100) + '%'; bar.style.background = '#f2b632'; }
+    else if (ready){ bar.style.width = ((1 - b.t / BURN_TIME) * 100) + '%'; bar.style.background = warn ? '#ff5722' : '#4caf50'; }
+    else { bar.style.width = burnt ? '100%' : '0'; bar.style.background = '#555'; }
+    place(v.label, toScreen(pos.x, pos.y, pos.z + 1.25));
+  });
+}
+
+function syncTrays(trays, sel, dt, live){
+  trays.forEach((tr, i) => {
+    const v = W.trayViews[i];
+    if (!v) return;
+    const key = tr && !v.pendingKey ? tr.soup + ':' + tr.tops.join(',') : '-';
+    if (v.key !== key){
+      const wasEmpty = !v.key || v.key === '-';
+      v.key = key;
+      v.holder.children.slice().forEach(ch => v.holder.remove(ch));
+      if (key !== '-'){ v.holder.add(makeBowl(tr.soup, tr.tops, .6)); v.pop = wasEmpty ? .6 : .9; }
+    }
+    v.pop = lerp(v.pop, 1, Math.min(1, dt * 10));
+    const hovered = W.hover && W.hover.kind === 'tray' && W.hover.i === i;
+    v.scale = lerp(v.scale, hovered ? 1.06 : 1, Math.min(1, dt * 12));
+    v.holder.scale.setScalar(v.pop * v.scale);
+    v.sel.visible = trays.length > 1 && sel === i;
+    v.emitT -= dt;
+    if (tr && v.emitT <= 0){ emitSteam(new THREE.Vector3(v.g.position.x, v.g.position.y + .8, v.g.position.z), false, .6); v.emitT = .35; }
+    if (!live){ v.label.hidden = true; return; }
+    v.label.hidden = false;
+    const lk = key + '|' + (v.sel.visible ? 1 : 0);
+    if (v.label.dataset.key !== lk){
+      v.label.dataset.key = lk;
+      const s = tr ? soupById(tr.soup) : null;
+      v.label.innerHTML = (trays.length > 1 ? `<span class="k">Tab</span>` : '') + (s ? `${s.icon} ${s.name}<small>${tr.tops.length ? tr.tops.map(t => topById(t).icon + topById(t).name).join(' ') : '토핑 없음'}</small>` : `조립대<small>빈 그릇 자리</small>`);
+      v.label.className = 'plabel tray' + (v.sel.visible ? ' sel' : '') + (tr ? '' : ' empty');
+    }
+    place(v.label, toScreen(v.g.position.x, v.g.position.y, v.g.position.z + .85));
+  });
+}
+
+function syncBins(curTray, dt){
+  W.bins.forEach(b => {
+    b.bounce = Math.max(0, (b.bounce || 0) - dt * 4);
+    const on = curTray && curTray.tops.includes(b.id);
+    const hovered = W.hover && W.hover.kind === 'top' && W.hover.id === b.id;
+    b.g.position.y = TABLE_TOP + .04 + Math.sin(b.bounce * Math.PI) * .25;
+    b.g.scale.setScalar(lerp(b.g.scale.x, hovered ? 1.15 : on ? 1.08 : 1, Math.min(1, dt * 12)));
+  });
+}
+
+function syncStockPot(pot, boil, amount, yieldN, dt, color, boilColor){
+  pot.flames.visible = !!boil;
+  pot.flames.children.forEach((f, i) => { f.scale.y = .7 + Math.abs(Math.sin(T * 20 + i * 1.7)) * .6; });
+  const level = amount + (boil ? boil.sets * yieldN * (boil.t / boil.dur) : 0);
+  pot.broth.visible = level > 0 || !!boil;
+  pot.broth.position.y = .15 + Math.min(1, level / (yieldN * 3)) * 1.05;
+  pot.broth.material.color.set(boil ? boilColor : color);
+  pot.bubbles.forEach((b, i) => {
+    b.visible = !!boil;
+    const ph = (T * 1.8 + i / 10) % 1;
+    b.position.set(Math.cos(i * 2.1) * .6 * (1 - ph * .3), Math.sin(i * 2.1) * .6, .05 + ph * .06);
+    b.scale.setScalar(Math.sin(ph * Math.PI) + .01);
+  });
+  pot.steamT -= dt;
+  if (pot.steamT <= 0 && (boil || amount > 0)){
+    const pp = pot.potG.position;
+    emitSteam(new THREE.Vector3(pp.x, pp.y + 1.7, pp.z), false, boil ? 1.6 : 1);
+    pot.steamT = boil ? .09 : .4;
+  }
+}
+
+// 냉장고는 점심 영업 중에도 보이므로 따로 갱신 (영업 중 고기가 줄어드는 게 보임)
+function syncFridge(dt){
+  const P = W.prep;
+  P.fridgeT = Math.max(0, P.fridgeT - dt);
+  const hov = W.mode === 'prep' && W.hover && W.hover.kind === 'prep' && W.hover.id === 'fridge';
+  P.fridgeOpen = lerp(P.fridgeOpen, P.fridgeT > 0 || hov ? 1 : 0, Math.min(1, dt * 6));
+  P.door.rotation.y = -1.5 * P.fridgeOpen;
+  const n = G ? G.stock.pork : 0;
+  P.fridgeSlices.forEach((sl, i) => { sl.visible = i < n; });
+}
+
+function syncPrep(dt){
+  if (!G) return;
+  const P = W.prep, r = G.raw, s = G.stock, p = G.prep;
+  for (const id in P.hoverObjs){
+    const target = W.hover && W.hover.kind === 'prep' && W.hover.id === id ? 1.05 : 1;
+    P.hov[id] = lerp(P.hov[id] || 1, target, Math.min(1, dt * 12));
+    P.hoverObjs[id].forEach(o => o.scale.setScalar(P.hov[id]));
+  }
+
+  // 고기
+  P.block.visible = r.pork > 0;
+  P.block.scale.x = lerp(P.block.scale.x, blockScale(), Math.min(1, dt * 15));
+  P.spare.forEach((sb, k) => { sb.visible = k < r.pork - 1; });
+  P.chopT = Math.max(0, P.chopT - dt);
+  const k = P.chopT > 0 ? 1 - P.chopT / .16 : 1;
+  P.knife.rotation.x = .85 * Math.abs(Math.cos(k * Math.PI));
+  P.knife.position.x = P.block.visible ? -1.0 + 1.2 * P.block.scale.x + .06 : .3;
+  P.slices.forEach((sl, i) => { sl.visible = i < p.cut; });
+
+  // 싱크대
+  P.washT = Math.max(0, P.washT - dt);
+  const washing = P.washT > 0;
+  P.stream.visible = washing;
+  for (const kind in P.sinkItems){
+    const it = P.sinkItems[kind];
+    it.visible = washing && P.washKind === kind;
+    if (it.visible) it.position.y = .32 + Math.sin(T * 25) * .04;
+  }
+
+  // 콩나물
+  const washedLeft = p.washedKong * 5 - p.kongPart;
+  P.rawSprouts.forEach((sp, i) => { sp.visible = i < Math.min(40, r.kong * 8); });
+  P.washedSprouts.forEach((sp, i) => { sp.visible = i < Math.min(40, washedLeft * 2); });
+  P.cleanSprouts.forEach((sp, i) => { sp.visible = i < Math.min(40, s.kong * 2); });
+
+  // 뼈 상자 (씻은 뼈는 하얗게)
+  P.bonesCrate.items.forEach((b, i) => { b.visible = i < Math.min(4, r.bones + p.washedBones); tintGroup(b, i < p.washedBones ? 0xf3ecd8 : 0xd99a86); });
+  P.spineCrate.items.forEach((b, i) => { b.visible = i < Math.min(4, r.spine + p.washedSpine); tintGroup(b, i < p.washedSpine ? 0xe8cdb5 : 0xc0705c); });
+
+  // 육수솥
+  syncStockPot(P.clear, p.boil, s.broth, 8, dt, 0xe9dcc0, 0xd9c49a);
+  syncStockPot(P.spicyPot, p.spicyBoil, s.spicy, 5, dt, 0xc0392b, 0xa82a1c);
+
+  // 라벨
+  const live = canPrep();
+  const wk = P.washKind;
+  const potAt = pot => [pot.potG.position.x, pot.potG.position.y, pot.potG.position.z + 1.3];
+  const info = {
+    chop:   {title: '🔪 도마', key: '1', sub: r.pork > 0 ? `썰기! (도마 위 ${p.cut}인분)` : p.cut ? `다 썰었어요 · ${p.cut}인분` : '썰 고기 없음', prog: p.porkChop / chopsPer(), idle: r.pork <= 0, at: [P.board.position.x - .4, P.board.position.y, P.board.position.z + .75]},
+    fridge: {title: '🧊 냉장고', key: '2', sub: p.cut > 0 ? `클릭해서 넣기! (보관 ${s.pork})` : `보관 ${s.pork}인분`, prog: 0, idle: p.cut <= 0, at: [8.75, .3, 2.7]},
+    sink:   {title: '🚰 싱크대', key: '3·5·7', sub: r.kong + r.bones + r.spine > 0 ? '재료 씻기!' : '씻을 재료 없음', prog: wk ? p[wk + 'Wash'] / WASH_CLICKS[wk] : 0, idle: r.kong + r.bones + r.spine <= 0, at: [P.sink.position.x, P.sink.position.y, P.sink.position.z + .9]},
+    trim:   {title: '✂️ 콩나물 다듬기', key: '4', sub: p.washedKong > 0 ? `다듬기! (${s.kong}인분)` : `다듬은 콩나물 ${s.kong}인분`, prog: p.kongPart / 5, idle: p.washedKong <= 0, at: [P.bowl.position.x, P.bowl.position.y, P.bowl.position.z + .65]},
+    boil:   {title: '🍲 맑은 육수', key: '6', sub: p.boil ? '보글보글 끓는 중...' : p.washedBones > 0 ? `끓이기! (${s.broth}인분)` : `${s.broth}인분`, prog: p.boil ? p.boil.t / p.boil.dur : 0, idle: !p.boil && p.washedBones <= 0, at: potAt(P.clear)},
+    spicy:  {title: '🌶️ 매운 육수', key: '8', sub: p.spicyBoil ? '보글보글 끓는 중...' : p.washedSpine > 0 ? `양념 넣고 끓이기! (${s.spicy}인분)` : `${s.spicy}인분`, prog: p.spicyBoil ? p.spicyBoil.t / p.spicyBoil.dur : 0, idle: !p.spicyBoil && p.washedSpine <= 0, at: potAt(P.spicyPot)},
+  };
+  for (const id in info){
+    const el = P.labels[id], d = info[id];
+    el.hidden = !live;
+    if (!live) continue;
+    const lk = d.title + d.sub + d.idle;
+    if (el.dataset.key !== lk){
+      el.dataset.key = lk;
+      el.innerHTML = `<span class="k">${d.key}</span>${d.title}<small>${d.sub}</small><div class="bbar"><i></i></div>`;
+      el.className = 'plabel prep' + (d.idle ? ' idle' : '');
+    }
+    el.querySelector('.bbar i').style.width = (d.prog * 100) + '%';
+    place(el, toScreen(...d.at));
+  }
+}
+
+// ---------------- HUD ----------------
+function renderHUD(){
+  if (!G) return;
+  $('hudDay').textContent = `DAY ${G.day}`;
+  if (G.phase === 'lunch' || G.phase === 'result'){
+    const tm = Math.ceil(G.time);
+    $('hudTime').textContent = G.time > 0 ? `☀️ ${Math.floor(tm / 60)}:${String(tm % 60).padStart(2, '0')}` : '🔔 마감';
+    $('hudTime').classList.toggle('low', G.time > 0 && G.time <= 15);
+  } else {
+    $('hudTime').textContent = G.phase === 'prep' ? '🌅 새벽 준비' : '🌅 새벽';
+    $('hudTime').classList.remove('low');
+  }
+  $('hudMoney').textContent = '💰 ' + fmt(G.money);
+  $('hudMoney').classList.toggle('neg', G.money < 0);
+  $('hudGoal').textContent = `🎯 100만원까지 ${Math.floor(clamp(G.money / GOAL, 0, 1) * 100)}%`;
+  $('hudRep').style.width = (G.rep / 5 * 100) + '%';
+  $('hudRepNum').textContent = G.rep.toFixed(1);
+  const comboTxt = G.combo >= 2 ? `🔥 콤보 x${G.combo}` : '';
+  if ($('hudCombo').textContent !== comboTxt) $('hudCombo').textContent = comboTxt;
+
+  if (G.phase === 'lunch'){
+    const curTray = G.trays[G.sel];
+    document.querySelectorAll('[data-top]').forEach(btn => btn.classList.toggle('on', !!(curTray && curTray.tops.includes(btn.dataset.top))));
+    document.querySelectorAll('[data-soup]').forEach(btn => {
+      const n = Math.min(...Object.keys(soupById(btn.dataset.soup).needs).map(k => G.stock[k]));
+      const txt = n > 0 ? `남은 재료 ${n}인분` : '재료 소진';
+      const sm = btn.querySelector('small');
+      if (sm.textContent !== txt) sm.textContent = txt;
+      btn.classList.toggle('soldout', n <= 0);
+    });
+  } else if (G.phase === 'prep'){
+    const r = G.raw, s = G.stock, p = G.prep;
+    $('pi-pork').textContent = `원육 ${r.pork}근 · 도마 ${p.cut} · 냉장 ${s.pork}인분`;
+    $('pi-kong').textContent = `안 씻음 ${r.kong} · 씻음 ${p.washedKong}봉지 · 다듬음 ${s.kong}인분`;
+    $('pi-broth').textContent = `뼈 ${r.bones} · 씻음 ${p.washedBones}세트 · 육수 ${s.broth}인분`;
+    $('pi-spicy').textContent = `등뼈 ${r.spine} · 씻음 ${p.washedSpine}세트 · ${s.spicy}인분`;
+    const bars = {
+      chop: p.porkChop / chopsPer(), washKong: p.kongWash / WASH_CLICKS.kong, trim: p.kongPart / 5,
+      washBones: p.bonesWash / WASH_CLICKS.bones, boil: p.boil ? p.boil.t / p.boil.dur : 0,
+      washSpine: p.spineWash / WASH_CLICKS.spine, spicy: p.spicyBoil ? p.spicyBoil.t / p.spicyBoil.dur : 0, fridge: 0,
+    };
+    PREP_ACTIONS.forEach(id => {
+      const btn = document.querySelector(`[data-prep="${id}"]`);
+      btn.classList.toggle('off', !prepCan(id));
+      btn.querySelector('.bbar i').style.width = (bars[id] * 100) + '%';
+    });
+    $('prepSum').innerHTML = `만들 수 있는 국밥: 🐖 ${Math.min(s.pork, s.broth)} · 🌱 ${Math.min(s.kong, s.broth)} · 🦴 ${s.spicy}`;
+  }
+}
+
+// ================= 영업 종료 / 상점 / 엔딩 =================
+function goalBar(){
+  const pct = Math.floor(clamp(G.money / GOAL, 0, 1) * 100);
+  return `<div style="margin:8px auto;max-width:440px;background:#e2d6c0;border-radius:10px;overflow:hidden;position:relative;height:28px">
+    <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#f2b632,#c62d1f)"></div>
+    <div style="position:absolute;inset:0;line-height:28px;font-size:16px">🎯 목표 100만원 · ${pct}% ${G.money < GOAL ? `(${fmt(GOAL - G.money)} 남음)` : '달성!'}</div></div>`;
+}
+
+function endDay(){
+  G.running = false;
+  G.phase = 'result';
+  const s = G.stats, rent = rentToday();
+  G.money -= rent;
+  const net = s.sales + s.tips - s.purchase - rent;
+  G.totalProfit += net; G.totalServed += s.served; G.totalPerfect += s.perfect;
+  const p = G.prep, r = G.raw, st = G.stock;
+  const waste = {
+    '🥩 고기': st.pork + p.cut + r.pork * 4 - p.porkPart,
+    '🌱 콩나물': st.kong + p.washedKong * 5 - p.kongPart + r.kong * 5,
+    '🍲 맑은 육수': st.broth + (p.washedBones + r.bones) * 8,
+    '🌶️ 매운 육수': st.spicy + (p.washedSpine + r.spine) * 5,
+  };
+  const wasteTxt = Object.entries(waste).filter(([, n]) => n > 0).map(([k, n]) => `${k} ${n}인분`).join(' · ');
+  sfx.fanfare();
+  let nextBtn;
+  if (G.money < 0) nextBtn = `<button class="big-btn" onclick="showEnding('bankrupt')">결과 보기...</button>`;
+  else if (G.money >= GOAL) nextBtn = `<button class="big-btn" onclick="showEnding('goal')">🏆 100만원 달성! 결과 보기</button>`;
+  else nextBtn = `<button class="big-btn" onclick="showShop()">업그레이드 상점 🛒</button>`;
+  showOverlay(`
+    <div class="card">
+      <h2>🏮 DAY ${G.day} 영업 결과</h2>
+      <div style="font-size:18px;color:#6b4a2a">서빙 ${s.served}명 (완벽 ${s.perfect}) · 품절로 돌아간 손님 ${s.soldout}명</div>
+      <table class="sum">
+        <tr><td>🍲 국밥 매출</td><td class="plus">+${fmt(s.sales)}</td></tr>
+        <tr><td>💝 팁</td><td class="plus">+${fmt(s.tips)}</td></tr>
+        <tr><td>🛒 새벽 재료 구입비</td><td class="minus">-${fmt(s.purchase)}</td></tr>
+        <tr><td>🏠 임대료</td><td class="minus">-${fmt(rent)}</td></tr>
+        <tr class="total"><td>오늘 순이익</td><td class="${net >= 0 ? 'plus' : 'minus'}">${net >= 0 ? '+' : ''}${fmt(net)}</td></tr>
+      </table>
+      <div class="waste">${wasteTxt ? `🗑️ 폐기된 재료: ${wasteTxt}` : '👍 재료를 남김없이 다 썼어요!'}</div>
+      <div style="font-size:19px;margin-top:8px">보유 자금 <b style="color:var(--red);font-weight:normal">${fmt(G.money)}</b> · 평판 ⭐ ${G.rep.toFixed(1)}</div>
+      ${goalBar()}
+      ${nextBtn}
+    </div>`);
+}
+
+function showShop(){
+  sfx.click();
+  const cards = UPGRADES.map(u => {
+    const lv = G.up[u.id], max = u.costs.length, cost = u.costs[lv];
+    const dots = Array.from({length: max}, (_, k) => `<i class="${k < lv ? 'on' : ''}"></i>`).join('');
+    const btn = lv >= max
+      ? `<button class="buy" disabled>최대 레벨</button>`
+      : `<button class="buy" ${G.money < cost ? 'disabled' : ''} onclick="buy('${u.id}')">${fmt(cost)}</button>`;
+    return `<div class="up-card ${lv >= max ? 'maxed' : ''}"><div class="up-ic">${u.icon}</div><div class="up-name">${u.name}</div><div class="up-desc">${u.desc}</div><div class="dots">${dots}</div>${btn}</div>`;
+  }).join('');
+  showOverlay(`
+    <div class="card wide">
+      <h2>🛒 업그레이드 상점</h2>
+      <div class="shop-money">보유 자금 <b>${fmt(G.money)}</b> · 평판 ⭐ ${G.rep.toFixed(1)}</div>
+      <div style="font-size:15px;color:#8a6e55;margin-bottom:8px">💡 업그레이드에 돈을 쓰면 100만원이 멀어져요. 내일 재료 살 돈도 남겨두세요!</div>
+      <div class="shop-grid">${cards}</div>
+      <button class="big-btn" onclick="nextDay()">DAY ${G.day + 1} 준비하기 ▶</button>
+    </div>`);
+}
+
+function buy(id){
+  const u = UPGRADES.find(x => x.id === id), lv = G.up[id], cost = u.costs[lv];
+  if (cost == null || G.money < cost){ sfx.err(); return; }
+  G.money -= cost; G.up[id]++;
+  if (id === 'sign') G.rep = clamp(G.rep + 0.5, 0, 5);
+  sfx.coin();
+  showShop();
+}
+
+function nextDay(){
+  G.day++;
+  sfx.click();
+  showDayIntro();
+}
+
+function showEnding(reason){
+  G.running = false;
+  G.phase = 'result';
+  const d = G.day;
+  let grade;
+  if (reason === 'rep') grade = {e: '🥀', t: '폐업... 손님이 발길을 끊었어요', d: '평판이 바닥났어요. 국밥은 정성입니다!'};
+  else if (reason === 'bankrupt') grade = {e: '💸', t: '파산... 임대료를 못 냈어요', d: '재료 구입비와 임대료 관리가 중요해요.'};
+  else {
+    grade = d <= 6  ? {e: '👑', t: '국밥 프랜차이즈 회장님', d: `단 ${d}일 만에 100만원! 전국에 지점이 생겼어요!`}
+          : d <= 9  ? {e: '🔥', t: '줄 서는 국밥 명소', d: `${d}일 만에 100만원 달성! 방송 출연 섭외가 들어왔어요.`}
+          : d <= 13 ? {e: '🍲', t: '동네 단골 맛집', d: `${d}일 동안 차곡차곡 모아 100만원 달성!`}
+          :           {e: '😅', t: '끈기의 국밥집', d: `${d}일간의 노력 끝에 100만원 달성! 포기하지 않았어요.`};
+    sfx.fanfare();
+  }
+  const best = loadBest();
+  let newRecord = false;
+  if (reason === 'goal' && (!best || !best.days || d < best.days)){
+    saveBest({name: G.name, days: d, grade: grade.t});
+    newRecord = true;
+  }
+  const done = reason === 'goal';
+  showOverlay(`
+    <div class="card">
+      <div style="font-size:20px;color:#8a6e55">${esc(G.name)} · ${done ? `DAY ${d} 목표 달성` : `DAY ${d}에서 종료`}</div>
+      <div class="ending-ic">${grade.e}</div>
+      <div class="ending-title">${grade.t}</div>
+      <div class="day-note">${grade.d}</div>
+      ${newRecord ? '<div class="unlock">🏆 최단 기록 갱신!</div>' : ''}
+      <table class="sum">
+        <tr><td>걸린 날짜</td><td>${d}일</td></tr>
+        <tr><td>최종 자금</td><td>${fmt(G.money)}</td></tr>
+        <tr><td>서빙한 손님</td><td>${G.totalServed + (G.phase === 'result' && !done ? G.stats.served : 0)}명</td></tr>
+        <tr><td>완벽한 국밥</td><td>${G.totalPerfect + (!done ? G.stats.perfect : 0)}그릇</td></tr>
+        <tr><td>최종 평판</td><td>⭐ ${G.rep.toFixed(1)}</td></tr>
+      </table>
+      <button class="big-btn" onclick="showTitle()">다시 하기 🔄</button>
+    </div>`);
+}
+
+function togglePause(){
+  if (!inPhase('lunch') || (!G.running && !G.paused)) return;
+  G.paused = !G.paused;
+  G.running = !G.paused;
+  if (G.paused){
+    const waiting = G.seats.filter(c => c && c.state === 'waiting').length;
+    showOverlay(`
+      <div class="card">
+        <h2>⏸ 일시정지</h2>
+        <div class="keys-help" style="font-size:16px">Q W E 국밥 · A S D F 가마솥 · 1~4 토핑 · Z X C V 서빙 · Tab 조립대 전환 · Backspace 버리기</div>
+        <button class="big-btn" onclick="togglePause()">계속하기 ▶</button><br>
+        ${G.time <= 0 && waiting ? `<button class="sub-btn" onclick="closeEarly()">🙇 남은 손님께 사과하고 마감 (평판 -0.2/명)</button><br>` : ''}
+        <button class="sub-btn" onclick="showTitle()">처음으로</button>
+      </div>`);
+  } else hideOverlay();
+}
+function closeEarly(){
+  G.seats.forEach((c, i) => {
+    if (c && c.state === 'waiting'){ G.stats.soldout++; G.rep = clamp(G.rep - 0.2, 0, 5); }
+    G.seats[i] = null;
+  });
+  G.paused = false;
+  G.running = true;
+  hideOverlay();
+  if (G.rep <= 0){ G.running = false; showEnding('rep'); return; }
+  endDay();
+}
+
+// ================= 오버레이 / 이펙트 =================
+function showOverlay(html, light = false){
+  const o = $('overlay');
+  o.innerHTML = html;
+  o.classList.toggle('light', light);
+  o.hidden = false;
+}
+function hideOverlay(){ $('overlay').hidden = true; $('overlay').innerHTML = ''; }
+
+let toastTimer = null;
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1900);
+}
+function floatWorld(x, y, z, text, color, dy = 0){
+  const p = toScreen(x, y, z);
+  const f = document.createElement('div');
+  f.className = 'float';
+  f.textContent = text;
+  f.style.color = color;
+  f.style.left = p.x + 'px';
+  f.style.top = (p.y + dy) + 'px';
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 1250);
+}
+
+// ================= 입력 =================
+const _ptr = new THREE.Vector2();
+function pickAt(cx, cy){
+  _ptr.set(cx / window.innerWidth * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
+  raycaster.setFromCamera(_ptr, camera);
+  const list = W.mode === 'prep' ? W.prep.hits : [...W.seatHits, ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
+  const hits = raycaster.intersectObjects(list, false);
+  return hits.length ? hits[0].object.userData : null;
+}
+function handleHit(u){
+  if (u.kind === 'prep') prepAction(u.id);
+  else if (u.kind === 'burner') clickBurner(u.i);
+  else if (u.kind === 'tray'){ if (u.i < G.trays.length){ G.sel = u.i; sfx.click(); } }
+  else if (u.kind === 'seat') serve(u.i);
+  else if (u.kind === 'top') toggleTop(u.id);
+}
+
+document.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  const t = e.target;
+  if (canPrep()){
+    let el;
+    if (t === renderer.domElement){ const u = pickAt(e.clientX, e.clientY); if (u && u.kind === 'prep') handleHit(u); }
+    else if ((el = t.closest('[data-prep]'))) prepAction(el.dataset.prep);
+    else if (t.closest('#startLunchBtn')) startLunch();
+    return;
+  }
+  if (!canAct()) return;
+  if (t === renderer.domElement){ const u = pickAt(e.clientX, e.clientY); if (u) handleHit(u); return; }
+  let el;
+  if ((el = t.closest('[data-soup]'))) orderSoup(el.dataset.soup);
+  else if ((el = t.closest('[data-top]'))) toggleTop(el.dataset.top);
+  else if ((el = t.closest('[data-seat]'))) serve(+el.dataset.seat);
+  else if (t.closest('#trashBtn')) trashTray();
+});
+document.addEventListener('pointermove', e => {
+  if (!(canAct() || canPrep()) || e.target !== renderer.domElement){ W.hover = null; renderer.domElement.style.cursor = ''; return; }
+  W.hover = pickAt(e.clientX, e.clientY);
+  renderer.domElement.style.cursor = W.hover ? 'pointer' : '';
+});
+
+$('pauseBtn').addEventListener('click', togglePause);
+$('muteBtn').addEventListener('click', () => { muted = !muted; $('muteBtn').textContent = muted ? '🔇' : '🔊'; });
+
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const c = e.code;
+  if (canPrep()){
+    const m = /^(?:Digit|Numpad)([1-8])$/.exec(c);
+    if (m) prepAction(PREP_ACTIONS[+m[1] - 1]);
+    else if (c === 'Enter' || c === 'NumpadEnter'){ e.preventDefault(); if (!e.repeat) startLunch(); }
+    return;
+  }
+  if (c === 'Escape' || c === 'KeyP'){ togglePause(); return; }
+  if (!canAct()) return;
+  let n;
+  if ((n = SOUP_KEYS.indexOf(c)) >= 0) orderSoup(SOUPS[n].id);
+  else if ((n = BURNER_KEYS.indexOf(c)) >= 0){ if (n < G.burners.length) clickBurner(n); }
+  else if ((n = SEAT_KEYS.indexOf(c)) >= 0) serve(n);
+  else if (/^Digit[1-4]$/.test(c)) toggleTop(TOPPINGS[+c.slice(5) - 1].id);
+  else if (c === 'Tab'){ e.preventDefault(); G.sel = (G.sel + 1) % G.trays.length; sfx.click(); }
+  else if (c === 'Backspace' || c === 'Delete'){ e.preventDefault(); trashTray(); }
+});
+
+document.addEventListener('visibilitychange', () => { if (document.hidden && canAct()) togglePause(); });
+
+// ================= 메인 루프 =================
+let last = 0;
+const _camTarget = new THREE.Vector3();
+function loop(ts){
+  const dt = Math.min(0.1, (ts - last) / 1000 || 0);
+  last = ts;
+  T += dt;
+  if (canAct()) update(dt);
+  if (inPhase('prep')) updatePrep(dt);
+
+  const overlayOpen = !$('overlay').hidden;
+  const frozen = G && G.paused;
+  const fdt = frozen ? 0 : dt;
+
+  if (W.mode === 'lunch'){
+    const real = !!G;
+    const seats = real ? G.seats : DEMO.seats;
+    const burners = real ? G.burners : DEMO.burners;
+    const trays = real ? G.trays : DEMO.trays;
+    const sel = real ? G.sel : 0;
+    if (!real) DEMO.burners[1].t = T % 7;
+    const curTray = trays[sel];
+    syncCustomers(seats, fdt, real ? curTray : null, real);
+    syncBurners(burners, fdt, real ? cookTime() : 7, real);
+    syncTrays(trays, sel, fdt, real);
+    syncBins(real ? curTray : null, fdt);
+  } else {
+    syncPrep(dt);
+  }
+  syncFridge(dt);
+  if (!frozen) updateFx(dt);
+  renderHUD();
+  $('labels').style.visibility = overlayOpen ? 'hidden' : 'visible';
+
+  W.lanterns.forEach((l, k) => { l.rotation.z = Math.sin(T * 1.2 + k * 2) * .06; });
+  W.clockHand.rotation.z = -T * .5;
+
+  // 조명 (새벽 ↔ 점심)
+  const Lt = LIGHTS[W.mode], lk = Math.min(1, dt * 2);
+  scene.background.lerp(Lt.bg, lk);
+  scene.fog.color.copy(scene.background);
+  W.hemi.color.lerp(Lt.hemi, lk);
+  W.hemi.intensity = lerp(W.hemi.intensity, Lt.hemiI, lk);
+  W.sun.color.lerp(Lt.sun, lk);
+  W.sun.intensity = lerp(W.sun.intensity, Lt.sunI, lk);
+
+  // 카메라
+  const cam = CAMS[W.mode];
+  _camTarget.copy(cam.pos);
+  if (overlayOpen){ _camTarget.x += Math.sin(T * .25) * 2.2; _camTarget.y += Math.sin(T * .17) * .4; }
+  camera.position.lerp(_camTarget, Math.min(1, dt * 2.5));
+  curLook.lerp(cam.look, Math.min(1, dt * 2.5));
+  if (W.shake > 0){ W.shake = Math.max(0, W.shake - dt); camera.position.x += (Math.random() - .5) * W.shake * .6; camera.position.y += (Math.random() - .5) * W.shake * .6; }
+  camera.lookAt(curLook);
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+
+init3D();
+showTitle();
+camera.position.copy(CAMS.lunch.pos);
+requestAnimationFrame(loop);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { redrawTex(W.menuTex); redrawTex(W.signTex); });
+</script>
+</body>
+</html>
