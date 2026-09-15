@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>국밥 타이쿤 3D</title>
+<title>Business Simulator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
 :root{
@@ -106,6 +107,99 @@ button{font-family:inherit;cursor:pointer}
 .pcard .bbar i{display:block;height:100%;width:0;background:var(--gold)}
 .pcard.done{opacity:.55}
 .prep-sum{color:var(--cream);font-size:16px;text-align:center;text-shadow:0 2px 0 #000}
+
+/* ---------- 새벽 시장 ---------- */
+#marketUI{position:fixed;inset:0;pointer-events:none;z-index:10}
+#marketUI > *{pointer-events:auto}
+#marketMemo{position:absolute;top:66px;right:14px;width:260px;background:#fff6b8;color:var(--ink);border-radius:3px;padding:14px 14px 12px;box-shadow:0 8px 18px rgba(0,0,0,.4);transform:rotate(1.2deg);font-size:15px}
+#marketMemo:before{content:'';position:absolute;top:-10px;left:50%;margin-left:-42px;width:84px;height:22px;background:rgba(255,255,255,.55);transform:rotate(-3deg)}
+#marketMemo h4{margin:0 0 2px;font-weight:normal;font-size:19px;color:var(--wood3)}
+.mm-est{font-size:13px;color:#8a6e55;margin-bottom:6px}
+#marketMemo ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+#marketMemo li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed #d9c77a;padding:3px 0}
+#marketMemo li.done span{text-decoration:line-through;color:#8a6e55}
+#marketMemo li b{font-weight:normal;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mm-pantry{font-size:14px;margin-top:6px;color:#4a2c18}
+.mm-spent{margin-top:6px;font-size:15px}
+.mm-spent b{color:var(--red);font-weight:normal}
+.mm-leave{margin-top:8px;width:100%;background:var(--red);color:#fff;border:none;border-radius:10px;padding:8px;font-size:17px;box-shadow:0 4px 0 var(--red2)}
+.mm-leave:active{transform:translateY(3px);box-shadow:0 1px 0 var(--red2)}
+#stallPanel{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:min(640px,calc(100% - 20px));background:var(--paper);border:4px solid var(--wood3);border-radius:16px;padding:8px 14px 8px;box-shadow:0 8px 0 rgba(0,0,0,.3)}
+.sp-head{display:flex;align-items:baseline;gap:10px;margin-bottom:2px;flex-wrap:wrap}
+.sp-head b{font-weight:normal;font-size:21px;color:var(--wood3)}
+.sp-head span{font-size:14px;color:#8a6e55}
+.sp-row{display:grid;grid-template-columns:40px 1fr 96px 158px;align-items:center;gap:8px;padding:5px 0;border-top:1px dashed #e2d2b6}
+.sp-ic{font-size:30px;text-align:center}
+.sp-name{font-size:17px;min-width:0}
+.sp-name small{display:block;font-size:12px;color:#8a6e55}
+.sp-price{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sp-price small{color:#8a6e55;font-size:12px}
+.sp-qty{display:flex;align-items:center;justify-content:flex-end;gap:6px;font-size:18px}
+.sp-qty span{min-width:38px;text-align:center;font-variant-numeric:tabular-nums}
+.sp-qty .qty{width:34px;height:34px;font-size:22px}
+.qty:disabled{background:#bdb3a5;box-shadow:0 3px 0 #8a8174;cursor:not-allowed}
+.sp-qty kbd{font-family:inherit;font-size:11px;background:#eee;border-radius:4px;padding:0 4px;color:#555}
+#marketHint{position:absolute;left:14px;bottom:14px;background:rgba(20,12,8,.75);color:var(--cream);border-radius:10px;padding:6px 10px;font-size:13px;max-width:230px;line-height:1.4}
+.ptag{position:absolute;left:0;top:0;background:rgba(20,12,8,.86);color:#fff3dc;border:2px solid var(--gold);border-radius:10px;padding:2px 9px 4px;text-align:center;white-space:nowrap;font-size:14px;will-change:transform}
+.ptag b{font-weight:normal;display:block}
+.ptag small{display:block;color:var(--gold);font-size:13px}
+.ptag em{display:block;font-style:normal;font-size:11px;color:#9fe39f}
+.ptag.poor small{color:#ff8a7a}
+.ptag.mini{padding:0 8px 1px;font-size:20px;border-width:2px}
+
+/* ---------- 카페 · 메뉴 개발실 ---------- */
+.swatch{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid rgba(0,0,0,.25);vertical-align:-2px;flex:none}
+.swatch.big{width:24px;height:24px;vertical-align:-6px}
+.cbtn.slim{width:76px;font-size:12px}
+.cbtn.slim .ic{font-size:22px}
+.cbtn.slim .swatch{width:10px;height:10px;margin-right:3px;vertical-align:0}
+.card.still{animation:none}
+.name-row .sub-btn{margin:0 0 0 8px;padding:6px 14px;font-size:16px}
+.menu-list{display:flex;flex-direction:column;gap:6px;margin:12px 0;text-align:left}
+.menu-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto 84px 72px;align-items:center;gap:10px;background:#f3e6cf;border-radius:12px;padding:6px 12px}
+.menu-row b{font-weight:normal;font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.menu-row span{font-size:18px}
+.menu-row em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums}
+.menu-row small{text-align:right;font-size:13px;color:#8a6e55}
+.menu-row small.ok{color:#2e7d32}
+.menu-row small.no{color:#c62d1f}
+.menu-row .sub-btn.small{font-size:13px;padding:3px 10px;margin:0;box-shadow:0 2px 0 #b99b72}
+.cafe-btns{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap}
+.cafe-btns .big-btn,.cafe-btns .sub-btn{margin-top:6px}
+.lab-sub{font-size:16px;color:#8a6e55;margin-bottom:10px}
+.lab-grid{display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:center}
+.lab-cup{position:relative;width:110px;height:150px;margin:0 auto;border:4px solid #a9c4cf;border-top:none;border-radius:0 0 22px 22px;background:linear-gradient(90deg,rgba(255,255,255,.7),rgba(220,236,242,.4));overflow:hidden}
+.lab-liquid{position:absolute;left:0;right:0;bottom:0;transition:height .3s,background .3s}
+.lab-mix{margin-top:10px;display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;font-size:15px;color:#8a6e55}
+.lab-mix b{font-weight:normal;color:var(--ink);font-size:18px}
+.lab-ings{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.lab-ing{background:#f3e6cf;border:3px solid transparent;border-radius:12px;padding:6px 4px;font-size:15px;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:3px}
+.lab-ing:hover{background:#fff}
+.lab-ing.on{border-color:var(--gold);background:#fff0c2}
+.lab-ing small{font-size:12px;color:#8a6e55}
+.lab-form{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:18px}
+.lab-form input{font-family:inherit;font-size:18px;padding:6px 10px;border-radius:10px;border:3px solid var(--wood3);width:170px;margin-left:6px}
+.lab-price{display:flex;align-items:center;gap:8px}
+.lab-price b{font-weight:normal;min-width:84px;font-variant-numeric:tabular-nums}
+.lab-form .big-btn{margin-top:0;font-size:20px;padding:8px 20px}
+.lab h3{margin:10px 0 0;font-weight:normal;color:var(--wood3);text-align:left}
+@media (max-width:1000px){
+  .cbtn.slim{width:58px;font-size:11px}
+  .lab-grid{grid-template-columns:1fr}
+  .lab-ings{grid-template-columns:repeat(2,1fr)}
+  .menu-row{grid-template-columns:26px minmax(0,1fr) 70px 60px}
+  .menu-row span{display:none}
+}
+.ptag .k{position:absolute;left:-8px;top:-8px;background:#eee;color:#222;border-radius:5px;padding:0 5px;font-size:12px}
+.gate-tag{position:absolute;left:0;top:0;background:var(--red);color:#fff;border-radius:12px;padding:6px 14px;font-size:17px;white-space:nowrap;pointer-events:auto;cursor:pointer;box-shadow:0 4px 0 var(--red2);will-change:transform}
+.gate-tag.far{background:rgba(20,12,8,.8);box-shadow:none;font-size:14px}
+@media (max-width:1000px){
+  #marketHint{display:none}
+  #marketMemo{width:210px;font-size:13px;top:96px}
+  .sp-row{grid-template-columns:32px 1fr 128px}
+  .sp-price{display:none}
+  .sp-name small{display:none}
+}
 .start-btn{background:var(--red);color:#fff;border:none;font-size:22px;padding:12px 22px;border-radius:14px;box-shadow:0 6px 0 var(--red2);position:relative}
 .start-btn:hover{filter:brightness(1.1)}
 .start-btn .key{font-size:11px;background:rgba(0,0,0,.2);border-radius:4px;padding:0 4px;margin-left:6px;vertical-align:middle}
@@ -121,7 +215,8 @@ button{font-family:inherit;cursor:pointer}
 .big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--red2)}
 .big-btn:disabled{background:#999;box-shadow:0 6px 0 #666;cursor:not-allowed;filter:none}
 .sub-btn{background:#e8d9c0;color:var(--ink);border:none;font-size:18px;padding:9px 22px;border-radius:12px;box-shadow:0 4px 0 #b99b72;margin:10px 4px 0}
-.sign{display:inline-block;background:var(--red);color:#fff;font-size:52px;padding:6px 34px;border-radius:14px;border:5px solid #fff3dc;box-shadow:0 0 0 5px var(--red),0 10px 0 5px rgba(0,0,0,.3);margin:10px 0 16px;letter-spacing:2px}
+.logo{display:block;width:100%;max-width:520px;height:auto;margin:4px auto 6px}
+.sign{display:inline-block;background:var(--red);color:#fff;font-size:clamp(28px,6vw,46px);padding:6px 34px;border-radius:14px;border:5px solid #fff3dc;box-shadow:0 0 0 5px var(--red),0 10px 0 5px rgba(0,0,0,.3);margin:10px 0 16px;letter-spacing:2px}
 .sign sup{font-size:24px;color:var(--gold)}
 .subtitle{font-size:20px;color:#6b4a2a;margin:6px 0 14px}
 .name-row{font-size:20px;margin:6px 0}
@@ -206,7 +301,7 @@ button{font-family:inherit;cursor:pointer}
 <canvas id="scene"></canvas>
 <div id="labels"></div>
 <div id="hud">
-  <div class="hud-name" id="hudName">🍲 국밥 타이쿤 3D</div>
+  <div class="hud-name" id="hudName">🍽️ Business Simulator</div>
   <div class="hud-item" id="hudDay">DAY 1</div>
   <div class="hud-item timer" id="hudTime">⏱ 1:30</div>
   <div class="hud-item" id="hudMoney">💰 0원</div>
@@ -220,6 +315,11 @@ button{font-family:inherit;cursor:pointer}
   <div class="cgroup"><div class="ctitle">🥘 국밥 — 눌러서 가마솥에 끓이기</div><div class="crow" id="soups"></div></div>
   <div class="cgroup"><div class="ctitle">🧂 토핑 — 조립대 그릇에 올리기</div><div class="crow" id="toppings"></div></div>
   <div class="cgroup"><div class="ctitle">&nbsp;</div><div class="crow"><button class="cbtn trash" id="trashBtn"><span class="ic">🗑️</span>버리기<small>Backspace</small></button></div></div>
+</div>
+<div class="controls" id="cafeControls" hidden>
+  <div class="cgroup"><div class="ctitle">🥤 음료 재료 — 컵에 넣으면 색이 섞여요</div><div class="crow" id="cafeDrinks"></div></div>
+  <div class="cgroup"><div class="ctitle">🥪 샌드위치 재료 — 접시에 올리기</div><div class="crow" id="cafeFoods"></div></div>
+  <div class="cgroup"><div class="ctitle">&nbsp;</div><div class="crow"><button class="cbtn slim trash" id="cupEmpty"><span class="ic">🥤</span>컵 비우기<small>Backspace</small></button><button class="cbtn slim trash" id="plateEmpty"><span class="ic">🍽️</span>접시 비우기<small>Delete</small></button></div></div>
 </div>
 <div class="controls" id="prepControls" hidden>
   <div class="pgroup">
@@ -255,6 +355,11 @@ button{font-family:inherit;cursor:pointer}
     <button class="start-btn" id="startLunchBtn">☀️ 점심 영업 시작<span class="key">Enter</span></button>
   </div>
 </div>
+<div id="marketUI" hidden>
+  <div id="marketMemo"></div>
+  <div id="stallPanel" hidden></div>
+  <div id="marketHint">🚶 방향키·WASD로 걷거나 바닥 클릭<br>🛒 상품을 클릭하면 사요 (가판대 앞에선 1~3 키)</div>
+</div>
 <div id="overlay" class="overlay" hidden></div>
 <div id="toast"></div>
 
@@ -284,12 +389,50 @@ const STOCKS = {
   broth: {name:'맑은 육수',     icon:'🍲'},
   spicy: {name:'매운 육수',     icon:'🌶️'},
 };
-// 새벽 시장에서 사는 원재료
-const INGREDIENTS = [
-  {id:'pork',  name:'돼지고기',  unit:'근',   icon:'🥩', price:12000, yield:4, stock:'pork',  desc:'썰어서 냉장고에 보관 → 돼지국밥 4인분'},
-  {id:'kong',  name:'콩나물',    unit:'봉지', icon:'🌱', price:3000,  yield:5, stock:'kong',  desc:'씻고 다듬어서 → 콩나물국밥 5인분'},
-  {id:'bones', name:'사골뼈',    unit:'세트', icon:'🍖', price:8000,  yield:8, stock:'broth', desc:'씻고 끓여서 → 맑은 육수 8인분 (돼지·콩나물국밥용)'},
-  {id:'spine', name:'돼지 등뼈', unit:'세트', icon:'🦴', price:15000, yield:5, stock:'spicy', desc:'씻고 매운 양념 넣어 끓여서 → 뼈해장국 5인분'},
+// 새벽 시장 상품. kind: raw = 오늘 쓰는 식당 재료(남으면 밤에 폐기) / pantry = 카페 재료(창고 보관) / tool = 한 번 사면 계속 보유
+const MARKET_ITEMS = {
+  pork:    {name:'돼지고기',   unit:'근',   icon:'🥩', price:12000,  kind:'raw',    desc:'썰어서 냉장고에 → 돼지국밥 4인분'},
+  bones:   {name:'뼈 (육수용)', unit:'세트', icon:'🍖', price:8000,   kind:'raw',    desc:'씻고 끓이면 맑은 육수 8인분'},
+  spine:   {name:'등뼈',       unit:'세트', icon:'🦴', price:15000,  kind:'raw',    desc:'씻고 양념 넣어 끓이면 뼈해장국 5인분'},
+  kong:    {name:'콩나물',     unit:'봉지', icon:'🌱', price:3000,   kind:'raw',    desc:'씻고 다듬으면 콩나물국밥 5인분'},
+  sauce:   {name:'매운 양념',   unit:'통',   icon:'🌶️', price:4000,   kind:'raw',    desc:'등뼈 1세트에 1통 → 매운 육수'},
+  // 카페 재료: 산 만큼(yield) 잔/개 단위로 창고에 쌓이고, color는 섞을 때 쓰는 재료 색
+  coffee:  {name:'커피 원두',   unit:'봉지', icon:'☕', price:15000,  kind:'pantry', yield:10, serve:'잔', cafe:'drink', color:'#3b2416', desc:'음료 10잔분 · 창고 보관'},
+  tea:     {name:'녹차 찻잎',   unit:'통',   icon:'🍵', price:12000,  kind:'pantry', yield:10, serve:'잔', cafe:'drink', color:'#6fae4a', desc:'음료 10잔분 · 창고 보관'},
+  milk:    {name:'우유',       unit:'팩',   icon:'🥛', price:3000,   kind:'pantry', yield:6,  serve:'잔', cafe:'drink', color:'#f4f1e8', desc:'음료 6잔분 · 창고 보관'},
+  choco:   {name:'초코 시럽',   unit:'병',   icon:'🍫', price:6000,   kind:'pantry', yield:8,  serve:'잔', cafe:'drink', color:'#6b3b22', desc:'음료 8잔분 · 창고 보관'},
+  vanilla: {name:'바닐라 시럽', unit:'병',   icon:'🍦', price:6000,   kind:'pantry', yield:8,  serve:'잔', cafe:'drink', color:'#f3e2a6', desc:'음료 8잔분 · 창고 보관'},
+  strawberry:{name:'딸기청',   unit:'병',   icon:'🍓', price:7000,   kind:'pantry', yield:6,  serve:'잔', cafe:'drink', color:'#e0405a', desc:'음료 6잔분 · 창고 보관'},
+  lemon:   {name:'레몬청',     unit:'병',   icon:'🍋', price:6000,   kind:'pantry', yield:6,  serve:'잔', cafe:'drink', color:'#f4d23c', desc:'음료 6잔분 · 창고 보관'},
+  blueberry:{name:'블루베리청', unit:'병',   icon:'🫐', price:8000,   kind:'pantry', yield:6,  serve:'잔', cafe:'drink', color:'#5a3f9a', desc:'음료 6잔분 · 창고 보관'},
+  bread:   {name:'식빵',       unit:'봉지', icon:'🍞', price:3500,   kind:'pantry', yield:5,  serve:'개', cafe:'food',  color:'#d9a15a', desc:'샌드위치 5개분 · 창고 보관'},
+  ham:     {name:'슬라이스 햄', unit:'팩',   icon:'🥓', price:6000,   kind:'pantry', yield:5,  serve:'개', cafe:'food',  color:'#f09a9a', desc:'샌드위치 5개분 · 창고 보관'},
+  cheese:  {name:'치즈',       unit:'팩',   icon:'🧀', price:5000,   kind:'pantry', yield:5,  serve:'개', cafe:'food',  color:'#f2c230', desc:'샌드위치 5개분 · 창고 보관'},
+  lettuce: {name:'양상추',     unit:'통',   icon:'🥬', price:2500,   kind:'pantry', yield:5,  serve:'개', cafe:'food',  color:'#7cc35a', desc:'샌드위치 5개분 · 창고 보관'},
+  tomato:  {name:'토마토',     unit:'개',   icon:'🍅', price:1500,   kind:'pantry', yield:2,  serve:'개', cafe:'food',  color:'#d9321f', desc:'샌드위치 2개분 · 창고 보관'},
+  bat:     {name:'방망이',     unit:'개',   icon:'🏏', price:30000,  kind:'tool',   desc:'진상 손님 기절시키기용 · 계속 보유'},
+  gun:     {name:'총',         unit:'자루', icon:'🔫', price:150000, kind:'tool',   desc:'진상 손님 협박용 · 계속 보유'},
+};
+// 시장 거리 양옆 가판대 (side: -1 왼쪽, 1 오른쪽)
+const STALLS = [
+  {name:'왕대박 정육점', icon:'🥩', side:-1, z:8,  color:'#c62d1f', keeper:'worker',   line:'오늘 고기 때깔 좋아!',              items:['pork', 'bones', 'spine']},
+  {name:'새벽 채소',     icon:'🥬', side:-1, z:0,  color:'#3f8f47', keeper:'grandma',  line:'싱싱한 걸로 골라가~',               items:['kong', 'tomato', 'lettuce']},
+  {name:'할매 양념',     icon:'🌶️', side:-1, z:-8, color:'#d9531e', keeper:'grandpa',  line:'우리 양념 넣으면 매운맛이 달라~',     items:['sauce']},
+  {name:'모닝 원두',     icon:'☕', side:1,  z:8,  color:'#6b4226', keeper:'student',  line:'카페 여시게요? 향 한번 맡아보세요',   items:['coffee', 'tea']},
+  {name:'굿모닝 델리',   icon:'🍞', side:1,  z:0,  color:'#e0a030', keeper:'hangover', line:'빵 방금 나왔어요... 하암',           items:['bread', 'cheese', 'ham']},
+  {name:'만물 잡화',     icon:'🧰', side:1,  z:-8, color:'#3a4a6a', keeper:'worker',   line:'요즘 진상 손님 많죠? 하나 챙겨가요',  items:['bat', 'gun']},
+  {name:'밀크&시럽',     icon:'🥛', side:-1, z:-16, color:'#4a86c8', keeper:'grandpa', line:'라떼엔 우리 우유가 최고지',          items:['milk', 'choco', 'vanilla']},
+  {name:'과일청 공방',   icon:'🍓', side:1,  z:-16, color:'#d6456a', keeper:'youtuber', line:'요즘 과일청 음료가 대세예요!',       items:['strawberry', 'lemon', 'blueberry']},
+];
+const MARKET_X = 120;
+const MOVE_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'];
+const DRINK_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'drink');
+const FOOD_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'food');
+const CAFE_LEN = 60, CAFE_SEATS = 3, CAFE_X = -120;
+const DEFAULT_RECIPES = [
+  {id:'greentea', name:'녹차',     type:'drink', ings:['tea'],                                     price:4000},
+  {id:'coffee',   name:'커피',     type:'drink', ings:['coffee'],                                  price:4500},
+  {id:'sandwich', name:'샌드위치', type:'food',  ings:['bread', 'ham', 'cheese', 'lettuce', 'tomato'], price:6500},
 ];
 const WASH_CLICKS = {kong: 2, bones: 3, spine: 3};
 const PREP_ACTIONS = ['chop', 'fridge', 'washKong', 'trim', 'washBones', 'boil', 'washSpine', 'spicy'];
@@ -336,7 +479,6 @@ const prand = i => { const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; retu
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const soupById = id => SOUPS.find(s => s.id === id);
 const topById = id => TOPPINGS.find(t => t.id === id);
-const ingById = id => INGREDIENTS.find(t => t.id === id);
 const topIndex = id => TOPPINGS.findIndex(t => t.id === id);
 function pickWeighted(arr, wf){
   const total = arr.reduce((s, x) => s + wf(x), 0);
@@ -386,6 +528,7 @@ let renderer, scene, camera, raycaster, T = 0;
 const CAMS = {
   lunch: {look: new THREE.Vector3(0, 1.8, 0.4),  base: new THREE.Vector3(0, 12.3, 14.05), pos: new THREE.Vector3()},
   prep:  {look: new THREE.Vector3(1.0, 0.6, 1.6), base: new THREE.Vector3(1.0, 10.5, 12.8),  pos: new THREE.Vector3()},
+  cafe:  {look: new THREE.Vector3(CAFE_X, 1.8, 0.4), base: new THREE.Vector3(CAFE_X, 12.3, 14.05), pos: new THREE.Vector3()},
 };
 const curLook = CAMS.lunch.look.clone();
 const SEAT_X = [-6, -2, 2, 6], SEAT_Z = -2.15, COUNTER_TOP = 1.32;
@@ -398,6 +541,8 @@ const W = {
 const LIGHTS = {
   lunch: {bg: new THREE.Color(0x2a1a10), hemi: new THREE.Color(0xfff1dc), hemiI: .75, sun: new THREE.Color(0xffe2b8), sunI: .85},
   prep:  {bg: new THREE.Color(0x101830), hemi: new THREE.Color(0x9db2ff), hemiI: .5,  sun: new THREE.Color(0x8ea6ff), sunI: .35},
+  market:{bg: new THREE.Color(0x1b2344), hemi: new THREE.Color(0xb4c2ff), hemiI: .6,  sun: new THREE.Color(0xa8b6ff), sunI: .45},
+  cafe:  {bg: new THREE.Color(0x3a2a1e), hemi: new THREE.Color(0xfff2dc), hemiI: .85, sun: new THREE.Color(0xffe6c0), sunI: .8},
 };
 
 const matCache = {};
@@ -492,6 +637,8 @@ function init3D(){
 
   buildRoom();
   buildPrepStation();
+  buildMarket();
+  buildCafe();
   onResize();
   window.addEventListener('resize', onResize);
 }
@@ -501,6 +648,7 @@ function onResize(){
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   const k = clamp(1.75 / camera.aspect, 1, 2.3);
+  W.camK = k;
   for (const c of Object.values(CAMS)) c.pos.copy(c.look).add(c.base.clone().sub(c.look).multiplyScalar(k));
   camera.updateProjectionMatrix();
 }
@@ -655,13 +803,15 @@ function drawMenuBoard(x, w, h){
   });
 }
 function drawSign(x, w, h){
-  const name = G ? G.name : '국밥 타이쿤';
+  const name = G ? G.name : 'Business Simulator';
   const g = x.createLinearGradient(0, 0, 0, h);
   g.addColorStop(0, '#d8321f'); g.addColorStop(1, '#a51f12');
   x.fillStyle = g; x.fillRect(0, 0, w, h);
   x.strokeStyle = '#fff3dc'; x.lineWidth = 12; x.strokeRect(16, 16, w - 32, h - 32);
   x.fillStyle = '#fff3dc'; x.textAlign = 'center'; x.textBaseline = 'middle';
-  x.font = '120px Jua, "Malgun Gothic", sans-serif';
+  // 긴 이름도 간판 안에 들어가도록 글자 크기를 줄여요
+  let size = 120;
+  do { x.font = `${size}px Jua, "Malgun Gothic", sans-serif`; size -= 4; } while (x.measureText(name).width > w - 100 && size > 40);
   x.fillText(name, w / 2, h / 2 + 8);
 }
 
@@ -956,6 +1106,7 @@ const LOOKS = {
   hangover: {skin: 0xdfe6b8, shirt: 0xe6e6e6, pants: 0x333333},
   grandma:  {skin: 0xf5cfa8, shirt: 0x8e5b9a, pants: 0x5a4a6a},
   youtuber: {skin: 0xffe0c0, shirt: 0xff7eb3, pants: 0x2d2d4d},
+  owner:    {skin: 0xffd9b3, shirt: 0xeeeeee, pants: 0x3a3a44},
 };
 const faceCache = {};
 function faceTex(kind, mood){
@@ -1053,6 +1204,11 @@ function makeCustomer(type){
       head.add(mesh(new THREE.SphereGeometry(.28, 16, 12), std(0xd6d6d6, {roughness: .8}), 0, .55, -.35));
       g.add(mesh(new THREE.TorusGeometry(.42, .045, 8, 24), std(0xfff8f0, {roughness: .2}), 0, 2.3, .12).rotateX(Math.PI / 2 - .25));
       break;
+    case 'owner':
+      head.add(hair(0x2b2118));
+      head.add(mesh(new THREE.TorusGeometry(.63, .08, 8, 28), std(0xffffff), 0, .24, 0).rotateX(Math.PI / 2 - .12));
+      g.add(mesh(new THREE.BoxGeometry(.95, 1.15, .06), std(0x8e1c12, {roughness: .8}), 0, 1.55, .6));
+      break;
     case 'youtuber': {
       head.add(mesh(new THREE.SphereGeometry(.67, 24, 12, 0, Math.PI * 2, 0, 1.2), std(0xe0282e), 0, .04, 0));
       const cbrim = mesh(new THREE.BoxGeometry(.6, .05, .5), std(0xe0282e), 0, .38, -.62); cbrim.rotation.x = -.25; head.add(cbrim);
@@ -1134,13 +1290,20 @@ function buildTrays(n){
 function setWorldMode(mode){
   W.mode = mode;
   const lunch = mode === 'lunch';
-  W.prep.g.visible = !lunch;
+  W.prep.g.visible = mode === 'prep';
   W.burnerViews.forEach(v => { v.g.visible = lunch; v.label.hidden = true; });
   W.trayViews.forEach(v => { v.g.visible = lunch; v.label.hidden = true; });
   W.bins.forEach(b => { b.g.visible = lunch; });
   Object.values(W.prep.labels).forEach(l => { l.hidden = true; });
+  W.market.stalls.forEach(s => s.products.forEach(p => { p.label.hidden = true; }));
+  W.market.gateLabel.hidden = true;
+  $('stallPanel').hidden = true;
   $('lunchControls').hidden = !lunch;
-  $('prepControls').hidden = lunch;
+  $('prepControls').hidden = mode !== 'prep';
+  $('marketUI').hidden = mode !== 'market';
+  $('cafeControls').hidden = mode !== 'cafe';
+  W.cafe.cupLabel.hidden = W.cafe.plateLabel.hidden = true;
+  W.cafe.seatViews.forEach(v => { if (v) v.el.hidden = true; });
   W.hover = null;
 }
 
@@ -1233,7 +1396,7 @@ function canPrep(){ return inPhase('prep') && $('overlay').hidden; }
 function showTitle(){
   G = null;
   const best = loadBest();
-  $('hudName').textContent = '🍲 국밥 타이쿤 3D';
+  $('hudName').textContent = '🍽️ Business Simulator';
   clearCustomers();
   buildBurners(2);
   buildTrays(1);
@@ -1242,17 +1405,17 @@ function showTitle(){
   redrawTex(W.menuTex); redrawTex(W.signTex);
   showOverlay(`
     <div class="card">
-      <div class="sign">🍲 국밥 타이쿤 <sup>3D</sup></div>
+      <img class="logo" src="data:image/png;base64,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" alt="Business Simulator - 식당 경영 시뮬레이션">
       <div class="subtitle">기초자금 30만원으로 시작해서 <b style="color:var(--red);font-weight:normal">100만원</b>을 모아라!</div>
       <div class="name-row">가게 이름 <input id="shopName" maxlength="8" value="${esc(best?.name || '할매국밥')}"></div>
       <button class="big-btn" onclick="startGame()">장사 시작하기 🔔</button>
       <div class="howto">
-        <div class="step"><b>1</b>🌅 <em>새벽 시장</em>에서 오늘 쓸 재료 사기</div>
+        <div class="step"><b>1</b>🌅 <em>새벽시장</em>을 걸어 다니며 가판대에서 재료 사기</div>
         <div class="step"><b>2</b>🔪 <em>고기 썰어 냉장고에</em> · <em>콩나물 씻고 다듬기</em> · <em>뼈 씻고 육수·매운 육수 끓이기</em></div>
         <div class="step"><b>3</b>☀️ <em>점심 영업</em>: 돼지국밥·콩나물국밥·뼈해장국을 끓이고 토핑 올려 서빙!</div>
         <div class="step"><b>4</b>손님은 느긋하게 기다려줘요. 대신 <em>재료가 떨어지면 품절</em>!</div>
       </div>
-      <div class="keys-help">⌨️ 준비: 1~8 손질 · Enter 영업 시작 &nbsp;|&nbsp; 영업: Q W E 국밥 · A S D F 가마솥 · 1~4 토핑 · Z X C V 서빙 · Tab 조립대 · Backspace 버리기 · Esc 일시정지</div>
+      <div class="keys-help">⌨️ 시장: 방향키·WASD 이동 · 1~3 구매 · E 출구 &nbsp;|&nbsp; 준비: 1~8 손질 · Enter 영업 시작 &nbsp;|&nbsp; 영업: Q W E 국밥 · A S D F 가마솥 · 1~4 토핑 · Z X C V 서빙 · Tab 조립대 · Backspace 버리기 · Esc 일시정지</div>
       ${best && best.days ? `<div class="best">🏆 최단 기록: ${esc(best.name)} — ${best.days}일 만에 100만원 (${esc(best.grade)})</div>` : ''}
     </div>`, true);
   setTimeout(() => { const i = $('shopName'); if (i){ i.focus(); i.select(); i.addEventListener('keydown', e => { if (e.key === 'Enter') startGame(); }); } }, 50);
@@ -1264,6 +1427,10 @@ function startGame(){
     name, day: 1, money: START_MONEY, rep: 3, totalProfit: 0, totalServed: 0, totalPerfect: 0,
     up: {burner: 0, fire: 0, tray: 0, knife: 0, stockpot: 0, kkak: 0, sign: 0},
     phase: 'intro', running: false, paused: false, over: false, custId: 0,
+    pantry: Object.fromEntries([...DRINK_INGS, ...FOOD_INGS].map(id => [id, 0])),
+    recipes: DEFAULT_RECIPES.map(r => ({...r, ings: [...r.ings]})),
+    cafeName: '',
+    tools: {bat: 0, gun: 0},
   };
   $('hudName').textContent = '🍲 ' + name;
   sfx.click();
@@ -1272,6 +1439,7 @@ function startGame(){
 
 function showDayIntro(){
   G.phase = 'intro';
+  $('hudName').textContent = '🍲 ' + G.name;
   buildDay();
   setWorldMode('prep');
   const newTops = TOPPINGS.filter(t => t.unlock === G.day && G.day > 1);
@@ -1283,10 +1451,10 @@ function showDayIntro(){
       <div class="day-big">DAY ${G.day}</div>
       <div class="day-note">${dayNote(G.day)}</div>
       ${goalBar()}
-      <div class="day-flow"><span>🌅 새벽 시장</span>→<span>🔪 재료 준비</span>→<span>☀️ 점심 영업</span></div>
+      <div class="day-flow"><span>🌅 새벽 시장</span>→<span>🔪 재료 준비</span>→<span>☀️ 점심 영업</span>→<span>☕ 오후 카페</span></div>
       <div>${unlocks}</div>
       <div style="font-size:16px;color:#8a6e55;margin-top:8px">오늘의 임대료: ${fmt(rentToday())} · 점심 영업 ${DAY_LEN}초</div>
-      <button class="big-btn" onclick="showMarket()">🌅 새벽 시장 가기</button>
+      <button class="big-btn" onclick="enterMarket()">🌅 새벽시장 가기</button>
     </div>`, true);
 }
 
@@ -1308,7 +1476,8 @@ function buildDay(){
     burners: Array.from({length: 2 + G.up.burner}, () => ({state: 'empty'})),
     trays: Array(1 + G.up.tray).fill(null),
     sel: 0,
-    raw: {pork: 0, kong: 0, bones: 0, spine: 0},
+    raw: {pork: 0, kong: 0, bones: 0, spine: 0, sauce: 0},
+    bought: {},
     stock: {pork: 0, kong: 0, broth: 0, spicy: 0},
     prep: {
       porkChop: 0, porkPart: 0, cut: 0,
@@ -1317,18 +1486,19 @@ function buildDay(){
       spineWash: 0, washedSpine: 0, spicyBoil: null,
       warned: false,
     },
-    cart: null,
-    stats: {sales: 0, tips: 0, purchase: 0, served: 0, perfect: 0, soldout: 0},
+    stats: {sales: 0, tips: 0, purchase: 0, served: 0, perfect: 0, soldout: 0, cafeSales: 0, cafeTips: 0, cafeServed: 0, cafeSoldout: 0},
+    cafe: null,
     running: false, paused: false,
   });
   clearCustomers();
+  clearCafeCustomers();
   buildBurners(G.burners.length);
   buildTrays(G.trays.length);
   buildButtons(G.day);
   redrawTex(W.menuTex); redrawTex(W.signTex);
 }
 
-// ---------------- 새벽 시장 ----------------
+// ---------------- 새벽 시장 (걸어 다니는 3D 장소) ----------------
 function avgInterval(){
   let base = Math.max(3.5, 8.5 - G.day * 0.6);
   base *= (1.25 - G.rep * 0.07);
@@ -1340,78 +1510,1138 @@ function forecast(){
   const n = DAY_LEN * (0.75 / b + 0.25 / (b * 0.6)) + 3;
   return {n: Math.round(n), lo: Math.round(n * .8), hi: Math.round(n * 1.2)};
 }
-function cartPortions(c){ return {pork: c.pork * 4, kong: c.kong * 5, broth: c.bones * 8, spicy: c.spine * 5}; }
-function cartTotal(){ return INGREDIENTS.reduce((s, i) => s + G.cart[i.id] * i.price, 0); }
+// 예상 손님을 세 메뉴에 1/3씩 나눠 계산한 추천 장보기
+function shoppingList(){
+  const est = forecast(), third = est.n / 3;
+  const pork = Math.ceil(third / 4), kong = Math.ceil(third / 5), spine = Math.ceil(third / 5);
+  return {est, list: {pork, kong, bones: Math.ceil((pork * 4 + kong * 5) / 8), spine, sauce: spine}};
+}
 
-function showMarket(){
-  G.phase = 'market';
-  sfx.click();
-  const est = forecast();
-  if (!G.cart){
-    // 추천: 세 메뉴에 손님을 1/3씩, 맑은 육수는 고기+콩나물 인분만큼. 돈이 모자라면 줄이기
-    const third = est.n / 3;
-    const c = {pork: Math.ceil(third / 4), kong: Math.ceil(third / 5), bones: 0, spine: Math.ceil(third / 5)};
-    const fit = () => { c.bones = Math.ceil((c.pork * 4 + c.kong * 5) / 8); };
-    const total = () => INGREDIENTS.reduce((s, i) => s + c[i.id] * i.price, 0);
-    fit();
-    while (total() > G.money && c.pork + c.kong + c.spine > 0){
-      const big = [['pork', c.pork * 4], ['kong', c.kong * 5], ['spine', c.spine * 5]].filter(x => c[x[0]] > 0).sort((a, b) => b[1] - a[1])[0][0];
-      c[big]--; fit();
+function stoneTex(){
+  const t = canvasTex(256, 256, (x, w, h) => {
+    x.fillStyle = '#2c303b'; x.fillRect(0, 0, w, h);
+    for (let r = 0; r < 4; r++) for (let c = -1; c < 4; c++){
+      const off = r % 2 ? 32 : 0;
+      x.fillStyle = `hsl(228, 9%, ${29 + prand(r * 7 + c + 3) * 9}%)`;
+      x.fillRect(c * 64 + off + 3, r * 64 + 3, 58, 58);
     }
-    G.cart = c;
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+function stripeTex(color){
+  return canvasTex(256, 64, (x, w, h) => {
+    for (let i = 0; i < 8; i++){ x.fillStyle = i % 2 ? '#fff3dc' : color; x.fillRect(i * w / 8, 0, w / 8, h); }
+  });
+}
+function boardTex(text, color){
+  const t = canvasTex(512, 128, (x, w, h) => {
+    x.fillStyle = '#2a1a10'; x.fillRect(0, 0, w, h);
+    x.strokeStyle = color; x.lineWidth = 10; x.strokeRect(8, 8, w - 16, h - 16);
+    x.fillStyle = '#fff3dc'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    let size = 64;
+    do { x.font = `${size}px Jua, "Malgun Gothic", sans-serif`; size -= 4; } while (x.measureText(text).width > w - 60 && size > 24);
+    x.fillText(text, w / 2, h / 2 + 4);
+  });
+  W.market.texts.push(t);
+  return t;
+}
+
+// 진열 상품 3D 모형 (바닥 y=0 기준)
+function makeProduct(id){
+  const g = new THREE.Group();
+  const tray = (w = 1.1, d = .8, c = 0xf2f2ee) => g.add(mesh(new THREE.BoxGeometry(w, .06, d), std(c, {roughness: .6}), 0, .03, 0));
+  switch (id){
+    case 'pork':
+      tray();
+      for (let k = 0; k < 2; k++){
+        const b = new THREE.Group();
+        b.add(mesh(geo('pkL', () => new THREE.BoxGeometry(.42, .24, .5)), std(0xd8736a, {roughness: .5}), 0, .12, 0));
+        b.add(mesh(geo('pkF', () => new THREE.BoxGeometry(.42, .08, .5)), std(0xf6e6da), 0, .28, 0));
+        b.position.set(-.24 + k * .48, .06, 0); b.rotation.y = (k - .5) * .3;
+        g.add(b);
+      }
+      break;
+    case 'bones':
+      tray(1.1, .8, 0xe8e2d4);
+      for (let k = 0; k < 3; k++){
+        const b = makeBonePiece(false); tintGroup(b, 0xf3ecd8);
+        b.rotation.set(Math.PI / 2, 0, k * .9); b.position.set(-.3 + k * .3, .2 + k * .02, (k - 1) * .15);
+        g.add(b);
+      }
+      break;
+    case 'spine':
+      tray(1.1, .8, 0xe8e2d4);
+      for (let k = 0; k < 3; k++){
+        const b = makeBonePiece(true); tintGroup(b, 0xd99a86);
+        b.position.set(-.32 + k * .32, .2, (k % 2 - .5) * .2); b.rotation.y = k;
+        g.add(b);
+      }
+      break;
+    case 'kong': {
+      g.add(mesh(new THREE.CylinderGeometry(.5, .4, .35, 18, 1, true), std(0xb07a3e, {roughness: .9, side: THREE.DoubleSide}), 0, .175, 0));
+      g.add(mesh(new THREE.CylinderGeometry(.4, .4, .03, 18), std(0x8a5a2b), 0, .02, 0));
+      const pile = new THREE.Group(); sproutPile(pile, 28, 900, .6, .2); pile.position.y = .05;
+      g.add(pile);
+      break;
+    }
+    case 'tomato':
+      tray(1.0, .8, 0x9a6a3a);
+      for (let k = 0; k < 6; k++){
+        const t = new THREE.Group();
+        t.add(mesh(geo('tom', () => new THREE.SphereGeometry(.15, 16, 12)), std(0xd9321f, {roughness: .35}), 0, 0, 0));
+        t.add(mesh(geo('tomS', () => new THREE.ConeGeometry(.06, .08, 5)), std(0x3f8f3a), 0, .15, 0));
+        t.position.set(-.3 + (k % 3) * .3, .2, k < 3 ? .16 : -.16);
+        g.add(t);
+      }
+      break;
+    case 'lettuce':
+      tray(1.0, .8, 0x9a6a3a);
+      for (let k = 0; k < 3; k++){
+        const l = new THREE.Group();
+        l.add(mesh(geo('let', () => new THREE.SphereGeometry(.22, 14, 10)), std(0xb4dc78, {roughness: .8}), 0, 0, 0));
+        l.add(mesh(geo('letL', () => new THREE.SphereGeometry(.27, 14, 10, 0, Math.PI * 2, Math.PI * .42, Math.PI * .58)), std(0x6fb34a, {roughness: .8, side: THREE.DoubleSide}), 0, .02, 0));
+        l.position.set(-.3 + k * .3, .27, k === 1 ? -.12 : .1);
+        g.add(l);
+      }
+      break;
+    case 'sauce':
+      for (let k = 0; k < 3; k++){
+        const j = new THREE.Group();
+        j.add(mesh(geo('jar', () => new THREE.CylinderGeometry(.17, .17, .34, 16)), std(0xb8261a, {roughness: .4}), 0, .17, 0));
+        j.add(mesh(geo('jarB', () => new THREE.CylinderGeometry(.175, .175, .1, 16)), std(0xfff3dc), 0, .2, 0));
+        j.add(mesh(geo('jarL', () => new THREE.CylinderGeometry(.18, .18, .07, 16)), std(0x2a1a10), 0, .37, 0));
+        j.position.set(-.38 + k * .38, 0, k === 1 ? -.14 : .08);
+        g.add(j);
+      }
+      break;
+    case 'coffee':
+      g.add(mesh(new THREE.CylinderGeometry(.34, .4, .6, 16), std(0xb08a5a, {roughness: 1}), 0, .3, 0));
+      g.add(mesh(new THREE.TorusGeometry(.34, .06, 8, 16), std(0x9a7448, {roughness: 1}), 0, .6, 0).rotateX(Math.PI / 2));
+      for (let k = 0; k < 16; k++){
+        const b = mesh(geo('bean', () => new THREE.SphereGeometry(.05, 8, 6)), std(0x3a2214, {roughness: .5}), (prand(k + 600) - .5) * .5, .6 + prand(k + 610) * .06, (prand(k + 620) - .5) * .5, false);
+        b.scale.set(1, .6, .8); g.add(b);
+      }
+      break;
+    case 'tea':
+      for (let k = 0; k < 2; k++){
+        const c = new THREE.Group();
+        c.add(mesh(geo('tin', () => new THREE.CylinderGeometry(.2, .2, .42, 16)), std(0x3f7a4a, {roughness: .4, metalness: .2}), 0, .21, 0));
+        c.add(mesh(geo('tinL', () => new THREE.CylinderGeometry(.21, .21, .06, 16)), std(0xc9a64a, {metalness: .4, roughness: .3}), 0, .44, 0));
+        c.position.set(-.28 + k * .56, 0, -.05);
+        g.add(c);
+      }
+      for (let k = 0; k < 10; k++){
+        const lf = mesh(geo('teaLeaf', () => new THREE.SphereGeometry(.05, 6, 4)), std(0x5a8a3a), (prand(k + 700) - .5) * .45, .03, .3 + prand(k + 710) * .12, false);
+        lf.scale.set(1.4, .3, .7); g.add(lf);
+      }
+      break;
+    case 'bread':
+      tray(1.1, .8, 0x9a6a3a);
+      for (let k = 0; k < 2; k++){
+        const b = new THREE.Group();
+        b.add(mesh(geo('loafB', () => new THREE.BoxGeometry(.5, .26, .34)), std(0xd9a15a, {roughness: .8}), 0, .13, 0));
+        const top = mesh(geo('loafT', () => new THREE.SphereGeometry(.26, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2)), std(0xc0823e, {roughness: .8}), 0, .26, 0);
+        top.scale.set(1, .5, .68); b.add(top);
+        b.position.set(-.26 + k * .52, .06, (k - .5) * .1);
+        g.add(b);
+      }
+      break;
+    case 'cheese':
+      tray(1.0, .8);
+      for (let k = 0; k < 2; k++){
+        const w = mesh(geo('cheeseW', () => new THREE.CylinderGeometry(.34, .34, .24, 16, 1, false, 0, Math.PI / 2.2)), std(0xf2c230, {roughness: .6}), -.25 + k * .5, .18, 0);
+        w.rotation.y = k * 2 + .5; g.add(w);
+      }
+      break;
+    case 'ham':
+      tray(1.0, .8);
+      for (let s = 0; s < 2; s++) for (let k = 0; k < 7; k++){
+        g.add(mesh(geo('hamS', () => new THREE.CylinderGeometry(.2, .2, .025, 18)), std(k % 2 ? 0xf09a9a : 0xe8888a, {roughness: .5}), -.24 + s * .48 + k * .01, .08 + k * .028, 0, false));
+      }
+      break;
+    case 'milk':
+      for (let k = 0; k < 3; k++){
+        const c = new THREE.Group();
+        c.add(mesh(geo('milkB', () => new THREE.BoxGeometry(.24, .4, .24)), std(0xf7f7f2, {roughness: .5}), 0, .2, 0));
+        const roof = mesh(geo('milkR', () => new THREE.ConeGeometry(.19, .14, 4)), std(0x3a7fd8), 0, .47, 0);
+        roof.rotation.y = Math.PI / 4; c.add(roof);
+        c.position.set(-.36 + k * .36, 0, k === 1 ? -.12 : .08);
+        g.add(c);
+      }
+      break;
+    case 'choco': case 'vanilla': case 'strawberry': case 'lemon': case 'blueberry': {
+      const col = MARKET_ITEMS[id].color;
+      for (let k = 0; k < 3; k++){
+        const b = new THREE.Group();
+        b.add(mesh(geo('syrB', () => new THREE.CylinderGeometry(.14, .14, .42, 14)), std(col, {roughness: .25}), 0, .21, 0));
+        b.add(mesh(geo('syrL', () => new THREE.CylinderGeometry(.145, .145, .14, 14)), std(0xfff3dc), 0, .22, 0));
+        b.add(mesh(geo('syrN', () => new THREE.CylinderGeometry(.05, .1, .14, 12)), std(col, {roughness: .25}), 0, .49, 0));
+        b.add(mesh(geo('syrC', () => new THREE.CylinderGeometry(.055, .055, .06, 12)), std(0xf2f2f2), 0, .59, 0));
+        b.position.set(-.36 + k * .36, 0, k === 1 ? -.12 : .08);
+        g.add(b);
+      }
+      break;
+    }
+    case 'bat': {
+      g.add(mesh(new THREE.BoxGeometry(1.2, .1, .5), std(0x5a3620), 0, .05, 0));
+      const bat = mesh(new THREE.CylinderGeometry(.11, .045, 1.2, 14), std(0xd9a86a, {roughness: .5}), 0, .3, 0);
+      bat.rotation.z = Math.PI / 2 - .12; g.add(bat);
+      g.add(mesh(new THREE.CylinderGeometry(.065, .065, .04, 12), std(0x2a1a10), -.6, .24, 0).rotateZ(Math.PI / 2));
+      break;
+    }
+    case 'gun': {
+      g.add(mesh(new THREE.BoxGeometry(1.0, .12, .7), std(0x8e1c12, {roughness: .9}), 0, .06, 0));
+      const gun = new THREE.Group();
+      const metal = std(0x2c2f36, {metalness: .5, roughness: .35});
+      gun.add(mesh(new THREE.BoxGeometry(.52, .13, .1), metal, 0, .1, 0));
+      gun.add(mesh(new THREE.CylinderGeometry(.035, .035, .3, 10), metal, .38, .12, 0).rotateZ(Math.PI / 2));
+      const grip = mesh(new THREE.BoxGeometry(.13, .26, .09), std(0x4a2c18), -.17, -.06, 0); grip.rotation.z = -.35;
+      gun.add(grip);
+      gun.rotation.x = -Math.PI / 2; gun.position.y = .19;
+      g.add(gun);
+      break;
+    }
   }
+  return g;
+}
+
+function buildStall(def, index){
+  const M = W.market;
+  const g = new THREE.Group();
+  g.position.set(MARKET_X + def.side * 6.2, 0, def.z);
+  g.rotation.y = -def.side * Math.PI / 2;     // 가판대 앞면(local +z)이 길 쪽을 봄
+  M.root.add(g);
+  g.add(mesh(new THREE.BoxGeometry(5.6, 1.1, 1.6), std(0x8a5a36, {roughness: .8}), 0, .55, 0));
+  g.add(mesh(new THREE.BoxGeometry(5.8, .1, 1.8), std(0xc8955e, {roughness: .6}), 0, 1.15, 0));
+  g.add(mesh(new THREE.BoxGeometry(5.6, 2.6, .3), std(0x5a3620, {roughness: .9}), 0, 1.3, -2.2));
+  for (const px of [-2.85, 2.85]) for (const pz of [.85, -2.2]) g.add(mesh(geo('post', () => new THREE.CylinderGeometry(.08, .08, 3.9, 8)), std(0x3a2a1a), px, 1.95, pz));
+  const stripe = new THREE.MeshStandardMaterial({map: stripeTex(def.color), roughness: .9});
+  const awn = mesh(new THREE.BoxGeometry(6.2, .08, 3.6), stripe, 0, 3.85, -.55);
+  awn.rotation.x = .22; g.add(awn);
+  g.add(mesh(new THREE.BoxGeometry(6.2, .45, .05), stripe, 0, 3.25, 1.25));
+  const sign = mesh(new THREE.BoxGeometry(3.4, .85, .12), [std(0x2a1a10), std(0x2a1a10), std(0x2a1a10), std(0x2a1a10), new THREE.MeshStandardMaterial({map: boardTex(def.name, def.color), emissive: 0x332211, emissiveIntensity: .4}), std(0x2a1a10)], 0, 4.55, .5);
+  sign.rotation.y = def.side * Math.PI / 4;    // 길 쪽과 카메라 쪽 사이로 비스듬히
+  g.add(sign);
+  g.add(mesh(geo('bulb', () => new THREE.SphereGeometry(.13, 10, 8)), new THREE.MeshBasicMaterial({color: 0xffd28a}), 0, 3.25, .3, false));
+
+  const keeperType = CUSTOMERS.find(c => c.id === def.keeper);
+  const keeper = makeCustomer(keeperType);
+  keeper.position.set(0, 0, -1.2);
+  if (def.keeper !== 'hangover') keeper.userData.face.material.map = faceTex(def.keeper, 'happy');
+  g.add(keeper);
+
+  const xs = {1: [0], 2: [-1.3, 1.3], 3: [-1.8, 0, 1.8]}[def.items.length];
+  const products = def.items.map((id, i) => {
+    const obj = makeProduct(id);
+    obj.position.set(xs[i], 1.2, .25);
+    g.add(obj);
+    const hit = hitBox(1.6, 1.6, 1.6, xs[i], 1.8, .25, {kind: 'product', id, stall: index});
+    g.add(hit); M.hits.push(hit);
+    const label = document.createElement('div'); label.className = 'ptag'; label.hidden = true;
+    $('labels').appendChild(label);
+    return {id, obj, label, bounce: 0};
+  });
+  g.updateMatrixWorld(true);
+  const front = g.localToWorld(new THREE.Vector3(0, 0, 2.3));
+  M.stalls.push({def, g, keeper, products, front});
+}
+
+function buildMarket(){
+  const M = W.market = {stalls: [], hits: [], texts: [], keys: new Set(), target: null, pendingBuy: null, pendingLeave: false, active: -1, atGate: false, warned: false, memoKey: '', panelKey: '', walkT: 0, markerT: 0};
+  const root = M.root = new THREE.Group(); scene.add(root);
+
+  const stone = stoneTex(); stone.repeat.set(10, 12);
+  const ground = mesh(new THREE.PlaneGeometry(40, 62), std(0xffffff, {map: stone, roughness: .95}), MARKET_X, 0, -5, false);
+  ground.rotation.x = -Math.PI / 2; root.add(ground);
+  for (const sx of [-1, 1]) root.add(mesh(new THREE.BoxGeometry(5, .15, 52), std(0x4a4e5a, {roughness: .9}), MARKET_X + sx * 8.5, .075, -5, false));
+
+  // 새벽 거리의 건물들 (불 켜진 창문)
+  const winTex = canvasTex(256, 512, (x, w, h) => {
+    x.fillStyle = '#1c2034'; x.fillRect(0, 0, w, h);
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 4; c++){
+      x.fillStyle = prand(r * 5 + c * 3 + 1) > .55 ? '#ffd48a' : '#2a2f4a';
+      x.fillRect(20 + c * 58, 24 + r * 60, 36, 38);
+    }
+  });
+  const winMat = new THREE.MeshStandardMaterial({map: winTex, emissive: 0xffffff, emissiveMap: winTex, emissiveIntensity: .45, roughness: .9});
+  for (const sx of [-1, 1]) for (let k = 0; k < 5; k++){
+    const h = 8 + prand(k * 3 + sx + 5) * 6;
+    root.add(mesh(new THREE.BoxGeometry(5, h, 9.4), winMat, MARKET_X + sx * 14, h / 2, 12 - k * 10, false));
+  }
+
+  // 전구 줄 + 가로등 빛
+  for (const sx of [-1, 1]){
+    root.add(mesh(new THREE.CylinderGeometry(.02, .02, 38, 4), std(0x222222), MARKET_X + sx * 3.2, 5.15, -5, false).rotateX(Math.PI / 2));
+    for (let k = 0; k < 19; k++){
+      const bulb = mesh(geo('sbulb', () => new THREE.SphereGeometry(.1, 8, 6)), new THREE.MeshBasicMaterial({color: k % 2 ? 0xffd28a : 0xff9a6a}), MARKET_X + sx * 3.2, 5.0, 13 - k * 2, false);
+      root.add(bulb);
+    }
+  }
+  for (const z of [8, 0, -8, -16]){
+    const l = new THREE.PointLight(0xffc27a, 1.0, 15);
+    l.position.set(MARKET_X, 4.6, z); root.add(l);
+  }
+
+  // 가판대 사이 상자들
+  for (const sx of [-1, 1]) for (const z of [4, -4, -12]){
+    root.add(mesh(new THREE.BoxGeometry(.8, .6, .8), std(0x9a6a3a), MARKET_X + sx * 6.4, .3, z));
+    root.add(mesh(new THREE.BoxGeometry(.7, .5, .7), std(0x8a5a2b), MARKET_X + sx * 6.5, .85, z + .1));
+  }
+
+  STALLS.forEach((def, i) => buildStall(def, i));
+
+  // 출구 (가게로 가는 길)
+  const gateZ = -24;
+  const gm = std(0x5a3620, {roughness: .8});
+  root.add(mesh(new THREE.BoxGeometry(.5, 5.2, .5), gm, MARKET_X - 4.9, 2.6, gateZ), mesh(new THREE.BoxGeometry(.5, 5.2, .5), gm, MARKET_X + 4.9, 2.6, gateZ));
+  root.add(mesh(new THREE.BoxGeometry(10.6, 1.0, .5), [gm, gm, gm, gm, new THREE.MeshStandardMaterial({map: boardTex('🏪 우리 가게로 가는 길', '#f2b632'), emissive: 0x332211, emissiveIntensity: .5}), gm], MARKET_X, 5.3, gateZ));
+  root.add(mesh(new THREE.PlaneGeometry(9.3, 4.8), new THREE.MeshBasicMaterial({color: 0xffc98a, transparent: true, opacity: .35}), MARKET_X, 2.4, gateZ - .3, false));
+  const gateHit = hitBox(9.6, 5.2, 1.6, MARKET_X, 2.6, gateZ, {kind: 'gate'});
+  root.add(gateHit); M.hits.push(gateHit);
+  M.gateLabel = document.createElement('div');
+  M.gateLabel.className = 'gate-tag'; M.gateLabel.id = 'gateLabel'; M.gateLabel.hidden = true;
+  $('labels').appendChild(M.gateLabel);
+
+  // 걸어가는 곳 표시
+  M.marker = new THREE.Mesh(new THREE.RingGeometry(.25, .38, 24), new THREE.MeshBasicMaterial({color: 0xf2b632, transparent: true, opacity: 0}));
+  M.marker.rotation.x = -Math.PI / 2; root.add(M.marker);
+
+  // 주인공 (앞치마 + 머리수건) + 장바구니
+  const player = M.player = makeCustomer({id: 'owner'});
+  player.position.set(MARKET_X, 0, 12); player.rotation.y = Math.PI;
+  player.userData.armR.rotation.x = -.7;
+  const basket = new THREE.Group(); basket.position.set(.62, 1.3, .5);
+  basket.add(mesh(new THREE.CylinderGeometry(.3, .24, .28, 14, 1, true), std(0xb07a3e, {roughness: .9, side: THREE.DoubleSide}), 0, 0, 0));
+  basket.add(mesh(new THREE.CylinderGeometry(.24, .24, .03, 14), std(0x8a5a2b), 0, -.13, 0));
+  basket.add(mesh(new THREE.TorusGeometry(.3, .025, 6, 16, Math.PI), std(0x8a5a2b), 0, .1, 0));
+  const colors = [0xd8736a, 0x7cc35a, 0xf2c230, 0xd9321f, 0x3a2214, 0xd9a15a, 0xf09a9a, 0x3f7a4a, 0xefe2c4, 0xb8261a];
+  M.basketItems = colors.map((c, k) => {
+    const b = mesh(geo('bItem', () => new THREE.BoxGeometry(.13, .13, .13)), std(c), (prand(k + 800) - .5) * .3, -.05 + k * .018, (prand(k + 810) - .5) * .3, false);
+    b.rotation.set(prand(k) * 2, prand(k + 1) * 2, 0); b.visible = false;
+    basket.add(b); return b;
+  });
+  player.add(basket);
+  root.add(player);
+}
+
+// ---------------- 시장 행동 ----------------
+function canMarket(){ return inPhase('market') && $('overlay').hidden; }
+function marketOwned(id){
+  const it = MARKET_ITEMS[id];
+  return it.kind === 'raw' ? G.raw[id] : it.kind === 'pantry' ? G.pantry[id] : G.tools[id];
+}
+function addOwned(id, n){
+  const it = MARKET_ITEMS[id];
+  if (it.kind === 'raw') G.raw[id] += n;
+  else if (it.kind === 'pantry') G.pantry[id] += n * it.yield;
+  else G.tools[id] = n > 0 ? 1 : 0;
+  G.bought[id] = (G.bought[id] || 0) + n;
+}
+
+function enterMarket(){
+  const M = W.market;
+  G.phase = 'market';
+  hideOverlay();
+  setWorldMode('market');
+  M.player.position.set(MARKET_X, 0, 12);
+  M.player.rotation.y = Math.PI;
+  M.target = null; M.pendingBuy = null; M.pendingLeave = false; M.warned = false; M.keys.clear();
+  M.memoKey = ''; M.panelKey = '';
+  W.snapCam = true;
+  sfx.bell();
+  toast('🌅 새벽시장 도착! 가판대를 돌며 재료를 사세요');
+}
+
+function marketBuy(id, d = 1){
+  if (!inPhase('market')) return;
+  const it = MARKET_ITEMS[id];
+  if (!it) return;
+  const owned = marketOwned(id);
+  if (d > 0){
+    if (it.kind === 'tool' && owned){ toast(`${it.icon} ${it.name}은(는) 이미 갖고 있어요`); sfx.err(); return; }
+    if (it.kind === 'raw' && owned >= 20){ toast('한 번에 20개까지만 살 수 있어요'); sfx.err(); return; }
+    if (G.money < it.price){ toast(`💸 돈이 부족해요! (${fmt(it.price)} 필요)`); sfx.err(); return; }
+    G.money -= it.price; G.stats.purchase += it.price;
+    addOwned(id, 1);
+    sfx.coin();
+    const stall = W.market.stalls.find(s => s.def.items.includes(id));
+    const pv = stall.products.find(p => p.id === id);
+    pv.bounce = 1;
+    const from = pv.obj.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, .5, 0));
+    const mini = makeProduct(id); mini.scale.setScalar(.35);
+    flyPiece(mini, from, W.market.player.localToWorld(new THREE.Vector3(.62, 1.5, .5)), .45);
+    floatWorld(from.x, from.y + .9, from.z, `-${fmt(it.price)}`, '#ff9a8a');
+  } else {
+    if ((G.bought[id] || 0) <= 0){ toast('오늘 산 것만 무를 수 있어요'); sfx.err(); return; }
+    if (it.kind === 'pantry' && G.pantry[id] < it.yield){ toast('이미 쓴 재료는 무를 수 없어요'); sfx.err(); return; }
+    G.money += it.price; G.stats.purchase -= it.price;
+    addOwned(id, -1);
+    sfx.click();
+  }
+}
+
+function leaveMarket(){
+  if (!canMarket()) return;
+  const r = G.raw, M = W.market;
+  let warn = null;
+  if (r.pork + r.kong + r.spine === 0) warn = '⚠️ 식당 재료를 하나도 안 샀어요!';
+  else if (r.bones * 8 < r.pork * 4 + r.kong * 5) warn = '⚠️ 육수용 뼈가 모자라요 (돼지·콩나물국밥에 필요)';
+  else if (r.sauce < r.spine) warn = '⚠️ 매운 양념이 등뼈보다 적어요 (등뼈 1세트에 1통)';
+  if (warn && !M.warned){ M.warned = true; toast(warn + ' · 한 번 더 누르면 가게로'); sfx.err(); return; }
+  M.keys.clear(); M.target = null;
+  G.phase = 'prep';
+  setWorldMode('prep');
+  W.snapCam = true;
+  sfx.whoosh();
+  toast('🔪 가게 도착! 고기는 썰어서 냉장고에, 콩나물·뼈는 씻어서 손질하세요');
+}
+
+function walkTo(p, opt = {}){
+  const M = W.market;
+  M.target = new THREE.Vector3(clamp(p.x, MARKET_X - 3.8, MARKET_X + 3.8), 0, clamp(p.z, -23.2, 13.5));
+  M.pendingBuy = opt.buy || null;
+  M.pendingLeave = !!opt.leave;
+  M.marker.position.set(M.target.x, .03, M.target.z);
+  M.markerT = 1;
+}
+const _groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+function groundAt(cx, cy){
+  _ptr.set(cx / window.innerWidth * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
+  raycaster.setFromCamera(_ptr, camera);
+  const p = new THREE.Vector3();
+  return raycaster.ray.intersectPlane(_groundPlane, p) ? p : null;
+}
+
+function marketPointer(e){
+  const t = e.target, M = W.market;
+  let el;
+  if ((el = t.closest('[data-mbuy]'))){ if (!el.disabled) marketBuy(el.dataset.mbuy, +el.dataset.d); return; }
+  if (t.closest('#leaveMarketBtn')){ leaveMarket(); return; }
+  if (t.closest('#gateLabel')){ if (M.atGate) leaveMarket(); else walkTo(new THREE.Vector3(MARKET_X, 0, -22.5), {leave: true}); return; }
+  if (t !== renderer.domElement) return;
+  const u = pickAt(e.clientX, e.clientY);
+  if (u && u.kind === 'product'){
+    if (M.active === u.stall) marketBuy(u.id, 1);
+    else {
+      const s = M.stalls[u.stall];
+      walkTo(s.front, {buy: u.id});
+      toast(`${s.def.icon} ${s.def.name}(으)로 가요`);
+    }
+    return;
+  }
+  if (u && u.kind === 'gate'){ if (M.atGate) leaveMarket(); else walkTo(new THREE.Vector3(MARKET_X, 0, -22.5), {leave: true}); return; }
+  const gp = groundAt(e.clientX, e.clientY);
+  if (gp) walkTo(gp);
+}
+
+function marketKey(e){
+  const c = e.code, M = W.market;
+  if (MOVE_KEYS.includes(c)){ M.keys.add(c); e.preventDefault(); return; }
+  const m = /^(?:Digit|Numpad)([1-3])$/.exec(c);
+  if (m){
+    if (e.repeat) return;
+    const s = M.stalls[M.active];
+    const id = s && s.def.items[+m[1] - 1];
+    if (id) marketBuy(id, 1);
+    else toast('가판대 앞에 서면 1~3 키로 살 수 있어요');
+    return;
+  }
+  if ((c === 'KeyE' || c === 'Enter' || c === 'NumpadEnter' || c === 'Space') && !e.repeat){
+    e.preventDefault();
+    if (M.atGate) leaveMarket();
+    else toast('🏪 시장 끝 출구로 가면 가게로 돌아가요');
+  }
+}
+window.addEventListener('keyup', e => { if (W.market) W.market.keys.delete(e.code); });
+window.addEventListener('blur', () => { if (W.market) W.market.keys.clear(); });
+
+const _mv = new THREE.Vector3(), _mp = new THREE.Vector3();
+function syncMarket(dt){
+  if (!G) return;
+  const M = W.market, P = M.player, U = P.userData, live = canMarket();
+
+  // 이동: 키보드가 우선, 없으면 클릭한 곳으로
+  let moving = false;
+  if (live){
+    const k = M.keys;
+    _mv.set((k.has('ArrowRight') || k.has('KeyD') ? 1 : 0) - (k.has('ArrowLeft') || k.has('KeyA') ? 1 : 0), 0,
+            (k.has('ArrowDown') || k.has('KeyS') ? 1 : 0) - (k.has('ArrowUp') || k.has('KeyW') ? 1 : 0));
+    if (_mv.lengthSq() > 0){ M.target = null; M.pendingBuy = null; M.pendingLeave = false; }
+    else if (M.target){
+      _mv.subVectors(M.target, P.position); _mv.y = 0;
+      if (_mv.length() < .12){
+        _mv.set(0, 0, 0); M.target = null;
+        if (M.pendingBuy){ const id = M.pendingBuy; M.pendingBuy = null; marketBuy(id, 1); }
+        if (M.pendingLeave){ M.pendingLeave = false; leaveMarket(); }
+      }
+    }
+    if (_mv.lengthSq() > 0){
+      const dist = M.target ? _mv.length() : Infinity;
+      _mv.normalize(); moving = true;
+      P.position.addScaledVector(_mv, Math.min(6.5 * dt, dist));
+      P.position.x = clamp(P.position.x, MARKET_X - 3.8, MARKET_X + 3.8);
+      P.position.z = clamp(P.position.z, -23.2, 13.5);
+      let dA = Math.atan2(_mv.x, _mv.z) - P.rotation.y;
+      dA = Math.atan2(Math.sin(dA), Math.cos(dA));
+      P.rotation.y += dA * Math.min(1, dt * 12);
+    }
+  }
+  if (moving) M.walkT += dt;
+  const sw = moving ? Math.sin(M.walkT * 11) * .6 : 0;
+  U.legL.rotation.x = lerp(U.legL.rotation.x, sw, Math.min(1, dt * 15));
+  U.legR.rotation.x = -U.legL.rotation.x;
+  U.armL.rotation.x = -U.legL.rotation.x * .6;
+  P.position.y = moving ? Math.abs(Math.sin(M.walkT * 11)) * .1 : 0;
+
+  M.markerT = Math.max(0, M.markerT - dt * .8);
+  M.marker.material.opacity = M.target ? .5 + Math.sin(T * 8) * .3 : M.markerT * .6;
+
+  const boughtCount = Object.values(G.bought).reduce((a, b) => a + Math.max(0, b), 0);
+  M.basketItems.forEach((b, i) => { b.visible = i < boughtCount; });
+
+  // 가까운 가판대
+  let best = -1, bestD = 3.4;
+  M.stalls.forEach((s, i) => {
+    const d = Math.hypot(P.position.x - s.front.x, P.position.z - s.front.z);
+    if (d < bestD){ bestD = d; best = i; }
+  });
+  M.active = live ? best : -1;
+  M.atGate = live && P.position.z < -20.5;
+
+  // 가판대 주인 · 상품 · 가격표
+  M.stalls.forEach((s, si) => {
+    s.keeper.position.y = Math.abs(Math.sin(T * 2 + si)) * .05;
+    s.products.forEach((p, pi) => {
+      p.bounce = Math.max(0, p.bounce - dt * 4);
+      const hov = W.hover && W.hover.kind === 'product' && W.hover.id === p.id;
+      const target = (hov ? 1.12 : 1) + Math.sin(p.bounce * Math.PI) * .25;
+      p.obj.scale.setScalar(lerp(p.obj.scale.x, target, Math.min(1, dt * 14)));
+      const show = si === M.active;
+      p.label.hidden = !show;
+      if (!show) return;
+      // 가판대가 옆으로 보여 가격표가 겹치므로, 마우스를 올린 상품만 자세히 보여줘요
+      const it = MARKET_ITEMS[p.id], owned = marketOwned(p.id);
+      const lk = `${owned}|${G.money >= it.price}|${hov}`;
+      if (p.label.dataset.key !== lk){
+        p.label.dataset.key = lk;
+        p.label.innerHTML = hov
+          ? `<span class="k">${pi + 1}</span><b>${it.icon} ${it.name}</b><small>${fmt(it.price)} / ${it.unit}</small>${owned ? `<em>${it.kind === 'tool' ? '보유 중' : `보유 ${owned}${it.kind === 'pantry' ? it.serve : it.unit}`}</em>` : ''}`
+          : `<span class="k">${pi + 1}</span>${it.icon}`;
+        p.label.classList.toggle('mini', !hov);
+        p.label.classList.toggle('poor', G.money < it.price);
+        p.label.style.zIndex = hov ? 2 : 1;
+      }
+      p.obj.getWorldPosition(_mp);
+      place(p.label, toScreen(_mp.x, _mp.y + 1.15, _mp.z), true);
+    });
+  });
+
+  // 출구 안내
+  M.gateLabel.hidden = !live;
+  if (live){
+    const txt = M.atGate ? '🏪 가게로 돌아가기 · E 또는 클릭' : '🏪 우리 가게 가는 길';
+    if (M.gateLabel.textContent !== txt){ M.gateLabel.textContent = txt; M.gateLabel.classList.toggle('far', !M.atGate); }
+    place(M.gateLabel, toScreen(MARKET_X, 6.2, -24), true);
+  }
+
+  // 가판대 주문판
+  const panel = $('stallPanel');
+  if (M.active >= 0){
+    const s = M.stalls[M.active];
+    const key = M.active + '|' + s.def.items.map(id => `${marketOwned(id)}:${G.bought[id] || 0}`).join(',') + '|' + G.money;
+    if (M.panelKey !== key){
+      M.panelKey = key;
+      panel.innerHTML = `<div class="sp-head"><b>${s.def.icon} ${s.def.name}</b><span>“${s.def.line}”</span></div>` + s.def.items.map((id, i) => {
+        const it = MARKET_ITEMS[id], owned = marketOwned(id);
+        const canPlus = !(it.kind === 'tool' && owned) && G.money >= it.price;
+        return `<div class="sp-row"><span class="sp-ic">${it.icon}</span><div class="sp-name">${it.name}<small>${it.desc}</small></div><div class="sp-price">${fmt(it.price)}<small> / ${it.unit}</small></div><div class="sp-qty"><button class="qty" data-mbuy="${id}" data-d="-1" ${(G.bought[id] || 0) > 0 ? '' : 'disabled'} aria-label="${it.name} 무르기">−</button><span>${it.kind === 'tool' ? (owned ? '보유' : '없음') : it.kind === 'pantry' ? owned + it.serve : owned}</span><button class="qty" data-mbuy="${id}" data-d="1" ${canPlus ? '' : 'disabled'} aria-label="${it.name} 사기">+</button><kbd>${i + 1}</kbd></div></div>`;
+      }).join('');
+    }
+    panel.hidden = false;
+  } else if (!panel.hidden){ panel.hidden = true; M.panelKey = ''; }
+
+  // 장보기 메모
+  const {est, list} = shoppingList();
+  const mk = JSON.stringify([G.raw, G.pantry, G.tools, G.stats.purchase]);
+  if (M.memoKey !== mk){
+    M.memoKey = mk;
+    const pantry = Object.entries(G.pantry).filter(([, n]) => n > 0).map(([id, n]) => `${MARKET_ITEMS[id].icon}${n}`).join(' ');
+    const tools = Object.entries(G.tools).filter(([, n]) => n).map(([id]) => MARKET_ITEMS[id].icon).join(' ');
+    $('marketMemo').innerHTML = `<h4>📝 오늘 장보기 메모</h4><div class="mm-est">예상 손님 ${est.lo}~${est.hi}명 · 남은 식당 재료는 밤에 폐기</div>
+      <ul>${Object.entries(list).map(([id, n]) => {
+        const it = MARKET_ITEMS[id], have = G.raw[id], ok = have >= n;
+        return `<li class="${ok ? 'done' : ''}"><span>${ok ? '✅' : '⬜'} ${it.icon} ${it.name}</span><b>${have}/${n}${it.unit}</b></li>`;
+      }).join('')}</ul>
+      ${pantry || tools ? `<div class="mm-pantry">${pantry ? `🧺 창고: ${pantry}` : ''}${pantry && tools ? ' · ' : ''}${tools ? `🛡️ ${tools}` : ''}</div>` : ''}
+      <div class="mm-spent">오늘 쓴 돈 <b>${fmt(G.stats.purchase)}</b></div>
+      <button class="mm-leave" id="leaveMarketBtn">🏪 장보기 끝내고 가게로</button>`;
+  }
+}
+
+// ---------------- 오후 카페 ----------------
+const CAFE_SEAT_X = [-4, 0, 4];
+const CAFE_FOOD_KEYS = ['KeyQ', 'KeyW', 'KeyE', 'KeyR', 'KeyT'];
+let LAB = null;
+
+// 재료 색을 섞으면 각 재료 색의 평균색이 돼요
+function mixColor(ids){
+  if (!ids.length) return '#ffffff';
+  let r = 0, g = 0, b = 0;
+  ids.forEach(id => { const c = new THREE.Color(MARKET_ITEMS[id].color); r += c.r; g += c.g; b += c.b; });
+  return '#' + new THREE.Color(r / ids.length, g / ids.length, b / ids.length).getHexString();
+}
+function recipeColor(r){ return r.type === 'food' ? '#d9a15a' : mixColor(r.ings); }
+function recipeById(id){ return G.recipes.find(r => r.id === id); }
+function sameIngs(a, b){ return a.length === b.length && [...a].sort().join() === [...b].sort().join(); }
+function recipeMakeable(r){ return r.ings.every(id => G.pantry[id] >= 1); }
+function ingIcons(r){ return r.ings.map(id => MARKET_ITEMS[id].icon).join(' '); }
+function swatch(color, big){ return `<i class="swatch${big ? ' big' : ''}" style="background:${color}"></i>`; }
+function menuRow(r, tail){ return `<div class="menu-row">${swatch(recipeColor(r), true)}<b>${esc(r.name)}</b><span>${ingIcons(r)}</span><em>${fmt(r.price)}</em>${tail}</div>`; }
+
+function drawCafeBoard(x, w, h){
+  x.fillStyle = '#26352c'; x.fillRect(0, 0, w, h);
+  x.strokeStyle = '#8a6a4a'; x.lineWidth = 18; x.strokeRect(9, 9, w - 18, h - 18);
+  x.textBaseline = 'middle';
+  x.fillStyle = '#f7f0dc'; x.textAlign = 'center'; x.font = '72px Jua, "Malgun Gothic", sans-serif';
+  x.fillText('MENU', w / 2, 72);
+  const list = G ? G.recipes : DEFAULT_RECIPES;
+  list.slice(0, 8).forEach((r, i) => {
+    const cx = 60 + (i % 2) * 470, cy = 170 + Math.floor(i / 2) * 82;
+    x.fillStyle = recipeColor(r); x.beginPath(); x.arc(cx + 22, cy, 22, 0, Math.PI * 2); x.fill();
+    x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = 3; x.stroke();
+    x.textAlign = 'left'; x.fillStyle = '#f7f0dc';
+    let size = 40;
+    do { x.font = `${size}px Jua, "Malgun Gothic", sans-serif`; size -= 2; } while (x.measureText(r.name).width > 250 && size > 22);
+    x.fillText(r.name, cx + 58, cy);
+    x.textAlign = 'right'; x.fillStyle = '#f2b632'; x.font = '34px Jua, "Malgun Gothic", sans-serif';
+    x.fillText(r.price.toLocaleString(), cx + 430, cy);
+  });
+}
+function cafeTitle(){ return G && G.cafeName ? G.cafeName : `${G ? G.name : 'Business Simulator'} CAFE`; }
+function drawCafeSign(x, w, h){
+  x.fillStyle = '#2f4a3a'; x.fillRect(0, 0, w, h);
+  x.strokeStyle = '#f2e6c8'; x.lineWidth = 10; x.strokeRect(14, 14, w - 28, h - 28);
+  x.fillStyle = '#f2e6c8'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  const text = cafeTitle();
+  let size = 110;
+  do { x.font = `${size}px Jua, "Malgun Gothic", sans-serif`; size -= 4; } while (x.measureText(text).width > w - 90 && size > 40);
+  x.fillText(text, w / 2, h / 2 + 6);
+}
+
+function stackLayer(id){
+  const make = {
+    bread:   () => mesh(geo('lBread', () => new THREE.BoxGeometry(.95, .14, .9)), std(0xe3b574, {roughness: .8}), 0, .07, 0, false),
+    ham:     () => mesh(geo('lHam', () => new THREE.CylinderGeometry(.46, .46, .05, 20)), std(0xf09a9a, {roughness: .5}), 0, .025, 0, false),
+    cheese:  () => { const m = mesh(geo('lCheese', () => new THREE.BoxGeometry(.8, .05, .8)), std(0xf2c230, {roughness: .5}), 0, .025, 0, false); m.rotation.y = .6; return m; },
+    lettuce: () => mesh(geo('lLet', () => new THREE.CylinderGeometry(.56, .52, .06, 10)), std(0x7cc35a, {roughness: .8}), 0, .03, 0, false),
+    tomato:  () => { const g = new THREE.Group(); for (let k = 0; k < 3; k++) g.add(mesh(geo('lTom', () => new THREE.CylinderGeometry(.18, .18, .05, 14)), std(0xd9321f, {roughness: .4}), Math.cos(k * 2.1) * .22, .025, Math.sin(k * 2.1) * .22, false)); return g; },
+  };
+  return {obj: make[id](), h: {bread: .14, ham: .05, cheese: .05, lettuce: .06, tomato: .05}[id]};
+}
+
+function buildCafe(){
+  const X = CAFE_X, top = TABLE_TOP + .04;
+  const C = W.cafe = {origin: new THREE.Vector3(X, 0, 0), hits: [], seatViews: [null, null, null], leaving: [], ings: {}, cupKey: null, plateKey: null, level: 0, targetLevel: 0};
+  const root = C.root = new THREE.Group(); scene.add(root);
+
+  const floorTex = woodTex('#c9a47c', '#a8845c', 10); floorTex.repeat.set(6, 4);
+  const floor = mesh(new THREE.PlaneGeometry(50, 30), std(0xffffff, {map: floorTex, roughness: .8}), X, 0, -3, false);
+  floor.rotation.x = -Math.PI / 2; root.add(floor);
+  const wallTex = canvasTex(256, 256, (x, w, h) => {
+    x.fillStyle = '#cfe3d4'; x.fillRect(0, 0, w, h);
+    x.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < 8; i++) x.fillRect(i * 32, 0, 6, h);
+  });
+  wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping; wallTex.repeat.set(10, 3);
+  root.add(mesh(new THREE.PlaneGeometry(40, 12), std(0xffffff, {map: wallTex, roughness: .9}), X, 6, -5.6, false));
+  root.add(mesh(new THREE.BoxGeometry(40, 2.2, .3), std(0xf3efe6), X, 1.1, -5.5, false));
+  for (const sx of [-1, 1]){
+    const side = mesh(new THREE.PlaneGeometry(14, 12), std(0xffffff, {map: wallTex, roughness: .9}), X + sx * 13, 6, 0, false);
+    side.rotation.y = -sx * Math.PI / 2; root.add(side);
+  }
+
+  // 메뉴판 · 간판 · 머그 선반
+  const dark = std(0x5a4030);
+  C.boardTex = canvasTex(1024, 512, drawCafeBoard);
+  root.add(mesh(new THREE.BoxGeometry(7.2, 3.6, .15), [dark, dark, dark, dark, new THREE.MeshStandardMaterial({map: C.boardTex, roughness: .9}), dark], X - 5.2, 5.3, -5.42));
+  C.signTex = canvasTex(1024, 200, drawCafeSign);
+  root.add(mesh(new THREE.BoxGeometry(7, 1.4, .2), [dark, dark, dark, dark, new THREE.MeshStandardMaterial({map: C.signTex, roughness: .7}), dark], X + 4.6, 6.4, -5.4));
+  root.add(mesh(new THREE.BoxGeometry(5.6, .12, .6), std(0x8a6a4a), X + 4.6, 4.3, -5.25));
+  [0xe0405a, 0xf4d23c, 0x6fae4a, 0x5a3f9a, 0xf4f1e8].forEach((c, k) => {
+    root.add(mesh(new THREE.CylinderGeometry(.22, .2, .42, 14), std(c, {roughness: .4}), X + 2.6 + k * 1.0, 4.57, -5.2));
+  });
+
+  // 펜던트 조명
+  C.lamps = [];
+  for (const lx of [-4, 0, 4]){
+    const p = new THREE.Group(); p.position.set(X + lx, 9.2, -1.6);
+    p.add(mesh(new THREE.CylinderGeometry(.015, .015, 2.4, 4), std(0x222222), 0, -1.2, 0, false));
+    p.add(mesh(new THREE.ConeGeometry(.5, .45, 20, 1, true), std(0x2f4a3a, {side: THREE.DoubleSide}), 0, -2.55, 0, false));
+    p.add(mesh(new THREE.SphereGeometry(.16, 12, 8), new THREE.MeshBasicMaterial({color: 0xffe2a8}), 0, -2.75, 0, false));
+    const l = new THREE.PointLight(0xffd9a0, .7, 12); l.position.y = -2.8; p.add(l);
+    root.add(p); C.lamps.push(p);
+  }
+  // 화분
+  for (const sx of [-1, 1]){
+    const pl = new THREE.Group(); pl.position.set(X + sx * 11, 0, -4.2);
+    pl.add(mesh(new THREE.CylinderGeometry(.55, .42, .9, 16), std(0xd8c8b0), 0, .45, 0));
+    for (let k = 0; k < 5; k++) pl.add(mesh(geo('leafBall', () => new THREE.SphereGeometry(.55, 12, 10)), std(0x4f8f4a, {roughness: .9}), (prand(k + 30 + sx) - .5) * .8, 1.3 + prand(k + 40) * .9, (prand(k + 50) - .5) * .6));
+    root.add(pl);
+  }
+
+  // 손님 쪽 카운터
+  root.add(mesh(new THREE.BoxGeometry(14, 1.2, 1.0), std(0xefe9df, {roughness: .4}), X, .6, -.7));
+  root.add(mesh(new THREE.BoxGeometry(14.4, .12, 1.4), std(0x6b4a32, {roughness: .5}), X, 1.26, -.7));
+  CAFE_SEAT_X.forEach((sx, i) => { const hit = hitBox(2.6, 3.4, 1.6, X + sx, 2.6, SEAT_Z, {kind: 'cseat', i}); root.add(hit); C.hits.push(hit); });
+
+  // 바리스타 작업대 + 재료
+  root.add(mesh(new THREE.BoxGeometry(14.6, TABLE_TOP, 2.2), std(0x7a5a42), X, TABLE_TOP / 2, TABLE_Z));
+  root.add(mesh(new THREE.BoxGeometry(14.7, .08, 2.3), std(0xd9bf9a, {roughness: .5}), X, TABLE_TOP, TABLE_Z));
+  const placeIng = (id, x, s) => {
+    const g = new THREE.Group(); g.position.set(x, top, TABLE_Z - .7);
+    const obj = makeProduct(id); obj.scale.setScalar(s); g.add(obj);
+    const hit = hitBox(.9, 1.0, 1.0, 0, .45, 0, {kind: 'cing', id}); g.add(hit); C.hits.push(hit);
+    root.add(g); C.ings[id] = {g, obj, bounce: 0};
+  };
+  DRINK_INGS.forEach((id, k) => placeIng(id, X - 6.6 + k * .92, .68));
+  FOOD_INGS.forEach((id, k) => placeIng(id, X + 1.9 + k * 1.1, .8));
+
+  // 음료 컵
+  C.cup = new THREE.Group(); C.cup.position.set(X - 3.2, top, TABLE_Z + .55); root.add(C.cup);
+  C.cup.add(mesh(new THREE.CylinderGeometry(.45, .45, .04, 20), std(0x8a6a4a), 0, .02, 0));
+  C.liquid = mesh(geo('liq', () => { const q = new THREE.CylinderGeometry(.29, .24, 1, 24); q.translate(0, .5, 0); return q; }), new THREE.MeshStandardMaterial({color: 0xffffff, roughness: .2}), 0, .06, 0, false);
+  C.liquid.scale.y = .001; C.cup.add(C.liquid);
+  C.cup.add(mesh(new THREE.CylinderGeometry(.33, .27, .95, 24, 1, true), new THREE.MeshStandardMaterial({color: 0xe8f4ff, transparent: true, opacity: .28, roughness: .05, side: THREE.DoubleSide}), 0, .52, 0, false));
+  const iceMat = new THREE.MeshStandardMaterial({color: 0xffffff, transparent: true, opacity: .55, roughness: .05});
+  C.ice = [0, 1, 2].map(k => {
+    const c = mesh(geo('ice', () => new THREE.BoxGeometry(.15, .15, .15)), iceMat, (k - 1) * .13, .3, (k % 2 - .5) * .1, false);
+    c.rotation.set(k, k * 2, 0); C.cup.add(c); return c;
+  });
+  const straw = mesh(new THREE.CylinderGeometry(.03, .03, 1.2, 8), std(0xe0405a), .12, .9, 0, false);
+  straw.rotation.z = -.25; C.cup.add(straw);
+  const cupHit = hitBox(1.1, 1.4, 1.1, 0, .6, 0, {kind: 'cup'}); C.cup.add(cupHit); C.hits.push(cupHit);
+
+  // 샌드위치 접시
+  C.plate = new THREE.Group(); C.plate.position.set(X + 4.1, top, TABLE_Z + .55); root.add(C.plate);
+  C.plate.add(mesh(new THREE.CylinderGeometry(.7, .58, .06, 24), std(0xf7f7f2, {roughness: .3}), 0, .03, 0));
+  C.stack = new THREE.Group(); C.stack.position.y = .06; C.plate.add(C.stack);
+  const plateHit = hitBox(1.5, 1.2, 1.4, 0, .5, 0, {kind: 'plate'}); C.plate.add(plateHit); C.hits.push(plateHit);
+
+  for (const k of ['cupLabel', 'plateLabel']){
+    const el = document.createElement('div'); el.className = 'plabel tray'; el.hidden = true;
+    $('labels').appendChild(el); C[k] = el;
+  }
+}
+
+function clearCafeCustomers(){
+  const C = W.cafe;
+  C.seatViews.forEach(v => { if (v){ C.root.remove(v.g); v.el.remove(); } });
+  C.leaving.forEach(v => C.root.remove(v.g));
+  C.seatViews = [null, null, null];
+  C.leaving = [];
+}
+
+// ---------------- 카페 흐름 ----------------
+function canCafe(){ return inPhase('cafe') && G.running && !G.paused; }
+
+function finishLunch(){
+  G.running = false;
+  showCafeIntro();
+}
+
+function showCafeIntro(){
+  G.phase = 'cafeIntro';
+  $('hudName').textContent = '☕ ' + cafeTitle();
+  if (W.mode !== 'cafe'){ setWorldMode('cafe'); W.snapCam = true; }
+  redrawTex(W.cafe.boardTex); redrawTex(W.cafe.signTex);
+  const any = G.recipes.some(recipeMakeable);
+  const store = [...DRINK_INGS, ...FOOD_INGS].filter(id => G.pantry[id] > 0).map(id => `${MARKET_ITEMS[id].icon}${G.pantry[id]}`).join(' ');
   showOverlay(`
     <div class="card wide">
-      <h2>🌅 새벽 시장</h2>
-      <div class="mk-info">📈 오늘 예상 손님 <b>${est.lo}~${est.hi}명</b> &nbsp;·&nbsp; 🗑️ 남은 재료는 영업이 끝나면 폐기돼요</div>
-      <div class="mk-list">${INGREDIENTS.map(ing => `
-        <div class="mk-row">
-          <div class="mk-ic">${ing.icon}</div>
-          <div class="mk-name">${ing.name}<small>${ing.desc}</small></div>
-          <div class="mk-price">${fmt(ing.price)} / ${ing.unit}</div>
-          <div class="mk-qty"><button class="qty" onclick="cartAdd('${ing.id}',-1)">−</button><span id="q-${ing.id}"></span><button class="qty" onclick="cartAdd('${ing.id}',1)">+</button></div>
-          <div class="mk-sub" id="s-${ing.id}"></div>
-        </div>`).join('')}
+      <h2>☕ 오후 카페 영업</h2>
+      <div class="day-note">점심 장사 수고했어요! 이제 카페 문을 열 시간이에요.</div>
+      <div class="name-row">☕ 카페 이름 <input id="cafeNameInput" maxlength="12" value="${esc(cafeTitle())}" onkeydown="if (event.key === 'Enter') saveCafeName()"><button class="sub-btn" onclick="saveCafeName()">간판 바꾸기</button></div>
+      <div class="mk-info">🧺 창고 재료: ${store || '없음 — 새벽시장 원두·찻잎·우유·과일청·델리 가게에서 사요'}</div>
+      <div class="menu-list">${G.recipes.map(r => menuRow(r, `<small class="${recipeMakeable(r) ? 'ok' : 'no'}">${recipeMakeable(r) ? '주문 가능' : '재료 부족'}</small>`)).join('')}</div>
+      <div class="cafe-btns">
+        <button class="sub-btn" onclick="showLab()">🧪 메뉴 개발실</button>
+        <button class="big-btn" onclick="startCafe()" ${any ? '' : 'disabled'}>☕ 카페 열기 (${CAFE_LEN}초)</button>
+        <button class="sub-btn" onclick="endDay()">🚪 오늘은 쉬기</button>
       </div>
-      <div class="mk-info" id="mkMake"></div>
-      <div class="mk-total">합계 <b id="mkTotal"></b> &nbsp;·&nbsp; 보유 ${fmt(G.money)} → 남는 돈 <b id="mkLeft"></b></div>
-      <div class="mk-warn" id="mkWarn"></div>
-      <button class="big-btn" id="mkBuy" onclick="buyIngredients()">🛒 사서 주방으로 가기</button>
+      ${any ? '' : '<div class="mk-warn">만들 수 있는 메뉴가 없어요. 오늘은 쉬고 내일 새벽시장에서 카페 재료를 사세요.</div>'}
     </div>`, true);
-  updateMarket();
 }
-function cartAdd(id, d){
-  G.cart[id] = clamp(G.cart[id] + d, 0, 20);
-  sfx.click();
-  updateMarket();
+
+function buildCafeButtons(){
+  const btn = (id, key) => {
+    const it = MARKET_ITEMS[id];
+    return `<button class="cbtn slim" data-cing="${id}"><span class="ic">${it.icon}</span>${swatch(it.color)}${it.name}<small></small><span class="key">${key}</span></button>`;
+  };
+  $('cafeDrinks').innerHTML = DRINK_INGS.map((id, i) => btn(id, i + 1)).join('');
+  $('cafeFoods').innerHTML = FOOD_INGS.map((id, i) => btn(id, keyLabel(CAFE_FOOD_KEYS[i]))).join('');
 }
-function updateMarket(){
-  INGREDIENTS.forEach(ing => {
-    $('q-' + ing.id).textContent = G.cart[ing.id] + ing.unit;
-    $('s-' + ing.id).textContent = fmt(G.cart[ing.id] * ing.price);
-  });
-  const total = cartTotal(), left = G.money - total, p = cartPortions(G.cart);
-  $('mkMake').innerHTML = `준비하면: 🥩 고기 <b>${p.pork}</b> · 🌱 콩나물 <b>${p.kong}</b> · 🍲 맑은 육수 <b>${p.broth}</b> · 🌶️ 매운 육수 <b>${p.spicy}</b>인분 → 최대 <b>${Math.min(p.pork + p.kong, p.broth) + p.spicy}그릇</b>`;
-  $('mkTotal').textContent = fmt(total);
-  $('mkLeft').textContent = fmt(left);
-  let warn = '';
-  if (left < 0) warn = '💸 돈이 부족해요!';
-  else if (p.broth < p.pork + p.kong) warn = '⚠️ 맑은 육수가 고기·콩나물보다 적어요. 돼지국밥·콩나물국밥엔 맑은 육수가 꼭 필요해요!';
-  else if (p.pork + p.kong + p.spicy === 0) warn = '⚠️ 재료가 하나도 없으면 장사를 못 해요!';
-  $('mkWarn').textContent = warn;
-  $('mkBuy').disabled = left < 0;
-}
-function buyIngredients(){
-  const total = cartTotal();
-  if (total > G.money){ sfx.err(); return; }
-  G.money -= total;
-  G.stats.purchase = total;
-  G.raw = {...G.cart};
-  G.phase = 'prep';
+
+function startCafe(){
+  if (!G.recipes.some(recipeMakeable)){ sfx.err(); return; }
+  applyCafeName();
+  G.cafe = {time: CAFE_LEN, spawnT: 1, seats: Array(CAFE_SEATS).fill(null), cup: [], plate: []};
+  G.phase = 'cafe';
+  G.running = true; G.paused = false;
   hideOverlay();
-  setWorldMode('prep');
+  buildCafeButtons();
+  sfx.bell();
+  toast('☕ 카페 오픈! 주문을 보고 재료를 섞어 만들어요');
+}
+
+// 입력칸의 카페 이름을 간판·상단 표시줄에 반영 (비우면 "가게이름 CAFE")
+function applyCafeName(){
+  const input = $('cafeNameInput');
+  if (!input) return false;
+  const v = input.value.trim();
+  const changed = v !== cafeTitle();
+  G.cafeName = v;
+  redrawTex(W.cafe.signTex);
+  $('hudName').textContent = '☕ ' + cafeTitle();
+  return changed;
+}
+function saveCafeName(){
+  applyCafeName();
   sfx.coin();
-  toast('🔪 고기는 썰어서 냉장고에! 콩나물·뼈는 씻어서 손질하세요');
+  toast(`☕ 간판을 "${cafeTitle()}"(으)로 바꿨어요`);
+}
+function cafeReserved(){
+  const res = {};
+  G.cafe.seats.forEach(c => {
+    if (!c || c.state !== 'waiting') return;
+    const r = recipeById(c.menu);
+    if (r) r.ings.forEach(id => { res[id] = (res[id] || 0) + 1; });
+  });
+  return res;
+}
+function cafeSpawn(){
+  const C = G.cafe;
+  const free = C.seats.map((s, i) => s ? -1 : i).filter(i => i >= 0);
+  if (!free.length) return false;
+  const res = cafeReserved();
+  const menus = G.recipes.filter(r => r.ings.every(id => G.pantry[id] - (res[id] || 0) >= 1));
+  if (!menus.length) return false;
+  const r = pickWeighted(menus, m => m.custom ? 1.6 : 1);
+  const type = pickWeighted(CUSTOMERS.filter(c => c.minDay <= G.day), c => c.weight);
+  C.seats[pick(free)] = {id: ++G.custId, type, menu: r.id, state: 'waiting', v: 0, t: 0,
+    line: pick(['오후엔 역시 카페죠~', '달달한 거 땡겨요', '여기 음료 맛집이래요', '새 메뉴 있어요?', '잠 깨는 거 주세요'])};
+  sfx.bell();
+  return true;
+}
+// 재료가 모자라 만들 수 없게 된 주문은 늦게 온 손님부터 돌아가요
+function cafeCheckSoldOut(){
+  const C = G.cafe, reserved = {};
+  C.seats.map((c, i) => ({c, i})).filter(x => x.c && x.c.state === 'waiting').sort((a, b) => a.c.id - b.c.id).forEach(({c, i}) => {
+    const r = recipeById(c.menu);
+    const held = r.type === 'food' ? C.plate : C.cup;
+    const ok = r.ings.every(id => G.pantry[id] + (held.includes(id) ? 1 : 0) - (reserved[id] || 0) >= 1);
+    if (ok){ r.ings.forEach(id => { reserved[id] = (reserved[id] || 0) + 1; }); return; }
+    c.state = 'sad'; c.t = 2; c.v++;
+    c.line = pick(['재료가 떨어졌구나... 다음에 올게요', '아쉽다~ 내일 또 올게요']);
+    G.stats.cafeSoldout++;
+    sfx.sad();
+    floatWorld(CAFE_X + CAFE_SEAT_X[i], 4.1, SEAT_Z, '재료 소진 😢', '#8fb0ff');
+  });
+}
+
+function updateCafe(dt){
+  const C = G.cafe;
+  if (C.time > 0){
+    C.time -= dt;
+    if (C.time <= 0){ C.time = 0; toast('🔔 카페 마감! 남은 손님만 받아요'); }
+  }
+  if (C.time > 0){
+    C.spawnT -= dt;
+    if (C.spawnT <= 0) C.spawnT = cafeSpawn() ? rand(3.5, 6.5) : 1;
+  }
+  C.seats.forEach((c, i) => {
+    if (c && c.state !== 'waiting'){ c.t -= dt; if (c.t <= 0) C.seats[i] = null; }
+  });
+  cafeCheckSoldOut();
+  if (C.time > 0 && !G.recipes.some(recipeMakeable) && !C.seats.some(c => c && c.state === 'waiting')){
+    C.time = 0;
+    toast('🥲 카페 재료가 다 떨어졌어요! 오늘 카페는 마감');
+  }
+  if (C.time <= 0 && C.seats.every(s => !s) && G.running) endDay();
+}
+
+function cafeAdd(id){
+  const it = MARKET_ITEMS[id], C = G.cafe, view = W.cafe.ings[id];
+  if (!it || !it.cafe) return;
+  if (G.pantry[id] <= 0){ toast(`${it.icon} ${it.name}이(가) 창고에 없어요 (새벽시장에서 사요)`); sfx.err(); return; }
+  const list = it.cafe === 'drink' ? C.cup : C.plate;
+  if (list.includes(id)){ toast('이미 넣은 재료예요'); sfx.err(); return; }
+  if (it.cafe === 'drink' && list.length >= 4){ toast('컵이 가득 찼어요! (최대 4가지)'); sfx.err(); return; }
+  list.push(id);
+  G.pantry[id]--;
+  view.bounce = 1;
+  const to = (it.cafe === 'drink' ? W.cafe.cup : W.cafe.plate).position.clone().add(new THREE.Vector3(0, 1.0, 0));
+  if (it.cafe === 'drink'){ sfx.pour(); emitDrops(to, it.color, 8); }
+  else {
+    sfx.pluck();
+    const mini = makeProduct(id); mini.scale.setScalar(.3);
+    flyPiece(mini, view.g.position.clone().add(new THREE.Vector3(0, .6, 0)), to, .35);
+  }
+}
+function cafeEmpty(kind){
+  const list = kind === 'cup' ? G.cafe.cup : G.cafe.plate;
+  if (!list.length) return;
+  list.length = 0;
+  sfx.trash();
+}
+function cafeServe(i){
+  const C = G.cafe, c = C.seats[i];
+  if (!c || c.state !== 'waiting') return;
+  const r = recipeById(c.menu), view = W.cafe.seatViews[i];
+  const held = r.type === 'food' ? C.plate : C.cup;
+  const hx = CAFE_X + CAFE_SEAT_X[i];
+  if (!held.length){ toast(r.type === 'food' ? '🍽️ 접시에 샌드위치를 먼저 만들어 주세요' : '🥤 컵에 음료를 먼저 만들어 주세요'); sfx.err(); return; }
+  if (!sameIngs(held, r.ings)){
+    c.line = r.type === 'food' ? '재료가 좀 다른데요?' : '제가 시킨 맛이 아닌데요?'; c.v++;
+    if (view) view.shakeT = .5;
+    sfx.err(); floatWorld(hx, 4.1, SEAT_Z, '레시피가 달라요!', '#ff6b5b');
+    return;
+  }
+  const tip = Math.round(800 * c.type.tip / 100) * 100;
+  G.money += r.price + tip;
+  G.stats.cafeSales += r.price; G.stats.cafeTips += tip; G.stats.cafeServed++;
+  addRep(.03);
+  held.length = 0;
+  c.state = 'happy'; c.t = 1.8; c.v++;
+  c.line = pick(['음~ 이 맛이야!', '색깔 너무 예뻐요!', '또 올게요!', '인생 메뉴 등극!']);
+  emitCoins(new THREE.Vector3(hx, 3.2, SEAT_Z + .5));
+  floatWorld(hx, 4.1, SEAT_Z, '+' + fmt(r.price + tip), '#f2b632');
+  sfx.coin();
+}
+function closeCafe(){
+  G.cafe.seats.forEach((c, i) => {
+    if (c && c.state === 'waiting'){ G.stats.cafeSoldout++; G.rep = clamp(G.rep - 0.1, 0, 5); }
+    G.cafe.seats[i] = null;
+  });
+  G.paused = false;
+  hideOverlay();
+  endDay();
+}
+
+function cafePointer(e){
+  const t = e.target;
+  let el;
+  if ((el = t.closest('[data-cing]'))){ cafeAdd(el.dataset.cing); return; }
+  if ((el = t.closest('[data-cseat]'))){ cafeServe(+el.dataset.cseat); return; }
+  if (t.closest('#cupEmpty')){ cafeEmpty('cup'); return; }
+  if (t.closest('#plateEmpty')){ cafeEmpty('plate'); return; }
+  if (t !== renderer.domElement) return;
+  const u = pickAt(e.clientX, e.clientY);
+  if (!u) return;
+  if (u.kind === 'cing') cafeAdd(u.id);
+  else if (u.kind === 'cseat') cafeServe(u.i);
+  else if (u.kind === 'cup') toast(G.cafe.cup.length ? '손님을 클릭해서 음료를 건네요' : '뒤쪽 재료 병을 클릭해서 컵에 넣어요');
+  else if (u.kind === 'plate') toast(G.cafe.plate.length ? '손님을 클릭해서 샌드위치를 건네요' : '뒤쪽 재료를 클릭해서 접시에 올려요');
+}
+function cafeKey(e){
+  const c = e.code;
+  let n;
+  const m = /^(?:Digit|Numpad)([1-8])$/.exec(c);
+  if (m){ cafeAdd(DRINK_INGS[+m[1] - 1]); return; }
+  if ((n = CAFE_FOOD_KEYS.indexOf(c)) >= 0){ cafeAdd(FOOD_INGS[n]); return; }
+  if ((n = SEAT_KEYS.indexOf(c)) >= 0){ if (n < CAFE_SEATS) cafeServe(n); return; }
+  if (c === 'Backspace'){ e.preventDefault(); cafeEmpty('cup'); }
+  else if (c === 'Delete'){ e.preventDefault(); cafeEmpty('plate'); }
+}
+
+// ---------------- 메뉴 개발실 ----------------
+function showLab(){
+  if (!LAB) LAB = {sel: [], name: '', price: 5000, shown: false};
+  renderLab();
+}
+function labSync(){ const i = $('labName'); if (i) LAB.name = i.value; }
+function labToggle(id){
+  labSync();
+  const k = LAB.sel.indexOf(id);
+  if (k >= 0) LAB.sel.splice(k, 1);
+  else if (LAB.sel.length < 4) LAB.sel.push(id);
+  else { toast('재료는 4가지까지 섞을 수 있어요'); sfx.err(); return; }
+  sfx.click();
+  renderLab();
+}
+function labPrice(d){ labSync(); LAB.price = clamp(LAB.price + d, 2000, 15000); sfx.click(); renderLab(); }
+function labDelete(id){
+  const r = recipeById(id);
+  if (!r || !r.custom) return;
+  G.recipes = G.recipes.filter(x => x.id !== id);
+  redrawTex(W.cafe.boardTex);
+  sfx.trash(); labSync(); renderLab();
+}
+function labSave(){
+  labSync();
+  const name = LAB.name.trim();
+  const warn = m => { $('labWarn').textContent = m; sfx.err(); };
+  if (LAB.sel.length < 2) return warn('⚠️ 재료를 2가지 이상 골라 섞어주세요');
+  if (!name) return warn('⚠️ 메뉴 이름을 지어주세요');
+  if (G.recipes.some(r => r.name === name)) return warn('⚠️ 같은 이름의 메뉴가 이미 있어요');
+  const same = G.recipes.find(r => r.type === 'drink' && sameIngs(r.ings, LAB.sel));
+  if (same) return warn(`⚠️ 같은 재료 조합의 메뉴가 이미 있어요: ${same.name}`);
+  if (G.recipes.length >= 8) return warn('⚠️ 메뉴는 8개까지만 등록할 수 있어요. 안 쓰는 메뉴를 지워주세요');
+  G.recipes.push({id: 'r' + Date.now().toString(36), name, type: 'drink', ings: [...LAB.sel], price: LAB.price, custom: true});
+  redrawTex(W.cafe.boardTex);
+  sfx.fanfare();
+  toast(`🎉 새 메뉴 "${name}" 등록!`);
+  LAB = {sel: [], name: '', price: 5000, shown: true};
+  renderLab();
+}
+function renderLab(){
+  const col = mixColor(LAB.sel);
+  const mix = LAB.sel.length
+    ? LAB.sel.map(id => swatch(MARKET_ITEMS[id].color, true)).join('<b>+</b>') + `<b>=</b>${swatch(col, true)}`
+    : '재료를 2~4가지 골라주세요';
+  showOverlay(`
+    <div class="card wide lab ${LAB.shown ? 'still' : ''}">
+      <h2>🧪 메뉴 개발실</h2>
+      <div class="lab-sub">음료 재료를 골라 섞으면 재료 색이 섞여요. 이름과 가격을 정해 새 메뉴로 등록하세요!</div>
+      <div class="lab-grid">
+        <div>
+          <div class="lab-cup"><div class="lab-liquid" style="height:${LAB.sel.length * 22}%;background:${col}"></div></div>
+          <div class="lab-mix">${mix}</div>
+        </div>
+        <div class="lab-ings">${DRINK_INGS.map(id => {
+          const it = MARKET_ITEMS[id];
+          return `<button class="lab-ing ${LAB.sel.includes(id) ? 'on' : ''}" onclick="labToggle('${id}')">${swatch(it.color, true)}<span>${it.icon} ${it.name}</span><small>창고 ${G.pantry[id]}잔</small></button>`;
+        }).join('')}</div>
+      </div>
+      <div class="lab-form">
+        <label>메뉴 이름 <input id="labName" maxlength="10" value="${esc(LAB.name)}" placeholder="예) 딸기라떼"></label>
+        <div class="lab-price">가격 <button class="qty" onclick="labPrice(-500)" aria-label="가격 내리기">−</button><b>${fmt(LAB.price)}</b><button class="qty" onclick="labPrice(500)" aria-label="가격 올리기">+</button></div>
+        <button class="big-btn" onclick="labSave()">📋 메뉴 등록</button>
+      </div>
+      <div class="mk-warn" id="labWarn"></div>
+      <h3>현재 메뉴 (${G.recipes.length}/8)</h3>
+      <div class="menu-list">${G.recipes.map(r => menuRow(r, r.custom ? `<button class="sub-btn small" onclick="labDelete('${r.id}')">삭제</button>` : '<small>기본</small>')).join('')}</div>
+      <button class="sub-btn" onclick="showCafeIntro()">← 카페로 돌아가기</button>
+    </div>`);
+  LAB.shown = true;
+}
+
+// ---------------- 카페 3D 동기화 ----------------
+function updateCafeCustomer(v, c, dt, cup, plate){
+  const g = v.g, P = g.userData, tx = CAFE_X + CAFE_SEAT_X[v.seat];
+  v.walkT += dt;
+  if (v.walking){
+    const dx = tx - g.position.x;
+    g.position.x += Math.sign(dx) * Math.min(Math.abs(dx), 7 * dt);
+    g.rotation.y = dx > 0 ? Math.PI / 2 : -Math.PI / 2;
+    g.position.y = Math.abs(Math.sin(v.walkT * 11)) * .12;
+    P.legL.rotation.x = Math.sin(v.walkT * 11) * .6; P.legR.rotation.x = -P.legL.rotation.x;
+    if (Math.abs(dx) < .02){ v.walking = false; P.legL.rotation.x = P.legR.rotation.x = 0; }
+  } else {
+    g.rotation.y = lerp(g.rotation.y, 0, Math.min(1, dt * 10));
+    g.position.y = c.state === 'happy' ? Math.abs(Math.sin(v.walkT * 8)) * .18 : 0;
+    if (v.shakeT > 0){ v.shakeT -= dt; g.position.x = tx + Math.sin(v.walkT * 50) * .06; } else g.position.x = tx;
+  }
+  let mood = c.type.id === 'hangover' ? 'sick' : 'normal';
+  if (c.state === 'sad') mood = 'worried';
+  if (c.state === 'happy') mood = 'happy';
+  if (P.mood !== mood){ P.mood = mood; P.face.material.map = faceTex(c.type.id, mood); }
+  if (P.phoneLight) P.phoneLight.visible = Math.sin(v.walkT * 6) > 0;
+
+  const r = recipeById(c.menu);
+  const key = `${c.state}|${c.v}`;
+  if (v.key !== key){
+    v.key = key;
+    let html = `<div class="line">${esc(c.line || '')}</div>`;
+    if (c.state === 'waiting' && r){
+      html += `<div class="bubble" data-cseat="${v.seat}"><span class="keyhint">${keyLabel(SEAT_KEYS[v.seat])}</span><div class="o-soup">${r.type === 'food' ? '🥪' : swatch(recipeColor(r), true)} ${esc(r.name)}</div><div class="o-tops">${r.ings.map(id => `<span class="chip">${MARKET_ITEMS[id].icon}${MARKET_ITEMS[id].name}</span>`).join('')}</div></div>`;
+    }
+    v.el.innerHTML = html;
+    v.el.className = 'cust-ui st-' + c.state;
+  }
+  const held = r && r.type === 'food' ? plate : cup;
+  v.el.classList.toggle('targetable', c.state === 'waiting' && held.length > 0);
+  v.el.classList.toggle('match', !!(c.state === 'waiting' && r && sameIngs(held, r.ings)));
+  place(v.el, toScreen(g.position.x, 3.75 + g.position.y, SEAT_Z), true);
+}
+
+function syncCafe(dt){
+  const C = W.cafe, cafe = G && G.cafe;
+  const seats = cafe ? cafe.seats : [null, null, null];
+  const cup = cafe ? cafe.cup : [], plate = cafe ? cafe.plate : [];
+  const showUi = !!cafe && inPhase('cafe');
+
+  seats.forEach((c, i) => {
+    let v = C.seatViews[i];
+    if (v && (!c || v.id !== c.id)){
+      v.dir = CAFE_SEAT_X[i] <= 0 ? -1 : 1;
+      v.el.remove(); C.leaving.push(v); C.seatViews[i] = v = null;
+    }
+    if (c && !v){
+      const g = makeCustomer(c.type);
+      g.position.set(CAFE_X + (CAFE_SEAT_X[i] <= 0 ? -14 : 14), 0, SEAT_Z);
+      C.root.add(g);
+      const el = document.createElement('div'); el.className = 'cust-ui';
+      $('labels').appendChild(el);
+      v = C.seatViews[i] = {id: c.id, seat: i, g, el, walking: true, walkT: 0, key: null, shakeT: 0};
+    }
+    if (v){ updateCafeCustomer(v, c, dt, cup, plate); v.el.hidden = !showUi; }
+  });
+  for (let k = C.leaving.length - 1; k >= 0; k--){
+    const v = C.leaving[k];
+    v.walkT += dt;
+    v.g.rotation.y = v.dir * Math.PI / 2;
+    v.g.position.x += v.dir * 7 * dt;
+    v.g.position.y = Math.abs(Math.sin(v.walkT * 11)) * .12;
+    const P = v.g.userData;
+    P.legL.rotation.x = Math.sin(v.walkT * 11) * .6; P.legR.rotation.x = -P.legL.rotation.x;
+    if (Math.abs(v.g.position.x - CAFE_X) > 15){ C.root.remove(v.g); C.leaving.splice(k, 1); }
+  }
+
+  for (const id in C.ings){
+    const it = C.ings[id];
+    it.bounce = Math.max(0, it.bounce - dt * 4);
+    const hov = W.hover && W.hover.kind === 'cing' && W.hover.id === id;
+    it.g.position.y = TABLE_TOP + .04 + Math.sin(it.bounce * Math.PI) * .25;
+    it.g.scale.setScalar(lerp(it.g.scale.x, hov ? 1.15 : 1, Math.min(1, dt * 12)));
+  }
+
+  // 컵: 넣은 재료 수만큼 차오르고, 색은 재료 색의 평균
+  const ck = cup.join(',');
+  if (C.cupKey !== ck){
+    C.cupKey = ck;
+    if (cup.length) C.liquid.material.color.set(mixColor(cup));
+    C.targetLevel = cup.length * .2;
+  }
+  C.level = lerp(C.level, C.targetLevel, Math.min(1, dt * 8));
+  C.liquid.scale.y = Math.max(.001, C.level);
+  C.liquid.visible = C.level > .01;
+  C.ice.forEach((c, k) => { c.visible = C.level > .05; c.position.y = .06 + C.level - .06 + Math.sin(T * 2 + k) * .02; });
+
+  // 접시: 올린 순서대로 층층이
+  const pk = plate.join(',');
+  if (C.plateKey !== pk){
+    C.plateKey = pk;
+    C.stack.children.slice().forEach(ch => C.stack.remove(ch));
+    let y = 0;
+    plate.forEach(id => { const l = stackLayer(id); l.obj.position.y += y; C.stack.add(l.obj); y += l.h; });
+  }
+
+  C.cupLabel.hidden = C.plateLabel.hidden = !showUi;
+  if (showUi){
+    if (C.cupLabel.dataset.key !== ck + '|'){
+      C.cupLabel.dataset.key = ck + '|';
+      C.cupLabel.innerHTML = cup.length ? `${swatch(mixColor(cup))} 음료 컵<small>${cup.map(id => MARKET_ITEMS[id].icon).join(' + ')}</small>` : '🥤 빈 컵<small>음료 재료를 넣어요</small>';
+      C.cupLabel.className = 'plabel tray' + (cup.length ? '' : ' empty');
+    }
+    if (C.plateLabel.dataset.key !== pk + '|'){
+      C.plateLabel.dataset.key = pk + '|';
+      C.plateLabel.innerHTML = plate.length ? `🥪 샌드위치 접시<small>${plate.map(id => MARKET_ITEMS[id].icon).join(' ')}</small>` : '🍽️ 빈 접시<small>샌드위치 재료를 올려요</small>';
+      C.plateLabel.className = 'plabel tray' + (plate.length ? '' : ' empty');
+    }
+    place(C.cupLabel, toScreen(C.cup.position.x, C.cup.position.y, C.cup.position.z + .8));
+    place(C.plateLabel, toScreen(C.plate.position.x, C.plate.position.y, C.plate.position.z + .8));
+  }
+  C.lamps.forEach((l, k) => { l.rotation.z = Math.sin(T * .8 + k) * .03; });
 }
 
 // ---------------- 재료 준비 ----------------
@@ -1426,7 +2656,7 @@ function prepCan(id){
     chop: r.pork > 0, fridge: p.cut > 0,
     washKong: r.kong > 0, trim: p.washedKong > 0,
     washBones: r.bones > 0, boil: p.washedBones > 0 && !p.boil,
-    washSpine: r.spine > 0, spicy: p.washedSpine > 0 && !p.spicyBoil,
+    washSpine: r.spine > 0, spicy: p.washedSpine > 0 && r.sauce > 0 && !p.spicyBoil,
   }[id];
 }
 function flyPiece(obj, from, to, dur = .35){
@@ -1450,7 +2680,7 @@ function prepAction(id){
       washBones: '씻을 사골뼈가 없어요',
       boil: p.boil ? '맑은 육수가 끓고 있어요... 다른 재료를 손질하세요!' : r.bones > 0 ? '먼저 사골뼈를 씻어주세요! (5번)' : '끓일 사골뼈가 없어요',
       washSpine: '씻을 등뼈가 없어요',
-      spicy: p.spicyBoil ? '매운 육수가 끓고 있어요... 다른 재료를 손질하세요!' : r.spine > 0 ? '먼저 등뼈를 씻어주세요! (7번)' : '끓일 등뼈가 없어요',
+      spicy: p.spicyBoil ? '매운 육수가 끓고 있어요... 다른 재료를 손질하세요!' : p.washedSpine > 0 && r.sauce <= 0 ? '🌶️ 매운 양념이 없어요! (새벽시장 양념가게에서 사요)' : r.spine > 0 ? '먼저 등뼈를 씻어주세요! (7번)' : '끓일 등뼈가 없어요',
     }[id]);
     sfx.err();
     return;
@@ -1501,8 +2731,9 @@ function prepAction(id){
     }
     case 'boil': case 'spicy': {
       const washedKey = id === 'boil' ? 'washedBones' : 'washedSpine';
-      const sets = Math.min(p[washedKey], 1 + G.up.stockpot);
+      const sets = Math.min(p[washedKey], 1 + G.up.stockpot, id === 'spicy' ? r.sauce : Infinity);
       p[washedKey] -= sets;
+      if (id === 'spicy') r.sauce -= sets;
       p[id === 'boil' ? 'boil' : 'spicyBoil'] = {sets, t: 0, dur: G.up.stockpot ? 2.5 : 4};
       sfx.pour();
       const pp = (id === 'boil' ? P.clear : P.spicyPot).potG.position;
@@ -1797,7 +3028,7 @@ function update(dt){
       toast('🥲 재료가 다 떨어졌어요! 남은 손님만 받고 마감해요');
     }
   }
-  if (G.time <= 0 && G.seats.every(s => !s) && G.running) endDay();
+  if (G.time <= 0 && G.seats.every(s => !s) && G.running) finishLunch();
 }
 
 // =====================================================================
@@ -2075,7 +3306,7 @@ function syncPrep(dt){
     sink:   {title: '🚰 싱크대', key: '3·5·7', sub: r.kong + r.bones + r.spine > 0 ? '재료 씻기!' : '씻을 재료 없음', prog: wk ? p[wk + 'Wash'] / WASH_CLICKS[wk] : 0, idle: r.kong + r.bones + r.spine <= 0, at: [P.sink.position.x, P.sink.position.y, P.sink.position.z + .9]},
     trim:   {title: '✂️ 콩나물 다듬기', key: '4', sub: p.washedKong > 0 ? `다듬기! (${s.kong}인분)` : `다듬은 콩나물 ${s.kong}인분`, prog: p.kongPart / 5, idle: p.washedKong <= 0, at: [P.bowl.position.x, P.bowl.position.y, P.bowl.position.z + .65]},
     boil:   {title: '🍲 맑은 육수', key: '6', sub: p.boil ? '보글보글 끓는 중...' : p.washedBones > 0 ? `끓이기! (${s.broth}인분)` : `${s.broth}인분`, prog: p.boil ? p.boil.t / p.boil.dur : 0, idle: !p.boil && p.washedBones <= 0, at: potAt(P.clear)},
-    spicy:  {title: '🌶️ 매운 육수', key: '8', sub: p.spicyBoil ? '보글보글 끓는 중...' : p.washedSpine > 0 ? `양념 넣고 끓이기! (${s.spicy}인분)` : `${s.spicy}인분`, prog: p.spicyBoil ? p.spicyBoil.t / p.spicyBoil.dur : 0, idle: !p.spicyBoil && p.washedSpine <= 0, at: potAt(P.spicyPot)},
+    spicy:  {title: '🌶️ 매운 육수', key: '8', sub: p.spicyBoil ? '보글보글 끓는 중...' : p.washedSpine > 0 ? (r.sauce > 0 ? `양념 넣고 끓이기! (${s.spicy}인분)` : '매운 양념이 없어요!') : `${s.spicy}인분`, prog: p.spicyBoil ? p.spicyBoil.t / p.spicyBoil.dur : 0, idle: !p.spicyBoil && (p.washedSpine <= 0 || r.sauce <= 0), at: potAt(P.spicyPot)},
   };
   for (const id in info){
     const el = P.labels[id], d = info[id];
@@ -2096,12 +3327,16 @@ function syncPrep(dt){
 function renderHUD(){
   if (!G) return;
   $('hudDay').textContent = `DAY ${G.day}`;
-  if (G.phase === 'lunch' || G.phase === 'result'){
+  if (G.phase === 'cafe' || G.phase === 'cafeIntro'){
+    const ct = G.cafe ? G.cafe.time : CAFE_LEN, tm = Math.ceil(ct);
+    $('hudTime').textContent = ct > 0 ? `☕ ${Math.floor(tm / 60)}:${String(tm % 60).padStart(2, '0')}` : '🔔 카페 마감';
+    $('hudTime').classList.toggle('low', G.phase === 'cafe' && ct > 0 && ct <= 10);
+  } else if (G.phase === 'lunch' || G.phase === 'result'){
     const tm = Math.ceil(G.time);
     $('hudTime').textContent = G.time > 0 ? `☀️ ${Math.floor(tm / 60)}:${String(tm % 60).padStart(2, '0')}` : '🔔 마감';
     $('hudTime').classList.toggle('low', G.time > 0 && G.time <= 15);
   } else {
-    $('hudTime').textContent = G.phase === 'prep' ? '🌅 새벽 준비' : '🌅 새벽';
+    $('hudTime').textContent = G.phase === 'prep' ? '🌅 새벽 준비' : G.phase === 'market' ? '🌅 새벽시장' : '🌅 새벽';
     $('hudTime').classList.remove('low');
   }
   $('hudMoney').textContent = '💰 ' + fmt(G.money);
@@ -2112,6 +3347,16 @@ function renderHUD(){
   const comboTxt = G.combo >= 2 ? `🔥 콤보 x${G.combo}` : '';
   if ($('hudCombo').textContent !== comboTxt) $('hudCombo').textContent = comboTxt;
 
+  if (G.phase === 'cafe' && G.cafe){
+    document.querySelectorAll('[data-cing]').forEach(btn => {
+      const id = btn.dataset.cing, it = MARKET_ITEMS[id], n = G.pantry[id];
+      const txt = n > 0 ? `${n}${it.serve}` : '없음';
+      const sm = btn.querySelector('small');
+      if (sm.textContent !== txt) sm.textContent = txt;
+      btn.classList.toggle('soldout', n <= 0);
+      btn.classList.toggle('on', (it.cafe === 'drink' ? G.cafe.cup : G.cafe.plate).includes(id));
+    });
+  }
   if (G.phase === 'lunch'){
     const curTray = G.trays[G.sel];
     document.querySelectorAll('[data-top]').forEach(btn => btn.classList.toggle('on', !!(curTray && curTray.tops.includes(btn.dataset.top))));
@@ -2127,7 +3372,7 @@ function renderHUD(){
     $('pi-pork').textContent = `원육 ${r.pork}근 · 도마 ${p.cut} · 냉장 ${s.pork}인분`;
     $('pi-kong').textContent = `안 씻음 ${r.kong} · 씻음 ${p.washedKong}봉지 · 다듬음 ${s.kong}인분`;
     $('pi-broth').textContent = `뼈 ${r.bones} · 씻음 ${p.washedBones}세트 · 육수 ${s.broth}인분`;
-    $('pi-spicy').textContent = `등뼈 ${r.spine} · 씻음 ${p.washedSpine}세트 · ${s.spicy}인분`;
+    $('pi-spicy').textContent = `등뼈 ${r.spine} · 씻음 ${p.washedSpine} · 양념 ${r.sauce}통 · ${s.spicy}인분`;
     const bars = {
       chop: p.porkChop / chopsPer(), washKong: p.kongWash / WASH_CLICKS.kong, trim: p.kongPart / 5,
       washBones: p.bonesWash / WASH_CLICKS.bones, boil: p.boil ? p.boil.t / p.boil.dur : 0,
@@ -2155,7 +3400,8 @@ function endDay(){
   G.phase = 'result';
   const s = G.stats, rent = rentToday();
   G.money -= rent;
-  const net = s.sales + s.tips - s.purchase - rent;
+  const cafeIncome = s.cafeSales + s.cafeTips;
+  const net = s.sales + s.tips + cafeIncome - s.purchase - rent;
   G.totalProfit += net; G.totalServed += s.served; G.totalPerfect += s.perfect;
   const p = G.prep, r = G.raw, st = G.stock;
   const waste = {
@@ -2163,8 +3409,9 @@ function endDay(){
     '🌱 콩나물': st.kong + p.washedKong * 5 - p.kongPart + r.kong * 5,
     '🍲 맑은 육수': st.broth + (p.washedBones + r.bones) * 8,
     '🌶️ 매운 육수': st.spicy + (p.washedSpine + r.spine) * 5,
+    '🫙 매운 양념': r.sauce,
   };
-  const wasteTxt = Object.entries(waste).filter(([, n]) => n > 0).map(([k, n]) => `${k} ${n}인분`).join(' · ');
+  const wasteTxt = Object.entries(waste).filter(([, n]) => n > 0).map(([k, n]) => `${k} ${n}${k.includes('양념') ? '통' : '인분'}`).join(' · ');
   sfx.fanfare();
   let nextBtn;
   if (G.money < 0) nextBtn = `<button class="big-btn" onclick="showEnding('bankrupt')">결과 보기...</button>`;
@@ -2177,6 +3424,7 @@ function endDay(){
       <table class="sum">
         <tr><td>🍲 국밥 매출</td><td class="plus">+${fmt(s.sales)}</td></tr>
         <tr><td>💝 팁</td><td class="plus">+${fmt(s.tips)}</td></tr>
+        ${s.cafeServed || cafeIncome ? `<tr><td>☕ 카페 매출·팁 (${s.cafeServed}명)</td><td class="plus">+${fmt(cafeIncome)}</td></tr>` : ''}
         <tr><td>🛒 새벽 재료 구입비</td><td class="minus">-${fmt(s.purchase)}</td></tr>
         <tr><td>🏠 임대료</td><td class="minus">-${fmt(rent)}</td></tr>
         <tr class="total"><td>오늘 순이익</td><td class="${net >= 0 ? 'plus' : 'minus'}">${net >= 0 ? '+' : ''}${fmt(net)}</td></tr>
@@ -2263,17 +3511,19 @@ function showEnding(reason){
 }
 
 function togglePause(){
-  if (!inPhase('lunch') || (!G.running && !G.paused)) return;
+  if (!(inPhase('lunch') || inPhase('cafe')) || (!G.running && !G.paused)) return;
   G.paused = !G.paused;
   G.running = !G.paused;
   if (G.paused){
-    const waiting = G.seats.filter(c => c && c.state === 'waiting').length;
+    const cafe = inPhase('cafe');
+    const waiting = (cafe ? G.cafe.seats : G.seats).filter(c => c && c.state === 'waiting').length;
+    const timeLeft = cafe ? G.cafe.time : G.time;
     showOverlay(`
       <div class="card">
         <h2>⏸ 일시정지</h2>
-        <div class="keys-help" style="font-size:16px">Q W E 국밥 · A S D F 가마솥 · 1~4 토핑 · Z X C V 서빙 · Tab 조립대 전환 · Backspace 버리기</div>
+        <div class="keys-help" style="font-size:16px">${cafe ? '1~8 음료 재료 · Q W E R T 샌드위치 재료 · Z X C 서빙 · Backspace 컵 비우기 · Delete 접시 비우기' : 'Q W E 국밥 · A S D F 가마솥 · 1~4 토핑 · Z X C V 서빙 · Tab 조립대 전환 · Backspace 버리기'}</div>
         <button class="big-btn" onclick="togglePause()">계속하기 ▶</button><br>
-        ${G.time <= 0 && waiting ? `<button class="sub-btn" onclick="closeEarly()">🙇 남은 손님께 사과하고 마감 (평판 -0.2/명)</button><br>` : ''}
+        ${timeLeft <= 0 && waiting ? `<button class="sub-btn" onclick="${cafe ? 'closeCafe()' : 'closeEarly()'}">🙇 남은 손님께 사과하고 마감 (평판 -${cafe ? '0.1' : '0.2'}/명)</button><br>` : ''}
         <button class="sub-btn" onclick="showTitle()">처음으로</button>
       </div>`);
   } else hideOverlay();
@@ -2287,7 +3537,7 @@ function closeEarly(){
   G.running = true;
   hideOverlay();
   if (G.rep <= 0){ G.running = false; showEnding('rep'); return; }
-  endDay();
+  finishLunch();
 }
 
 // ================= 오버레이 / 이펙트 =================
@@ -2324,7 +3574,7 @@ const _ptr = new THREE.Vector2();
 function pickAt(cx, cy){
   _ptr.set(cx / window.innerWidth * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(_ptr, camera);
-  const list = W.mode === 'prep' ? W.prep.hits : [...W.seatHits, ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
+  const list = W.mode === 'prep' ? W.prep.hits : W.mode === 'market' ? W.market.hits : W.mode === 'cafe' ? W.cafe.hits : [...W.seatHits, ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
   const hits = raycaster.intersectObjects(list, false);
   return hits.length ? hits[0].object.userData : null;
 }
@@ -2339,6 +3589,8 @@ function handleHit(u){
 document.addEventListener('pointerdown', e => {
   if (e.button !== 0) return;
   const t = e.target;
+  if (canMarket()){ marketPointer(e); return; }
+  if (canCafe()){ cafePointer(e); return; }
   if (canPrep()){
     let el;
     if (t === renderer.domElement){ const u = pickAt(e.clientX, e.clientY); if (u && u.kind === 'prep') handleHit(u); }
@@ -2355,7 +3607,7 @@ document.addEventListener('pointerdown', e => {
   else if (t.closest('#trashBtn')) trashTray();
 });
 document.addEventListener('pointermove', e => {
-  if (!(canAct() || canPrep()) || e.target !== renderer.domElement){ W.hover = null; renderer.domElement.style.cursor = ''; return; }
+  if (!(canAct() || canPrep() || canMarket() || canCafe()) || e.target !== renderer.domElement){ W.hover = null; renderer.domElement.style.cursor = ''; return; }
   W.hover = pickAt(e.clientX, e.clientY);
   renderer.domElement.style.cursor = W.hover ? 'pointer' : '';
 });
@@ -2366,6 +3618,7 @@ $('muteBtn').addEventListener('click', () => { muted = !muted; $('muteBtn').text
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   const c = e.code;
+  if (canMarket()){ marketKey(e); return; }
   if (canPrep()){
     const m = /^(?:Digit|Numpad)([1-8])$/.exec(c);
     if (m) prepAction(PREP_ACTIONS[+m[1] - 1]);
@@ -2373,6 +3626,7 @@ window.addEventListener('keydown', e => {
     return;
   }
   if (c === 'Escape' || c === 'KeyP'){ togglePause(); return; }
+  if (canCafe()){ cafeKey(e); return; }
   if (!canAct()) return;
   let n;
   if ((n = SOUP_KEYS.indexOf(c)) >= 0) orderSoup(SOUPS[n].id);
@@ -2383,16 +3637,17 @@ window.addEventListener('keydown', e => {
   else if (c === 'Backspace' || c === 'Delete'){ e.preventDefault(); trashTray(); }
 });
 
-document.addEventListener('visibilitychange', () => { if (document.hidden && canAct()) togglePause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && (canAct() || canCafe())) togglePause(); });
 
 // ================= 메인 루프 =================
 let last = 0;
-const _camTarget = new THREE.Vector3();
+const _camTarget = new THREE.Vector3(), _lookTarget = new THREE.Vector3(), _origin = new THREE.Vector3();
 function loop(ts){
   const dt = Math.min(0.1, (ts - last) / 1000 || 0);
   last = ts;
   T += dt;
   if (canAct()) update(dt);
+  if (canCafe()) updateCafe(dt);
   if (inPhase('prep')) updatePrep(dt);
 
   const overlayOpen = !$('overlay').hidden;
@@ -2411,8 +3666,12 @@ function loop(ts){
     syncBurners(burners, fdt, real ? cookTime() : 7, real);
     syncTrays(trays, sel, fdt, real);
     syncBins(real ? curTray : null, fdt);
-  } else {
+  } else if (W.mode === 'prep'){
     syncPrep(dt);
+  } else if (W.mode === 'cafe'){
+    syncCafe(fdt);
+  } else {
+    syncMarket(dt);
   }
   syncFridge(dt);
   if (!frozen) updateFx(dt);
@@ -2431,12 +3690,26 @@ function loop(ts){
   W.sun.color.lerp(Lt.sun, lk);
   W.sun.intensity = lerp(W.sun.intensity, Lt.sunI, lk);
 
-  // 카메라
-  const cam = CAMS[W.mode];
-  _camTarget.copy(cam.pos);
+  // 해 그림자는 지금 보는 곳을 따라가요
+  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : _origin;
+  W.sun.position.set(sunAt.x - 5, 14, sunAt.z + 8);
+  W.sun.target.position.set(sunAt.x, 0, sunAt.z);
+  W.sun.target.updateMatrixWorld();
+
+  // 카메라 (시장에서는 주인공을 뒤에서 따라감)
+  if (W.mode === 'market'){
+    const pp = W.market.player.position, ck = W.camK || 1;
+    _camTarget.set(pp.x, 1.2 + 7.3 * ck, pp.z - 2 + 12.5 * ck);
+    _lookTarget.set(pp.x, 1.2, pp.z - 2);
+  } else {
+    _camTarget.copy(CAMS[W.mode].pos);
+    _lookTarget.copy(CAMS[W.mode].look);
+  }
   if (overlayOpen){ _camTarget.x += Math.sin(T * .25) * 2.2; _camTarget.y += Math.sin(T * .17) * .4; }
-  camera.position.lerp(_camTarget, Math.min(1, dt * 2.5));
-  curLook.lerp(cam.look, Math.min(1, dt * 2.5));
+  if (W.snapCam){ camera.position.copy(_camTarget); curLook.copy(_lookTarget); W.snapCam = false; }
+  const follow = W.mode === 'market' ? 6 : 2.5;
+  camera.position.lerp(_camTarget, Math.min(1, dt * follow));
+  curLook.lerp(_lookTarget, Math.min(1, dt * follow));
   if (W.shake > 0){ W.shake = Math.max(0, W.shake - dt); camera.position.x += (Math.random() - .5) * W.shake * .6; camera.position.y += (Math.random() - .5) * W.shake * .6; }
   camera.lookAt(curLook);
 
@@ -2448,7 +3721,7 @@ init3D();
 showTitle();
 camera.position.copy(CAMS.lunch.pos);
 requestAnimationFrame(loop);
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { redrawTex(W.menuTex); redrawTex(W.signTex); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { redrawTex(W.menuTex); redrawTex(W.signTex); W.market.texts.forEach(redrawTex); redrawTex(W.cafe.boardTex); redrawTex(W.cafe.signTex); });
 </script>
 </body>
 </html>
