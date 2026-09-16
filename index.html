@@ -175,6 +175,54 @@ button{font-family:inherit;cursor:pointer}
 .jz-mini{height:8px;background:rgba(255,255,255,.2);border-radius:5px;overflow:hidden;margin-top:4px}
 .jz-mini i{display:block;height:100%;width:100%}
 .cust-ui.st-jinsang .line{background:#2a1a10;color:#ffd27a;font-size:17px;animation:pop .3s}
+
+/* ---------- 직원 · 층 이동 · VIP존 ---------- */
+#floorBar{position:fixed;left:10px;top:118px;z-index:15;display:flex;flex-direction:column;gap:6px;width:170px}
+.fb-title{color:var(--gold);font-size:15px;text-shadow:0 2px 0 #000;padding-left:4px}
+.fb-title small{color:#cbb89c;font-size:11px}
+.fb-btn{display:grid;grid-template-columns:36px minmax(0,1fr);align-items:center;column-gap:6px;text-align:left;background:rgba(20,12,8,.85);color:var(--cream);border:2px solid #5a4030;border-radius:12px;padding:6px 8px;line-height:1.2}
+.fb-btn b{grid-row:1 / span 2;font-weight:normal;font-size:20px;color:var(--gold);text-align:center}
+.fb-name{font-size:15px}
+.fb-btn small{font-size:12px;color:#cbb89c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.fb-btn:hover{border-color:var(--gold)}
+.fb-btn.on{background:var(--paper);color:var(--ink);border-color:var(--gold)}
+.fb-btn.on small{color:#6b4a2a}
+.fb-btn.on b{color:var(--red)}
+.fb-btn.need{border-color:#5a9bf2}
+.fb-btn.need small{color:#9fc4ff}
+.fb-btn.alert{border-color:#ff5a4a;animation:jzPulse 1s infinite}
+.fb-btn.alert small{color:#ff8a7a}
+.fb-btn.locked{opacity:.45}
+.fb-btn.done small{color:#9fe39f}
+#staffBanner{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:10;background:rgba(18,40,24,.9);color:#e8ffe8;border:2px solid #4caf50;border-radius:14px;padding:10px 18px;font-size:18px;text-align:center;max-width:calc(100% - 200px)}
+#staffBanner small{display:block;font-size:13px;color:#b8e0b8;margin-top:2px}
+.bubble.vipb{background:#1d1a24;color:#fff3dc;border-color:var(--gold);min-width:190px}
+.bubble.vipb:after{border-top-color:var(--gold)}
+.vip-badge{position:absolute;right:-10px;top:-12px;background:linear-gradient(#f7d46a,#c99320);color:#2a1a10;font-size:13px;padding:0 7px;border-radius:6px;transform:rotate(8deg)}
+.vip-item{display:flex;align-items:center;justify-content:center;gap:4px;font-size:15px;padding:2px 0;flex-wrap:wrap}
+.vip-item.done{opacity:.5;text-decoration:line-through}
+.vip-item .o-tops{margin-top:0}
+.vip-price{font-size:13px;color:var(--gold);margin-top:2px}
+.bubble.vipb .pbar{height:8px;background:rgba(255,255,255,.2);border-radius:5px;overflow:hidden;margin-top:5px}
+.bubble.vipb .pbar i{display:block;height:100%;width:100%}
+.cust-ui.hurry .bubble{animation:shake .4s infinite}
+.cust-ui.st-angry .line{background:#ffdad5;color:#a31a0e;font-size:17px;animation:pop .3s}
+.floor-list{display:flex;flex-direction:column;gap:6px;margin:10px 0;text-align:left}
+.floor-row{display:flex;justify-content:space-between;gap:12px;background:#f3e6cf;border-radius:12px;padding:8px 14px;font-size:17px;flex-wrap:wrap}
+.floor-row b{font-weight:normal;color:var(--wood3)}
+.shop-sub{margin:16px 0 4px;font-weight:normal;color:var(--wood3);font-size:22px}
+.shop-note{font-size:14px;color:#8a6e55;margin-bottom:8px}
+.up-card.hired{box-shadow:0 0 0 3px var(--green)}
+.buy.fire{background:#8a6e55;box-shadow:0 4px 0 #5a4030}
+.up-card.vipcard{background:#2a1a24;color:#fff3dc}
+.up-card.vipcard .up-name{color:var(--gold)}
+.up-card.vipcard .up-desc{color:#e0cfc0}
+.up-card.vipcard.open{box-shadow:0 0 0 3px var(--gold)}
+@media (max-width:1000px){
+  #floorBar{width:130px;top:150px}
+  .fb-name{font-size:13px}
+  #staffBanner{max-width:calc(100% - 20px);font-size:15px}
+}
 .menu-list{display:flex;flex-direction:column;gap:6px;margin:12px 0;text-align:left}
 .menu-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto 84px 72px;align-items:center;gap:10px;background:#f3e6cf;border-radius:12px;padding:6px 12px}
 .menu-row b{font-weight:normal;font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -380,6 +428,13 @@ button{font-family:inherit;cursor:pointer}
   <div id="stallPanel" hidden></div>
   <div id="marketHint">🚶 방향키·WASD로 걷거나 바닥 클릭<br>🛒 상품을 클릭하면 사요 (가판대 앞에선 1~3 키)</div>
 </div>
+<div id="floorBar" hidden>
+  <div class="fb-title">🛗 층 이동 <small>Shift+1·2·3</small></div>
+  <button class="fb-btn" data-floor="3"><b>3F</b><span class="fb-name">👑 VIP존</span><small id="fb3"></small></button>
+  <button class="fb-btn" data-floor="2"><b>2F</b><span class="fb-name">☕ 카페</span><small id="fb2"></small></button>
+  <button class="fb-btn" data-floor="1"><b>1F</b><span class="fb-name">🍲 국밥집</span><small id="fb1"></small></button>
+</div>
+<div id="staffBanner" hidden></div>
 <div id="jinsangPanel" hidden>
   <div id="jzTitle">🚨 진상 손님 등장!</div>
   <div class="jz-bar"><i id="jzBar"></i></div>
@@ -459,6 +514,7 @@ const MOVE_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'K
 const DRINK_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'drink');
 const FOOD_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'food');
 const CAFE_LEN = 60, CAFE_SEATS = 3, CAFE_X = -120;
+const VIP_X = 240;
 const DEFAULT_RECIPES = [
   {id:'greentea', name:'녹차',     type:'drink', ings:['tea'],                                     price:4000},
   {id:'coffee',   name:'커피',     type:'drink', ings:['coffee'],                                  price:4500},
@@ -551,6 +607,7 @@ const sfx = {
   bonk:  () => { tone(160, 0.18, 'square', 0.12, 50); tone(1400, 0.05, 'triangle', 0.05); },
   bang:  () => { tone(90, 0.35, 'sawtooth', 0.16, 30); tone(2400, 0.06, 'square', 0.08, 300); },
   siren: () => { tone(650, 0.35, 'sine', 0.06, 950); tone(950, 0.35, 'sine', 0.06, 650, 0.35); tone(650, 0.35, 'sine', 0.06, 950, 0.7); },
+  elevator: () => { tone(1320, 0.15, 'sine', 0.06); tone(990, 0.35, 'sine', 0.06, null, 0.15); },
   rooster: () => { tone(600, 0.15, 'sawtooth', 0.03, 900); tone(900, 0.35, 'sawtooth', 0.03, 700, 0.15); },
   fanfare: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.25, 'square', 0.04, null, i * 0.13)),
 };
@@ -563,6 +620,7 @@ const CAMS = {
   lunch: {look: new THREE.Vector3(0, 1.8, 0.4),  base: new THREE.Vector3(0, 12.3, 14.05), pos: new THREE.Vector3()},
   prep:  {look: new THREE.Vector3(1.0, 0.6, 1.6), base: new THREE.Vector3(1.0, 10.5, 12.8),  pos: new THREE.Vector3()},
   cafe:  {look: new THREE.Vector3(CAFE_X, 1.8, 0.4), base: new THREE.Vector3(CAFE_X, 12.3, 14.05), pos: new THREE.Vector3()},
+  vip:   {look: new THREE.Vector3(VIP_X, 1.8, 0.4),  base: new THREE.Vector3(VIP_X, 12.3, 14.05),  pos: new THREE.Vector3()},
 };
 const curLook = CAMS.lunch.look.clone();
 const SEAT_X = [-6, -2, 2, 6], SEAT_Z = -2.15, COUNTER_TOP = 1.32;
@@ -577,6 +635,7 @@ const LIGHTS = {
   prep:  {bg: new THREE.Color(0x101830), hemi: new THREE.Color(0x9db2ff), hemiI: .5,  sun: new THREE.Color(0x8ea6ff), sunI: .35},
   market:{bg: new THREE.Color(0x1b2344), hemi: new THREE.Color(0xb4c2ff), hemiI: .6,  sun: new THREE.Color(0xa8b6ff), sunI: .45},
   cafe:  {bg: new THREE.Color(0x3a2a1e), hemi: new THREE.Color(0xfff2dc), hemiI: .85, sun: new THREE.Color(0xffe6c0), sunI: .8},
+  vip:   {bg: new THREE.Color(0x1a0c14), hemi: new THREE.Color(0xffe8d0), hemiI: .7,  sun: new THREE.Color(0xffe0b0), sunI: .7},
 };
 
 const matCache = {};
@@ -669,22 +728,29 @@ function init3D(){
     x.fillStyle = g; x.fillRect(0, 0, 64, 64);
   });
 
+  // 사장님 주방(가마솥·조립대·토핑 통). 3층 VIP존이 열리면 통째로 VIP존으로 옮겨가요
+  W.kitchen = new THREE.Group();
+  scene.add(W.kitchen);
   buildRoom();
   buildPrepStation();
   buildMarket();
   buildCafe();
+  buildVip();
+  buildStaffModels();
   onResize();
   window.addEventListener('resize', onResize);
 }
 
 function onResize(){
   const w = window.innerWidth, h = window.innerHeight;
+  if (!w || !h) return;   // 창이 가려져 크기가 0이면 비율 계산을 건너뛰어요
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   const k = clamp(1.75 / camera.aspect, 1, 2.3);
   W.camK = k;
   for (const c of Object.values(CAMS)) c.pos.copy(c.look).add(c.base.clone().sub(c.look).multiplyScalar(k));
   camera.updateProjectionMatrix();
+  W.sized = true;
 }
 
 // ---------------- 가게 ----------------
@@ -816,7 +882,7 @@ function buildRoom(){
     g.add(lid);
     const hit = hitBox(.9, .8, .8, 0, .3, 0, {kind: 'top', id: t.id});
     g.add(hit);
-    scene.add(g);
+    W.kitchen.add(g);
     W.bins.push({g, lid, fill, id: t.id});
     W.binHits.push(hit);
   });
@@ -1143,6 +1209,8 @@ const LOOKS = {
   owner:    {skin: 0xffd9b3, shirt: 0xeeeeee, pants: 0x3a3a44},
   jinsang:  {skin: 0xf0b88a, shirt: 0x26262e, pants: 0x26262e},
   police:   {skin: 0xffd9b3, shirt: 0x2c3e6b, pants: 0x1f2a44},
+  staff:    {skin: 0xffd9b3, shirt: 0x3f8f47, pants: 0x2a2a33},
+  barista:  {skin: 0xf5cfa8, shirt: 0x2f4a3a, pants: 0x2a2a33},
 };
 const faceCache = {};
 function faceTex(kind, mood){
@@ -1265,6 +1333,20 @@ function makeCustomer(type){
       g.add(mesh(new THREE.BoxGeometry(.14, .14, .05), std(0xf2b632, {metalness: .6}), -.25, 2.0, .58));
       break;
     }
+    case 'staff':
+      head.add(hair(0x3a2616));
+      head.add(mesh(new THREE.CylinderGeometry(.5, .56, .3, 20), std(0xffffff), 0, .52, -.02));
+      g.add(mesh(new THREE.BoxGeometry(.95, 1.15, .06), std(0xf2f2f2, {roughness: .8}), 0, 1.55, .6));
+      g.add(mesh(new THREE.BoxGeometry(.3, .06, .06), std(0xf2f2f2), 0, 1.9, -.6));
+      break;
+    case 'barista': {
+      head.add(hair(0x5a3b24));
+      const beret = mesh(new THREE.SphereGeometry(.5, 16, 10), std(0x6b4226, {roughness: .9}), .05, .55, -.05);
+      beret.scale.set(1.1, .35, 1.1); head.add(beret);
+      g.add(mesh(new THREE.BoxGeometry(.95, 1.15, .06), std(0x6b4226, {roughness: .8}), 0, 1.55, .6));
+      g.add(mesh(new THREE.BoxGeometry(.3, .06, .06), std(0x6b4226), 0, 1.9, -.6));
+      break;
+    }
     case 'owner':
       head.add(hair(0x2b2118));
       head.add(mesh(new THREE.TorusGeometry(.63, .08, 8, 28), std(0xffffff), 0, .24, 0).rotateX(Math.PI / 2 - .12));
@@ -1288,7 +1370,7 @@ function makeCustomer(type){
 
 // ---------------- 화구 & 조립대 뷰 ----------------
 function clearViews(list){
-  list.forEach(v => { scene.remove(v.g); v.label && v.label.remove(); });
+  list.forEach(v => { if (v.g.parent) v.g.parent.remove(v.g); v.label && v.label.remove(); });
   list.length = 0;
 }
 
@@ -1318,8 +1400,8 @@ function buildBurners(n){
     g.add(pot);
     const hit = hitBox(2.2, 2.2, 2.2, 0, .8, 0, {kind: 'burner', i});
     g.add(hit);
-    g.visible = W.mode === 'lunch';
-    scene.add(g);
+    g.visible = W.mode === 'lunch' || W.mode === 'vip';
+    W.kitchen.add(g);
     const label = document.createElement('div');
     label.className = 'plabel'; label.hidden = true;
     $('labels').appendChild(label);
@@ -1339,8 +1421,8 @@ function buildTrays(n){
     g.add(holder);
     const hit = hitBox(2.1, 1.6, 1.4, 0, .6, 0, {kind: 'tray', i});
     g.add(hit);
-    g.visible = W.mode === 'lunch';
-    scene.add(g);
+    g.visible = W.mode === 'lunch' || W.mode === 'vip';
+    W.kitchen.add(g);
     const label = document.createElement('div');
     label.className = 'plabel tray'; label.hidden = true;
     $('labels').appendChild(label);
@@ -1350,21 +1432,23 @@ function buildTrays(n){
 
 function setWorldMode(mode){
   W.mode = mode;
-  const lunch = mode === 'lunch';
+  const cook = mode === 'lunch' || mode === 'vip';
+  const open = !!G && G.phase === 'open';
   W.prep.g.visible = mode === 'prep';
-  W.burnerViews.forEach(v => { v.g.visible = lunch; v.label.hidden = true; });
-  W.trayViews.forEach(v => { v.g.visible = lunch; v.label.hidden = true; });
-  W.bins.forEach(b => { b.g.visible = lunch; });
+  W.burnerViews.forEach(v => { v.g.visible = cook; v.label.hidden = true; });
+  W.trayViews.forEach(v => { v.g.visible = cook; v.label.hidden = true; });
+  W.bins.forEach(b => { b.g.visible = cook; });
   Object.values(W.prep.labels).forEach(l => { l.hidden = true; });
   W.market.stalls.forEach(s => s.products.forEach(p => { p.label.hidden = true; }));
   W.market.gateLabel.hidden = true;
   $('stallPanel').hidden = true;
-  $('lunchControls').hidden = !lunch;
+  // 직원이 맡은 층에서는 조작 버튼을 숨겨요
+  $('lunchControls').hidden = !(mode === 'vip' || (mode === 'lunch' && !(open && G.staff.gukbap)));
   $('prepControls').hidden = mode !== 'prep';
   $('marketUI').hidden = mode !== 'market';
-  $('cafeControls').hidden = mode !== 'cafe';
+  $('cafeControls').hidden = !(mode === 'cafe' && !(open && G.staff.cafe));
   W.cafe.cupLabel.hidden = W.cafe.plateLabel.hidden = true;
-  W.cafe.seatViews.forEach(v => { if (v) v.el.hidden = true; });
+  [...W.seatViews, ...W.cafe.seatViews, ...W.vip.seatViews].forEach(v => { if (v && v.el) v.el.hidden = true; });
   W.hover = null;
 }
 
@@ -1451,7 +1535,8 @@ function cookTime(){ return [7, 5.2, 3.8][G.up.fire]; }
 function unlockedTops(){ return TOPPINGS.filter(t => t.unlock <= G.day); }
 function rentToday(){ return 10000 + (G.day - 1) * 1500; }
 function inPhase(p){ return G && G.phase === p; }
-function canAct(){ return inPhase('lunch') && G.running && !G.paused; }
+// 1층 국밥집을 사장님이 직접 조작할 수 있을 때
+function canAct(){ return !!G && G.running && !G.paused && (G.phase === 'lunch' || (G.phase === 'open' && G.floor === 1 && G.lunchOn && !G.staff.gukbap)); }
 function canPrep(){ return inPhase('prep') && $('overlay').hidden; }
 
 function showTitle(){
@@ -1492,6 +1577,7 @@ function startGame(){
     recipes: DEFAULT_RECIPES.map(r => ({...r, ings: [...r.ings]})),
     cafeName: '',
     tools: {bat: 0, gun: 0, phone: 0},
+    staff: {gukbap: false, cafe: false},
   };
   $('hudName').textContent = '🍲 ' + name;
   sfx.click();
@@ -1512,9 +1598,9 @@ function showDayIntro(){
       <div class="day-big">DAY ${G.day}</div>
       <div class="day-note">${dayNote(G.day)}</div>
       ${goalBar()}
-      <div class="day-flow"><span>🌅 새벽 시장</span>→<span>🔪 재료 준비</span>→<span>☀️ 점심 영업</span>→<span>☕ 오후 카페</span></div>
+      <div class="day-flow"><span>🌅 새벽 시장</span>→<span>🔪 재료 준비</span>→${hasStaff() ? '<span>🏢 1·2·3층 동시 영업 (직원 근무)</span>' : '<span>☀️ 점심 영업</span>→<span>☕ 오후 카페</span>'}</div>
       <div>${unlocks}</div>
-      <div style="font-size:16px;color:#8a6e55;margin-top:8px">오늘의 임대료: ${fmt(rentToday())} · 점심 영업 ${DAY_LEN}초</div>
+      <div style="font-size:16px;color:#8a6e55;margin-top:8px">오늘의 임대료: ${fmt(rentToday())}${wagesToday() ? ` · 직원 일당 ${fmt(wagesToday())}` : ''}</div>
       <button class="big-btn" onclick="enterMarket()">🌅 새벽시장 가기</button>
     </div>`, true);
 }
@@ -1547,13 +1633,16 @@ function buildDay(){
       spineWash: 0, washedSpine: 0, spicyBoil: null,
       warned: false,
     },
-    stats: {sales: 0, tips: 0, purchase: 0, served: 0, perfect: 0, soldout: 0, cafeSales: 0, cafeTips: 0, cafeServed: 0, cafeSoldout: 0, jinsangHandled: 0, jinsangRobbed: 0, jinsangLostMoney: 0},
+    stats: {sales: 0, tips: 0, purchase: 0, served: 0, perfect: 0, soldout: 0, cafeSales: 0, cafeTips: 0, cafeServed: 0, cafeSoldout: 0, jinsangHandled: 0, jinsangRobbed: 0, jinsangLostMoney: 0, vipSales: 0, vipTips: 0, vipServed: 0, vipAngry: 0, staffServed: 0},
     jinsangToday: 0,
     cafe: null,
+    vip: null, lunchOn: false, lunchLen: DAY_LEN, floor: 1,
     running: false, paused: false,
   });
   clearCustomers();
   clearCafeCustomers();
+  clearVipGuests();
+  W.kitchen.position.x = 0;
   buildBurners(G.burners.length);
   buildTrays(G.trays.length);
   buildButtons(G.day);
@@ -2315,7 +2404,8 @@ function clearCafeCustomers(){
 }
 
 // ---------------- 카페 흐름 ----------------
-function canCafe(){ return inPhase('cafe') && G.running && !G.paused; }
+// 2층 카페를 사장님이 직접 조작할 수 있을 때
+function canCafe(){ return !!G && G.running && !G.paused && !!G.cafe && !G.cafe.done && (G.phase === 'cafe' || (G.phase === 'open' && G.floor === 2 && !G.staff.cafe)); }
 
 function finishLunch(){
   G.running = false;
@@ -2357,7 +2447,7 @@ function buildCafeButtons(){
 function startCafe(){
   if (!G.recipes.some(recipeMakeable)){ sfx.err(); return; }
   applyCafeName();
-  G.cafe = {time: CAFE_LEN, spawnT: 1, seats: Array(CAFE_SEATS).fill(null), cup: [], plate: [], jinsangCount: 0, jinsangPlanned: Math.random() < .6};
+  G.cafe = {time: CAFE_LEN, spawnT: 1, seats: Array(CAFE_SEATS).fill(null), cup: [], plate: [], len: CAFE_LEN, jinsangCount: 0, jinsangPlanned: Math.random() < .6};
   G.phase = 'cafe';
   G.running = true; G.paused = false;
   hideOverlay();
@@ -2395,7 +2485,7 @@ function cafeSpawn(){
   const C = G.cafe;
   const free = C.seats.map((s, i) => s ? -1 : i).filter(i => i >= 0);
   if (!free.length) return false;
-  if (maybeSpawnJinsang(free)) return true;
+  if (maybeSpawnJinsang(free, 'cafe')) return true;
   const res = cafeReserved();
   const menus = G.recipes.filter(r => r.ings.every(id => G.pantry[id] - (res[id] || 0) >= 1));
   if (!menus.length) return false;
@@ -2433,7 +2523,7 @@ function updateCafe(dt){
     if (C.spawnT <= 0) C.spawnT = cafeSpawn() ? rand(3.5, 6.5) : 1;
   }
   C.seats.forEach((c, i) => {
-    if (c && c.jinsang){ updateJinsang(c, i, dt); return; }
+    if (c && c.jinsang){ updateJinsang(c, i, dt, 'cafe'); return; }
     if (c && c.state !== 'waiting'){ c.t -= dt; if (c.t <= 0) C.seats[i] = null; }
   });
   cafeCheckSoldOut();
@@ -2441,7 +2531,10 @@ function updateCafe(dt){
     C.time = 0;
     toast('🥲 카페 재료가 다 떨어졌어요! 오늘 카페는 마감');
   }
-  if (C.time <= 0 && C.seats.every(s => !s) && G.running) endDay();
+  if (C.time <= 0 && C.seats.every(s => !s) && G.running){
+    if (G.phase === 'open'){ C.done = true; toast('☕ 2층 카페 영업 끝!'); }
+    else endDay();
+  }
 }
 
 function cafeAdd(id){
@@ -2599,7 +2692,7 @@ function renderLab(){
       <div class="mk-warn" id="labWarn"></div>
       <h3>현재 메뉴 (${G.recipes.length}/8)</h3>
       <div class="menu-list">${G.recipes.map(r => menuRow(r, r.custom ? `<button class="sub-btn small" onclick="labDelete('${r.id}')">삭제</button>` : '<small>기본</small>')).join('')}</div>
-      <button class="sub-btn" onclick="showCafeIntro()">← 카페로 돌아가기</button>
+      <button class="sub-btn" onclick="labBack()">← 돌아가기</button>
     </div>`);
   LAB.shown = true;
 }
@@ -2648,7 +2741,8 @@ function syncCafe(dt){
   const C = W.cafe, cafe = G && G.cafe;
   const seats = cafe ? cafe.seats : [null, null, null];
   const cup = cafe ? cafe.cup : [], plate = cafe ? cafe.plate : [];
-  const showUi = !!cafe && inPhase('cafe');
+  const showUi = !!cafe && (inPhase('cafe') || (inPhase('open') && G.floor === 2));
+  const cookUi = showUi && !(inPhase('open') && G.staff.cafe);
 
   seats.forEach((c, i) => {
     let v = C.seatViews[i];
@@ -2707,8 +2801,8 @@ function syncCafe(dt){
     plate.forEach(id => { const l = stackLayer(id); l.obj.position.y += y; C.stack.add(l.obj); y += l.h; });
   }
 
-  C.cupLabel.hidden = C.plateLabel.hidden = !showUi;
-  if (showUi){
+  C.cupLabel.hidden = C.plateLabel.hidden = !cookUi;
+  if (cookUi){
     if (C.cupLabel.dataset.key !== ck + '|'){
       C.cupLabel.dataset.key = ck + '|';
       C.cupLabel.innerHTML = cup.length ? `${swatch(mixColor(cup))} 음료 컵<small>${cup.map(id => MARKET_ITEMS[id].icon).join(' + ')}</small>` : '🥤 빈 컵<small>음료 재료를 넣어요</small>';
@@ -2861,7 +2955,9 @@ function startLunch(){
     const b = G.prep[key];
     if (b){ G.stock[stockKey] += Math.floor(b.sets * yieldN * b.t / b.dur); G.prep[key] = null; }
   }
+  if (hasStaff()){ setWorldMode('lunch'); W.snapCam = true; showOpenIntro(); return; }
   G.phase = 'lunch';
+  G.lunchLen = DAY_LEN; G.lunchOn = true;
   setWorldMode('lunch');
   G.running = true;
   sfx.bell();
@@ -2916,7 +3012,7 @@ function checkSoldOut(){
 function spawnCustomer(){
   const free = G.seats.map((s, i) => s ? -1 : i).filter(i => i >= 0);
   if (!free.length) return false;
-  if (maybeSpawnJinsang(free)) return true;
+  if (maybeSpawnJinsang(free, 'lunch')) return true;
   const soups = SOUPS.filter(s => canAccept(s.id));
   if (!soups.length) return false;
   const i = pick(free);
@@ -2947,7 +3043,7 @@ function addRep(d){
   }
 }
 
-// ---------------- 진상 손님 (DAY 3부터, 점심 식당 · 오후 카페) ----------------
+// ---------------- 진상 손님 (DAY 3부터, 1층 국밥집 · 2층 카페) ----------------
 const JINSANG = {
   id: 'jinsang', tip: 0,
   lines: ['야! 사장 나와!', '국밥 왜 이렇게 늦어? 돈 내놔!', '장사 똑바로 해라~ 삥 좀 뜯자'],
@@ -2955,18 +3051,29 @@ const JINSANG = {
 };
 const JINSANG_DAY = 3, JINSANG_WAIT = 10, JINSANG_ROB = 5, JINSANG_DOWN = 5, POLICE_ETA = 3.5;
 
-// 지금 영업 중인 곳(점심 식당 / 오후 카페)의 자리 정보
-function jzVenue(){
-  if (G.phase === 'cafe' && G.cafe) return {cafe: true, seats: G.cafe.seats, views: W.cafe.seatViews, xOf: i => CAFE_X + CAFE_SEAT_X[i], len: CAFE_LEN, time: G.cafe.time};
-  return {cafe: false, seats: G.seats, views: W.seatViews, xOf: i => SEAT_X[i], len: DAY_LEN, time: G.time};
+// kind: 'lunch'(1층 국밥집) / 'cafe'(2층 카페)
+function jzVenue(kind){
+  if (kind === 'cafe') return {cafe: true, floor: 2, seats: G.cafe.seats, views: W.cafe.seatViews, xOf: i => CAFE_X + CAFE_SEAT_X[i], len: G.cafe.len || CAFE_LEN, time: G.cafe.time};
+  return {cafe: false, floor: 1, seats: G.seats, views: W.seatViews, xOf: i => SEAT_X[i], len: G.lunchLen || DAY_LEN, time: G.time};
 }
-function jinsangActive(){
-  return jzVenue().seats.findIndex(c => c && c.jinsang && (c.phase === 'threat' || c.phase === 'robbing'));
+// 사장님이 지금 서 있는 곳
+function hereKind(){
+  if (!G) return null;
+  if (G.phase === 'lunch') return 'lunch';
+  if (G.phase === 'cafe') return G.cafe ? 'cafe' : null;
+  if (G.phase === 'open'){
+    if (G.floor === 1 && G.lunchOn) return 'lunch';
+    if (G.floor === 2 && G.cafe && !G.cafe.done) return 'cafe';
+  }
+  return null;
+}
+function jinsangActive(kind){
+  return jzVenue(kind).seats.findIndex(c => c && c.jinsang && (c.phase === 'threat' || c.phase === 'robbing'));
 }
 
-function maybeSpawnJinsang(free){
+function maybeSpawnJinsang(free, kind){
   if (G.day < JINSANG_DAY) return false;
-  const v = jzVenue();
+  const v = jzVenue(kind);
   if (v.seats.some(s => s && s.jinsang)) return false;
   const elapsed = v.len - v.time;
   let go;
@@ -2982,13 +3089,17 @@ function maybeSpawnJinsang(free){
   v.seats[i] = {id: ++G.custId, type: JINSANG, jinsang: true, state: 'jinsang', phase: 'threat', t: JINSANG_WAIT, policeT: 0, toy: false, soup: null, tops: [], menu: null, line: pick(v.cafe ? JINSANG.cafeLines : JINSANG.lines), v: 0};
   if (v.cafe) G.cafe.jinsangCount++; else G.jinsangToday++;
   sfx.alarm();
-  W.shake = .25;
-  toast(`🚨 ${v.cafe ? '카페에' : ''} 진상 손님 등장! ${JINSANG_WAIT}초 안에 대처하지 않으면 돈이나 재료를 뺏겨요`);
+  if (hereKind() === kind){
+    W.shake = .25;
+    toast(`🚨 진상 손님 등장! ${JINSANG_WAIT}초 안에 대처하지 않으면 돈이나 재료를 뺏겨요`);
+  } else {
+    toast(`🚨 ${FLOORS[v.floor].name}에 진상 손님! Shift+${v.floor}로 가서 대처하세요`);
+  }
   return true;
 }
 
-function updateJinsang(c, i, dt){
-  const venue = jzVenue(), x = venue.xOf(i);
+function updateJinsang(c, i, dt, kind){
+  const venue = jzVenue(kind), x = venue.xOf(i), here = hereKind() === kind;
   if (c.phase === 'threat' || c.phase === 'robbing'){
     // 경찰이 오는 동안에는 진상이 얼어붙어요
     if (c.policeT > 0){
@@ -2998,7 +3109,7 @@ function updateJinsang(c, i, dt){
         c.line = '저, 저는 억울해요...!';
         G.stats.jinsangHandled++;
         sfx.coin();
-        floatWorld(x, 4.3, SEAT_Z, '🚓 체포!', '#8fb0ff');
+        if (here) floatWorld(x, 4.3, SEAT_Z, '🚓 체포!', '#8fb0ff');
         toast('🚓 경찰이 진상 손님을 잡아갔어요!');
       }
       return;
@@ -3006,14 +3117,15 @@ function updateJinsang(c, i, dt){
     c.t -= dt;
     if (c.t > 0) return;
     if (c.phase === 'robbing'){
-      jinsangSteal(c, i);
+      jinsangSteal(c, i, kind);
       c.phase = 'leaving'; c.t = 2; c.v++;
       return;
     }
     c.phase = 'robbing'; c.t = JINSANG_ROB; c.v++;
     c.line = '시간 끝났다! 가진 거 다 내놔!';
-    sfx.alarm(); W.shake = .3;
-    toast(`💸 ${JINSANG_ROB}초 뒤에 돈이나 재료를 뺏겨요! 빨리 대처하세요`);
+    sfx.alarm();
+    if (here) W.shake = .3;
+    toast(here ? `💸 ${JINSANG_ROB}초 뒤에 돈이나 재료를 뺏겨요! 빨리 대처하세요` : `💸 ${FLOORS[venue.floor].name} 진상이 ${JINSANG_ROB}초 뒤에 털어가요! Shift+${venue.floor}`);
     return;
   }
   c.t -= dt;
@@ -3027,9 +3139,9 @@ function updateJinsang(c, i, dt){
   venue.seats[i] = null;   // 도망 · 떠남 · 체포 끝
 }
 
-// 식당에선 준비해 둔 국밥 재료, 카페에선 창고의 카페 재료를 뺏어가요
-function jinsangSteal(c, i){
-  const venue = jzVenue();
+// 1층에선 준비해 둔 국밥 재료, 2층에선 창고의 카페 재료를 뺏어가요
+function jinsangSteal(c, i, kind){
+  const venue = jzVenue(kind);
   const pool = venue.cafe
     ? [...DRINK_INGS, ...FOOD_INGS].filter(id => G.pantry[id] > 0)
     : ['pork', 'kong', 'broth', 'spicy'].filter(k => G.stock[k] > 0);
@@ -3054,16 +3166,17 @@ function jinsangSteal(c, i){
   } else msg = '뺏을 게 없어서 그냥 갔어요';
   G.stats.jinsangRobbed++;
   c.line = 'ㅋㅋ 잘 받아간다~';
-  sfx.sad(); W.shake = .4;
-  floatWorld(venue.xOf(i), 4.3, SEAT_Z, '💸 뺏김!', '#ff6b5b');
-  toast('💸 진상에게 ' + msg);
+  sfx.sad();
+  if (hereKind() === kind){ W.shake = .4; floatWorld(venue.xOf(i), 4.3, SEAT_Z, '💸 뺏김!', '#ff6b5b'); }
+  toast(`💸 ${venue.floor === 2 ? '카페' : '국밥집'} 진상에게 ${msg}`);
 }
 
 function jinsangAction(kind){
-  if (!(canAct() || canCafe())) return;
-  const i = jinsangActive();
-  if (i < 0){ toast('지금은 진상 손님이 없어요'); return; }
-  const venue = jzVenue();
+  const where = hereKind();
+  if (!where || !G.running || G.paused) return;
+  const i = jinsangActive(where);
+  if (i < 0){ toast('지금 이 층엔 진상 손님이 없어요'); return; }
+  const venue = jzVenue(where);
   const c = venue.seats[i], x = venue.xOf(i), it = MARKET_ITEMS[kind], view = venue.views[i];
   if (!G.tools[kind]){ toast(`${it.icon} ${it.name}이(가) 없어요! 새벽시장 만물 잡화에서 사요`); sfx.err(); return; }
   if (c.policeT > 0){ toast('🚓 경찰이 오고 있어요! 조금만 기다려요'); return; }
@@ -3109,9 +3222,10 @@ function jinsangAction(kind){
 
 function renderJinsangPanel(){
   const panel = $('jinsangPanel');
-  const i = inPhase('lunch') || inPhase('cafe') ? jinsangActive() : -1;
+  const where = hereKind();
+  const i = where ? jinsangActive(where) : -1;
   if (i < 0 || !$('overlay').hidden){ panel.hidden = true; return; }
-  const c = jzVenue().seats[i], police = c.policeT > 0, toy = c.toy;
+  const c = jzVenue(where).seats[i], police = c.policeT > 0, toy = c.toy;
   panel.hidden = false;
   const title = police ? `🚓 경찰 출동 중... ${Math.ceil(c.policeT)}초`
     : c.phase === 'robbing' ? `💸 ${Math.ceil(c.t)}초 뒤 돈이나 재료를 뺏겨요!`
@@ -3193,7 +3307,7 @@ function updateJinsangView(v, c, dt, live, tx){
   place(v.el, toScreen(g.position.x, 3.75 + Math.max(0, g.position.y), SEAT_Z), true);
 }
 
-// 112 신고하면 경찰이 옆으로 걸어와 진상을 데려가요 (holder: 식당은 W, 카페는 W.cafe)
+// 112 신고하면 경찰이 옆으로 걸어와 진상을 데려가요 (holder: 1층은 W, 2층은 W.cafe)
 function syncPolice(holder, seats, dt, xOf, cx, parent){
   let pv = holder.police;
   const idx = seats.findIndex(c => c && c.jinsang && (c.policeT > 0 || c.phase === 'arrested'));
@@ -3228,6 +3342,572 @@ function syncPolice(holder, seats, dt, xOf, cx, parent){
   }
 }
 
+// ---------------- 직원 · 층 이동 · 3층 VIP존 ----------------
+const STAFF = {
+  gukbap: {name: '국밥집 직원', icon: '👩‍🍳', floor: 1, work: 60, hire: 50000, wage: 30000, desc: '1층 국밥집을 매일 60초 동안 대신 운영해요'},
+  cafe:   {name: '카페 직원',   icon: '🧑‍🍳', floor: 2, work: 30, hire: 40000, wage: 20000, desc: '2층 카페를 매일 30초 동안 대신 운영해요'},
+};
+const FLOORS = {
+  1: {name: '1층 국밥집', icon: '🍲', mode: 'lunch'},
+  2: {name: '2층 카페',   icon: '☕', mode: 'cafe'},
+  3: {name: '3층 VIP존',  icon: '👑', mode: 'vip'},
+};
+const VIP_SEATS = 3, VIP_LEN = 60, VIP_SEAT_X = [-4.5, 0, 4.5];
+
+function hasStaff(){ return G.staff.gukbap || G.staff.cafe; }
+function vipUnlocked(){ return G.staff.gukbap && G.staff.cafe; }
+// VIP 제한시간: 예전 손님 인내심 공식(최소 16초, 38초에서 하루에 2초씩 줄어듦)의 두 배
+function vipPatience(){ return 2 * Math.max(16, 38 - G.day * 2); }
+function wagesToday(){ return (G.staff.gukbap ? STAFF.gukbap.wage : 0) + (G.staff.cafe ? STAFF.cafe.wage : 0); }
+function lunchTick(){ return !!G && G.running && !G.paused && (G.phase === 'lunch' || (G.phase === 'open' && G.lunchOn)); }
+function cafeTick(){ return !!G && G.running && !G.paused && !!G.cafe && !G.cafe.done && (G.phase === 'cafe' || G.phase === 'open'); }
+function vipTick(){ return inPhase('open') && G.running && !G.paused && !!G.vip && !G.vip.done; }
+function canVip(){ return vipTick() && G.floor === 3; }
+
+// ---- 상점: 직원 고용 ----
+function staffShopHtml(){
+  const cards = Object.entries(STAFF).map(([id, s]) => {
+    const hired = G.staff[id];
+    const btn = hired
+      ? `<button class="buy fire" onclick="fireStaff('${id}')">해고하기</button>`
+      : `<button class="buy" ${G.money < s.hire ? 'disabled' : ''} onclick="hireStaff('${id}')">고용 ${fmt(s.hire)}</button>`;
+    return `<div class="up-card ${hired ? 'hired' : ''}"><div class="up-ic">${s.icon}</div><div class="up-name">${s.name}${hired ? ' · 근무 중' : ''}</div><div class="up-desc">${s.desc}<br>일당 ${fmt(s.wage)} (매일 밤 지급)</div>${btn}</div>`;
+  }).join('');
+  const vip = vipUnlocked();
+  return `<h3 class="shop-sub">👷 직원 고용</h3>
+    <div class="shop-note">직원이 일하는 동안에는 <b>Shift+1·2·3</b>으로 1층 국밥집 · 2층 카페 · 3층 VIP존을 자유롭게 오갈 수 있어요.</div>
+    <div class="shop-grid">${cards}
+      <div class="up-card vipcard ${vip ? 'open' : ''}"><div class="up-ic">👑</div><div class="up-name">3층 VIP존</div>
+        <div class="up-desc">${vip ? '열렸어요! 사장님이 직접 운영 · 국밥 두 그릇 주문 · 두 배 가격 · 진상 없음' : '국밥집 직원과 카페 직원을 모두 고용하면 열려요'}</div>
+        <button class="buy" disabled>${vip ? '✅ 해금됨' : '🔒 잠김'}</button></div>
+    </div>`;
+}
+function hireStaff(id){
+  const s = STAFF[id];
+  if (G.staff[id] || G.money < s.hire){ sfx.err(); return; }
+  G.money -= s.hire;
+  G.staff[id] = true;
+  sfx.coin();
+  toast(`${s.icon} ${s.name}을(를) 고용했어요!${vipUnlocked() ? ' 👑 3층 VIP존이 열렸어요!' : ''}`);
+  showShop();
+}
+function fireStaff(id){
+  G.staff[id] = false;
+  sfx.trash();
+  toast(`${STAFF[id].name}을(를) 해고했어요`);
+  showShop();
+}
+
+// ---- 동시 영업 시작 ----
+function showOpenIntro(){
+  G.phase = 'openIntro';
+  const cafeOk = G.recipes.some(recipeMakeable);
+  const row = (name, status) => `<div class="floor-row"><b>${name}</b><span>${status}</span></div>`;
+  showOverlay(`
+    <div class="card wide">
+      <h2>🏢 오늘의 영업</h2>
+      <div class="day-note">직원이 일하는 동안 <b>Shift+1·2·3</b> 또는 왼쪽 층 버튼으로 층을 자유롭게 오갈 수 있어요.</div>
+      <div class="floor-list">
+        ${row('🍲 1층 국밥집', G.staff.gukbap ? `👩‍🍳 직원이 ${STAFF.gukbap.work}초 동안 운영` : `🙋 사장님이 직접 ${DAY_LEN}초 운영`)}
+        ${row('☕ 2층 카페', !cafeOk ? '💤 오늘은 휴무 (만들 수 있는 메뉴가 없어요)' : G.staff.cafe ? `🧑‍🍳 직원이 ${STAFF.cafe.work}초 동안 운영` : `🙋 사장님이 직접 ${CAFE_LEN}초 운영`)}
+        ${row('👑 3층 VIP존', vipUnlocked() ? `🙋 사장님이 직접 ${VIP_LEN}초 운영 · 국밥 두 그릇 · 두 배 가격 · 진상 없음` : '🔒 국밥집·카페 직원을 모두 고용하면 열려요')}
+      </div>
+      <div class="name-row">☕ 카페 이름 <input id="cafeNameInput" maxlength="12" value="${esc(cafeTitle())}" onkeydown="if (event.key === 'Enter') saveCafeName()"><button class="sub-btn" onclick="saveCafeName()">간판 바꾸기</button></div>
+      <div class="cafe-btns">
+        <button class="sub-btn" onclick="showLab()">🧪 메뉴 개발실</button>
+        <button class="big-btn" onclick="startOpen()">🔔 영업 시작</button>
+      </div>
+    </div>`, true);
+}
+function labBack(){ if (G.phase === 'openIntro') showOpenIntro(); else showCafeIntro(); }
+
+function startOpen(){
+  applyCafeName();
+  const cafeOk = G.recipes.some(recipeMakeable);
+  G.phase = 'open';
+  G.running = true; G.paused = false;
+  G.lunchOn = true;
+  G.lunchLen = G.staff.gukbap ? STAFF.gukbap.work : DAY_LEN;
+  G.time = G.lunchLen; G.spawnT = 1.2;
+  G.staffT = {gukbap: 1.5, cafe: 1.5};
+  const cafeLen = G.staff.cafe ? STAFF.cafe.work : CAFE_LEN;
+  G.cafe = cafeOk ? {time: cafeLen, len: cafeLen, spawnT: 1.5, seats: Array(CAFE_SEATS).fill(null), cup: [], plate: [], jinsangCount: 0, jinsangPlanned: Math.random() < .6} : null;
+  G.vip = vipUnlocked() ? {time: VIP_LEN, spawnT: 2, seats: Array(VIP_SEATS).fill(null), done: false} : null;
+  W.kitchen.position.x = G.vip ? VIP_X : 0;   // 1층을 직원이 맡으면 사장님 주방은 VIP존으로
+  if (G.cafe) buildCafeButtons();
+  hideOverlay();
+  $('hudName').textContent = '🏢 ' + G.name;
+  const start = !G.staff.gukbap ? 1 : G.cafe && !G.staff.cafe ? 2 : G.vip ? 3 : 1;
+  G.floor = 0;
+  goFloor(start, true);
+  sfx.bell();
+  toast('🔔 영업 시작! Shift+1·2·3 또는 왼쪽 층 버튼으로 이동해요');
+}
+
+function goFloor(n, silent){
+  if (!inPhase('open')) return;
+  if (n === 2 && !G.cafe){ toast('💤 오늘 카페는 휴무예요'); sfx.err(); return; }
+  if (n === 3 && !G.vip){ toast('🔒 VIP존은 국밥집·카페 직원을 모두 고용하면 열려요'); sfx.err(); return; }
+  if (G.floor === n) return;
+  G.floor = n;
+  setWorldMode(FLOORS[n].mode);
+  W.snapCam = true;
+  if (!silent){ sfx.elevator(); toast(`🛗 ${FLOORS[n].icon} ${FLOORS[n].name}`); }
+}
+
+function checkOpenEnd(){
+  if (G.lunchOn || (G.cafe && !G.cafe.done) || (G.vip && !G.vip.done)) return;
+  toast('🏢 모든 층 영업 끝!');
+  endDay();
+}
+function closeOpen(){
+  const sorry = seats => seats.forEach((c, i) => {
+    if (c && c.state === 'waiting'){ G.stats.soldout++; G.rep = clamp(G.rep - 0.2, 0, 5); }
+    seats[i] = null;
+  });
+  sorry(G.seats);
+  if (G.cafe){ sorry(G.cafe.seats); G.cafe.done = true; }
+  if (G.vip){ sorry(G.vip.seats); G.vip.done = true; }
+  G.lunchOn = false;
+  G.paused = false; G.running = true;
+  hideOverlay();
+  if (G.rep <= 0){ G.running = false; showEnding('rep'); return; }
+  endDay();
+}
+
+// 가마솥은 1층 영업이나 VIP존 영업 중 어느 쪽이든 끓어요
+function tickBurners(dt){
+  const ct = cookTime();
+  G.burners.forEach(b => {
+    if (b.state === 'cooking'){
+      b.t += dt;
+      if (b.t >= ct){ b.state = 'ready'; b.t = 0; sfx.ready(); }
+    } else if (b.state === 'ready'){
+      b.t += dt;
+      if (b.t >= BURN_TIME){ b.state = 'burnt'; sfx.burnt(); toast('💨 국밥이 타버렸어요!'); }
+    }
+  });
+}
+
+// ---- 직원이 대신 서빙 ----
+function staffWork(dt){
+  if (G.staff.gukbap && G.lunchOn) staffServe('gukbap', dt);
+  if (G.staff.cafe && G.cafe && !G.cafe.done) staffServe('cafe', dt);
+}
+function staffServe(kind, dt){
+  G.staffT[kind] -= dt;
+  if (G.staffT[kind] > 0) return;
+  const seats = kind === 'gukbap' ? G.seats : G.cafe.seats;
+  let idx = -1;
+  seats.forEach((c, i) => { if (c && c.state === 'waiting' && !c.jinsang && (idx < 0 || c.id < seats[idx].id)) idx = i; });
+  if (idx < 0) return;
+  const c = seats[idx];
+  let earned, x;
+  if (kind === 'gukbap'){
+    const s = soupById(c.soup);
+    if (Object.keys(s.needs).some(k => G.stock[k] < s.needs[k])) return;
+    for (const k in s.needs) G.stock[k] -= s.needs[k];
+    const perfect = Math.random() < .85;
+    const price = perfect ? s.price : Math.round(s.price * .7);
+    const tip = perfect ? Math.round(700 * c.type.tip / 100) * 100 : 0;
+    G.money += price + tip;
+    G.stats.sales += price; G.stats.tips += tip; G.stats.served++;
+    if (perfect) G.stats.perfect++;
+    c.face = perfect ? '😋' : '🙂';
+    c.line = perfect ? '직원분 솜씨 좋네요!' : '음... 그럭저럭이네요';
+    earned = price + tip; x = SEAT_X[idx];
+  } else {
+    const r = recipeById(c.menu);
+    if (!r || !recipeMakeable(r)) return;
+    r.ings.forEach(id => { G.pantry[id]--; });
+    const tip = Math.round(400 * c.type.tip / 100) * 100;
+    G.money += r.price + tip;
+    G.stats.cafeSales += r.price; G.stats.cafeTips += tip; G.stats.cafeServed++;
+    c.line = pick(['직원분 친절하네요!', '맛있어요~', '음료 예쁘다!']);
+    earned = r.price + tip; x = CAFE_X + CAFE_SEAT_X[idx];
+  }
+  G.stats.staffServed++;
+  c.state = 'happy'; c.t = 1.6; c.v++;
+  W.staffAt[kind] = x;
+  if (G.floor === STAFF[kind].floor){ floatWorld(x, 4.1, SEAT_Z, `👷 +${fmt(earned)}`, '#9fe39f'); sfx.coin(); }
+  G.staffT[kind] = kind === 'gukbap' ? 3.2 : 3.0;
+}
+
+function buildStaffModels(){
+  W.staffAt = {gukbap: 0, cafe: CAFE_X};
+  W.staffModels = {gukbap: makeCustomer({id: 'staff'}), cafe: makeCustomer({id: 'barista'})};
+  W.staffModels.gukbap.position.set(0, 0, .6);
+  W.staffModels.cafe.position.set(CAFE_X, 0, .6);
+  scene.add(W.staffModels.gukbap);
+  W.cafe.root.add(W.staffModels.cafe);
+  for (const m of Object.values(W.staffModels)){ m.rotation.y = Math.PI; m.visible = false; }
+}
+function syncStaff(dt){
+  for (const kind of ['gukbap', 'cafe']){
+    const m = W.staffModels[kind];
+    const on = !!G && G.phase === 'open' && G.staff[kind] && (kind === 'gukbap' ? G.lunchOn : !!G.cafe && !G.cafe.done);
+    m.visible = on;
+    if (!on) continue;
+    const P = m.userData;
+    P.t = (P.t || 0) + dt;
+    const dx = W.staffAt[kind] - m.position.x;
+    if (Math.abs(dx) > .05){
+      m.position.x += Math.sign(dx) * Math.min(Math.abs(dx), 6 * dt);
+      P.legL.rotation.x = Math.sin(P.t * 11) * .5;
+    } else P.legL.rotation.x = 0;
+    P.legR.rotation.x = -P.legL.rotation.x;
+    P.armR.rotation.x = -1.0 + Math.sin(P.t * 6) * .3;
+    P.armL.rotation.x = -.8 + Math.cos(P.t * 6) * .3;
+  }
+}
+
+// ---- 사장님 현황판 (층 버튼 · 직원 안내) ----
+function floorStatus(n){
+  const waiting = seats => seats.filter(c => c && c.state === 'waiting').length;
+  const secs = t => `${Math.ceil(t)}초`;
+  if (n === 1){
+    if (!G.lunchOn) return {text: '✅ 영업 끝', cls: 'done'};
+    const jz = jinsangActive('lunch') >= 0;
+    const w = waiting(G.seats);
+    return {text: jz ? '🚨 진상 등장!' : `${G.staff.gukbap ? '👩‍🍳 직원' : '🙋 사장'} · ${G.time > 0 ? secs(G.time) : '마감'} · 대기 ${w}`, cls: jz ? 'alert' : (!G.staff.gukbap && w && G.floor !== 1 ? 'need' : '')};
+  }
+  if (n === 2){
+    if (!G.cafe) return {text: '💤 오늘 휴무', cls: 'locked'};
+    if (G.cafe.done) return {text: '✅ 영업 끝', cls: 'done'};
+    const jz = jinsangActive('cafe') >= 0;
+    const w = waiting(G.cafe.seats);
+    return {text: jz ? '🚨 진상 등장!' : `${G.staff.cafe ? '🧑‍🍳 직원' : '🙋 사장'} · ${G.cafe.time > 0 ? secs(G.cafe.time) : '마감'} · 대기 ${w}`, cls: jz ? 'alert' : (!G.staff.cafe && w && G.floor !== 2 ? 'need' : '')};
+  }
+  if (!G.vip) return {text: '🔒 직원 2명 필요', cls: 'locked'};
+  if (G.vip.done) return {text: '✅ 영업 끝', cls: 'done'};
+  const w = waiting(G.vip.seats);
+  return {text: `🙋 사장 · ${G.vip.time > 0 ? secs(G.vip.time) : '마감'} · 대기 ${w}`, cls: w && G.floor !== 3 ? 'need' : ''};
+}
+function renderFloorBar(){
+  const bar = $('floorBar');
+  const show = inPhase('open') && $('overlay').hidden;
+  bar.hidden = !show;
+  if (!show) return;
+  for (const n of [1, 2, 3]){
+    const st = floorStatus(n);
+    const el = $('fb' + n);
+    if (el.textContent !== st.text) el.textContent = st.text;
+    const cls = 'fb-btn ' + st.cls + (G.floor === n ? ' on' : '');
+    const btn = el.parentElement;
+    if (btn.className !== cls) btn.className = cls;
+  }
+}
+function renderStaffBanner(){
+  const el = $('staffBanner');
+  let html = '';
+  if (inPhase('open') && $('overlay').hidden){
+    if (G.floor === 1 && (G.staff.gukbap || !G.lunchOn)){
+      html = !G.lunchOn ? '✅ 1층 국밥집 영업이 끝났어요<small>왼쪽 층 버튼이나 Shift+2·3으로 다른 층에 가 보세요</small>'
+        : `👩‍🍳 직원이 1층 국밥집을 운영하고 있어요 · 남은 시간 ${Math.ceil(G.time)}초<small>진상 손님은 직원이 못 막아요. 오면 B·G·H로 직접 대처하세요!</small>`;
+    } else if (G.floor === 2 && G.cafe && (G.staff.cafe || G.cafe.done)){
+      html = G.cafe.done ? '✅ 2층 카페 영업이 끝났어요<small>왼쪽 층 버튼이나 Shift+1·3으로 다른 층에 가 보세요</small>'
+        : `🧑‍🍳 직원이 2층 카페를 운영하고 있어요 · 남은 시간 ${Math.ceil(G.cafe.time)}초<small>진상 손님은 직원이 못 막아요. 오면 B·G·H로 직접 대처하세요!</small>`;
+    } else if (G.floor === 3 && G.vip && G.vip.done){
+      html = '✅ 3층 VIP존 영업이 끝났어요<small>다른 층 영업이 끝나면 하루가 마무리돼요</small>';
+    }
+  }
+  if (el.dataset.html !== html){ el.dataset.html = html; el.innerHTML = html; }
+  el.hidden = !html;
+}
+
+// ---- 3층 VIP존 ----
+function vipSpawn(){
+  const V = G.vip;
+  const free = V.seats.map((s, i) => s ? -1 : i).filter(i => i >= 0);
+  if (!free.length) return false;
+  const soups = SOUPS.filter(s => Object.keys(s.needs).every(k => G.stock[k] >= s.needs[k] * 2));
+  if (!soups.length) return false;
+  const tops = unlockedTops().map(t => t.id);
+  const items = [0, 1].map(() => {
+    const chosen = shuffle([...tops]).slice(0, randInt(0, Math.min(tops.length, 2)));
+    chosen.sort((a, b) => topIndex(a) - topIndex(b));
+    return {soup: pick(soups).id, tops: chosen, done: false, mistakes: 0};
+  });
+  const type = pickWeighted(CUSTOMERS.filter(c => !c.vip), c => c.weight);
+  const p = vipPatience();
+  V.seats[pick(free)] = {id: ++G.custId, type, items, p, maxP: p, state: 'waiting', v: 0, t: 0,
+    line: pick(['VIP 코스로 부탁해요', '최고급 국밥 두 그릇이요', '시간 없으니 빨리요~', '소문 듣고 왔어요'])};
+  sfx.elevator();
+  return true;
+}
+function updateVip(dt){
+  const V = G.vip;
+  if (V.time > 0){
+    V.time -= dt;
+    if (V.time <= 0){ V.time = 0; toast('👑 VIP존 마감! 남은 VIP만 모셔요'); }
+  }
+  if (V.time > 0){
+    V.spawnT -= dt;
+    if (V.spawnT <= 0) V.spawnT = vipSpawn() ? rand(6, 9) : 1.5;
+  }
+  V.seats.forEach((c, i) => {
+    if (!c) return;
+    if (c.state === 'waiting'){
+      c.p -= dt;
+      if (c.p > 0) return;
+      c.state = 'angry'; c.t = 2; c.v++; c.face = '😡';
+      c.line = pick(['VIP를 이렇게 기다리게 해요?!', '실망이에요. 다신 안 와요!']);
+      G.stats.vipAngry++;
+      addRep(-0.3);
+      sfx.err();
+      if (G.floor === 3) floatWorld(VIP_X + VIP_SEAT_X[i], 4.1, SEAT_Z, 'VIP 화남 ⭐↓', '#ff6b5b');
+      else toast('👑 3층 VIP가 기다리다 화나서 나갔어요!');
+    } else {
+      c.t -= dt;
+      if (c.t <= 0) V.seats[i] = null;
+    }
+  });
+  if (V.time <= 0 && V.seats.every(s => !s) && !V.done){ V.done = true; toast('👑 3층 VIP존 영업 끝!'); }
+}
+function vipServe(i){
+  const V = G.vip, c = V.seats[i];
+  if (!c || c.state !== 'waiting') return;
+  const tr = G.trays[G.sel], view = W.vip.seatViews[i];
+  const x = VIP_X + VIP_SEAT_X[i];
+  if (!tr){ toast('서빙할 국밥이 없어요! 조립대에 그릇을 준비하세요'); sfx.err(); return; }
+  const miss = it => it.tops.filter(t => !tr.tops.includes(t)).length + tr.tops.filter(t => !it.tops.includes(t)).length;
+  const cands = c.items.filter(it => !it.done && it.soup === tr.soup).sort((a, b) => miss(a) - miss(b));
+  if (!cands.length){
+    c.line = '이건 주문한 메뉴가 아니에요'; c.v++;
+    if (view) view.shakeT = .5;
+    sfx.err(); floatWorld(x, 4.1, SEAT_Z, '메뉴가 달라요!', '#ff6b5b');
+    return;
+  }
+  const it = cands[0], mistakes = miss(it), s = soupById(tr.soup);
+  const price = mistakes >= 2 ? Math.round(s.price * 2 * .7) : s.price * 2;
+  it.done = true; it.mistakes = mistakes;
+  G.money += price; G.stats.vipSales += price;
+  // 그릇이 VIP 손님 앞으로
+  const bowl = makeBowl(tr.soup, tr.tops, .6);
+  W.trayViews[G.sel].g.getWorldPosition(bowl.position);
+  bowl.position.y += .1;
+  scene.add(bowl);
+  const slot = c.items.filter(x => x.done).length - 1;
+  tweenArc(bowl, new THREE.Vector3(x + (slot ? .8 : -.8), COUNTER_TOP, -.75), .45, 2.2);
+  if (view) view.bowls.push(bowl); else setTimeout(() => scene.remove(bowl), 2000);
+  G.trays[G.sel] = null;
+  switchToFilledTray();
+  floatWorld(x, 4.1, SEAT_Z, `+${fmt(price)} (두 배)`, '#f2b632');
+  sfx.coin();
+  if (c.items.every(x => x.done)){
+    const perfect = c.items.every(x => x.mistakes === 0);
+    const tip = Math.round((perfect ? 6000 : 2000) * (.5 + c.p / c.maxP) * (1 + .4 * G.up.kkak) / 100) * 100;
+    G.money += tip; G.stats.vipTips += tip; G.stats.vipServed++;
+    addRep(perfect ? .15 : .05);
+    c.state = 'happy'; c.face = perfect ? '😋' : '🙂'; c.t = 2.2; c.v++;
+    c.line = perfect ? pick(['역시 VIP 대접이네요!', '완벽해요! 또 올게요']) : '괜찮네요, 수고했어요';
+    emitCoins(new THREE.Vector3(x, 3.2, SEAT_Z + .5));
+    floatWorld(x, 4.1, SEAT_Z, `💎 VIP 팁 +${fmt(tip)}`, '#f2b632', 34);
+  } else {
+    c.line = mistakes ? '음... 한 그릇 더 기다릴게요' : '좋아요! 한 그릇 더요~';
+    c.v++;
+  }
+}
+
+function buildVip(){
+  const X = VIP_X;
+  const V = W.vip = {origin: new THREE.Vector3(X, 0, 0), hits: [], seatViews: [null, null, null], leaving: [], lamps: []};
+  const root = V.root = new THREE.Group(); scene.add(root);
+
+  const marble = canvasTex(256, 256, (x, w, h) => {
+    x.fillStyle = '#1d1a24'; x.fillRect(0, 0, w, h);
+    x.strokeStyle = 'rgba(242,182,50,.35)'; x.lineWidth = 3; x.strokeRect(0, 0, w, h);
+    x.strokeStyle = 'rgba(255,255,255,.08)'; x.lineWidth = 2;
+    for (let k = 0; k < 6; k++){ x.beginPath(); x.moveTo(prand(k + 900) * w, 0); x.bezierCurveTo(prand(k + 901) * w, h * .3, prand(k + 902) * w, h * .6, prand(k + 903) * w, h); x.stroke(); }
+  });
+  marble.wrapS = marble.wrapT = THREE.RepeatWrapping; marble.repeat.set(8, 5);
+  const floor = mesh(new THREE.PlaneGeometry(50, 30), std(0xffffff, {map: marble, roughness: .25}), X, 0, -3, false);
+  floor.rotation.x = -Math.PI / 2; root.add(floor);
+  const wallTex = canvasTex(256, 256, (x, w, h) => {
+    x.fillStyle = '#4a1426'; x.fillRect(0, 0, w, h);
+    x.strokeStyle = 'rgba(242,182,50,.55)'; x.lineWidth = 4; x.strokeRect(24, 24, w - 48, h - 48);
+  });
+  wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping; wallTex.repeat.set(10, 3);
+  root.add(mesh(new THREE.PlaneGeometry(40, 12), std(0xffffff, {map: wallTex, roughness: .8}), X, 6, -5.6, false));
+  root.add(mesh(new THREE.BoxGeometry(40, 2.2, .3), std(0x2a0c16), X, 1.1, -5.5, false));
+  root.add(mesh(new THREE.BoxGeometry(40, .12, .4), std(0xf2b632, {metalness: .6, roughness: .3}), X, 2.25, -5.45, false));
+  for (const sx of [-1, 1]){
+    const side = mesh(new THREE.PlaneGeometry(14, 12), std(0xffffff, {map: wallTex, roughness: .8}), X + sx * 13, 6, 0, false);
+    side.rotation.y = -sx * Math.PI / 2; root.add(side);
+  }
+  // 간판
+  V.signTex = canvasTex(1024, 200, (x, w, h) => {
+    const g = x.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#2a1a24'); g.addColorStop(1, '#14080e');
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    x.strokeStyle = '#f2b632'; x.lineWidth = 10; x.strokeRect(14, 14, w - 28, h - 28);
+    x.fillStyle = '#f7d46a'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = '96px Jua, "Malgun Gothic", sans-serif';
+    x.fillText('VIP LOUNGE · 3F', w / 2, h / 2 + 6);
+  });
+  const dark = std(0x14080e);
+  root.add(mesh(new THREE.BoxGeometry(8, 1.5, .2), [dark, dark, dark, dark, new THREE.MeshStandardMaterial({map: V.signTex, emissive: 0x443311, emissiveIntensity: .5}), dark], X, 6.3, -5.4));
+  // 샹들리에
+  const gold = std(0xf2b632, {metalness: .7, roughness: .25});
+  for (const lx of [-5, 5]){
+    const c = new THREE.Group(); c.position.set(X + lx, 8.4, -1.8);
+    c.add(mesh(new THREE.CylinderGeometry(.02, .02, 1.6, 4), std(0x222222), 0, .8, 0, false));
+    c.add(mesh(new THREE.TorusGeometry(.7, .05, 8, 28), gold, 0, 0, 0, false).rotateX(Math.PI / 2));
+    for (let k = 0; k < 10; k++){
+      const a = k / 10 * Math.PI * 2;
+      c.add(mesh(geo('crystal', () => new THREE.OctahedronGeometry(.1)), new THREE.MeshBasicMaterial({color: 0xfff4d8}), Math.cos(a) * .7, -.2, Math.sin(a) * .7, false));
+    }
+    c.add(mesh(new THREE.SphereGeometry(.22, 12, 10), new THREE.MeshBasicMaterial({color: 0xffe9b0}), 0, -.25, 0, false));
+    const l = new THREE.PointLight(0xfff0c8, .8, 15); l.position.y = -.4; c.add(l);
+    root.add(c); V.lamps.push(c);
+  }
+  // 레드카펫 · 황금 화분
+  root.add(mesh(new THREE.BoxGeometry(20, .02, 2.6), std(0x8e1c24, {roughness: .9}), X, .01, -3.3, false));
+  for (const sx of [-1, 1]){
+    const pl = new THREE.Group(); pl.position.set(X + sx * 11, 0, -4.2);
+    pl.add(mesh(new THREE.CylinderGeometry(.55, .42, .9, 16), gold, 0, .45, 0));
+    for (let k = 0; k < 5; k++) pl.add(mesh(geo('leafBall', () => new THREE.SphereGeometry(.55, 12, 10)), std(0x2f6a3a, {roughness: .9}), (prand(k + 60 + sx) - .5) * .8, 1.3 + prand(k + 70) * .9, (prand(k + 80) - .5) * .6));
+    root.add(pl);
+  }
+  // 카운터 (검은 대리석 + 금 테두리) · 벨벳 의자
+  root.add(mesh(new THREE.BoxGeometry(16, 1.2, 1.0), std(0x15121a, {roughness: .3}), X, .6, -.7));
+  root.add(mesh(new THREE.BoxGeometry(16.4, .12, 1.4), std(0x2a2530, {roughness: .15, metalness: .2}), X, 1.26, -.7));
+  root.add(mesh(new THREE.BoxGeometry(16.4, .06, .06), gold, X, 1.2, -.02));
+  VIP_SEAT_X.forEach((sx, i) => {
+    root.add(mesh(new THREE.CylinderGeometry(.5, .45, .16, 20), std(0x8e1c24, {roughness: .8}), X + sx, .95, SEAT_Z + .1));
+    root.add(mesh(new THREE.CylinderGeometry(.08, .08, .9, 8), gold, X + sx, .45, SEAT_Z + .1));
+    root.add(mesh(new THREE.CylinderGeometry(.05, .07, .4, 10), gold, X + sx + 1.3, COUNTER_TOP + .2, -.55));
+    root.add(mesh(new THREE.SphereGeometry(.07, 8, 6), new THREE.MeshBasicMaterial({color: 0xffd28a}), X + sx + 1.3, COUNTER_TOP + .46, -.55, false));
+    const hit = hitBox(2.6, 3.4, 1.6, X + sx, 2.6, SEAT_Z, {kind: 'vseat', i});
+    root.add(hit); V.hits.push(hit);
+  });
+  // 사장님 주방 (가마솥 · 조립대 · 토핑 통은 영업 때 이쪽으로 옮겨와요)
+  root.add(mesh(new THREE.BoxGeometry(10, TABLE_TOP, 2.2), std(0x2a2530, {metalness: .4, roughness: .35}), X + STOVE_X, TABLE_TOP / 2, TABLE_Z));
+  root.add(mesh(new THREE.BoxGeometry(10.1, .06, 2.3), std(0x3a3440, {metalness: .5, roughness: .25}), X + STOVE_X, TABLE_TOP, TABLE_Z));
+  root.add(mesh(new THREE.BoxGeometry(4.6, TABLE_TOP, 2.2), std(0x2a2530), X + PREP_X, TABLE_TOP / 2, TABLE_Z));
+  root.add(mesh(new THREE.BoxGeometry(4.7, .08, 2.3), std(0x5a3a2a, {roughness: .5}), X + PREP_X, TABLE_TOP, TABLE_Z));
+}
+
+function clearVipGuests(){
+  const V = W.vip;
+  const drop = v => { V.root.remove(v.g); v.bowls.forEach(b => scene.remove(b)); if (v.el) v.el.remove(); };
+  V.seatViews.forEach(v => v && drop(v));
+  V.leaving.forEach(drop);
+  V.seatViews = [null, null, null];
+  V.leaving = [];
+}
+
+function makeVipGuest(type){
+  const g = makeCustomer(type);
+  const gold = std(0xf2b632, {metalness: .7, roughness: .25});
+  const crown = new THREE.Group();
+  crown.add(mesh(new THREE.CylinderGeometry(.34, .36, .16, 16, 1, true), std(0xf2b632, {metalness: .7, roughness: .25, side: THREE.DoubleSide}), 0, 0, 0));
+  for (let k = 0; k < 5; k++){
+    const a = k / 5 * Math.PI * 2;
+    crown.add(mesh(geo('crownSpike', () => new THREE.ConeGeometry(.07, .2, 6)), gold, Math.cos(a) * .32, .16, Math.sin(a) * .32));
+  }
+  crown.add(mesh(geo('crownGem', () => new THREE.SphereGeometry(.06, 8, 6)), std(0xd4145a, {roughness: .2}), 0, .02, .36));
+  crown.position.y = .72;
+  g.userData.head.add(crown);
+  const sash = mesh(new THREE.BoxGeometry(.18, 1.3, .04), std(0xd4145a), .05, 1.7, .62);
+  sash.rotation.z = .55;
+  g.add(sash);
+  return g;
+}
+
+function updateVipGuest(v, c, dt, live){
+  const g = v.g, P = g.userData, tx = VIP_X + VIP_SEAT_X[v.seat];
+  v.walkT += dt;
+  if (v.walking){
+    const dx = tx - g.position.x;
+    g.position.x += Math.sign(dx) * Math.min(Math.abs(dx), 7 * dt);
+    g.rotation.y = dx > 0 ? Math.PI / 2 : -Math.PI / 2;
+    g.position.y = Math.abs(Math.sin(v.walkT * 11)) * .12;
+    P.legL.rotation.x = Math.sin(v.walkT * 11) * .6; P.legR.rotation.x = -P.legL.rotation.x;
+    if (Math.abs(dx) < .02){ v.walking = false; P.legL.rotation.x = P.legR.rotation.x = 0; }
+  } else {
+    g.rotation.y = lerp(g.rotation.y, 0, Math.min(1, dt * 10));
+    g.position.y = c.state === 'happy' ? Math.abs(Math.sin(v.walkT * 8)) * .18 : 0;
+    const ratio = c.p / c.maxP;
+    const shaking = v.shakeT > 0 || c.state === 'angry';
+    if (v.shakeT > 0) v.shakeT -= dt;
+    g.position.x = tx + (shaking ? Math.sin(v.walkT * 50) * .06 : 0);
+    g.rotation.z = c.state === 'waiting' && ratio < .25 ? Math.sin(v.walkT * 18) * .06 : 0;
+  }
+  const ratio = clamp(c.p / c.maxP, 0, 1);
+  let mood = c.type.id === 'hangover' ? 'sick' : 'normal';
+  if (c.state === 'waiting' && ratio < .3) mood = 'worried';
+  if (c.state === 'angry') mood = 'angry';
+  if (c.state === 'happy') mood = c.face === '🙂' ? 'meh' : 'happy';
+  if (P.mood !== mood){ P.mood = mood; P.face.material.map = faceTex(c.type.id, mood); }
+  P.skinMat.color.set(c.state === 'angry' ? 0xff8a7a : LOOKS[c.type.id].skin);
+  if (P.phoneLight) P.phoneLight.visible = false;
+
+  if (!live){ v.el.hidden = true; return; }
+  const key = `${c.state}|${c.v}`;
+  if (v.key !== key){
+    v.key = key;
+    let html = `<div class="line">${esc(c.line || '')}</div>`;
+    if (c.state === 'waiting'){
+      const total = c.items.reduce((sum, it) => sum + soupById(it.soup).price * 2, 0);
+      const rows = c.items.map(it => {
+        const s = soupById(it.soup);
+        const tops = it.tops.length ? it.tops.map(t => `<span class="chip">${topById(t).icon}${topById(t).name}</span>`).join('') : '<span class="chip plain">토핑 없이</span>';
+        return `<div class="vip-item ${it.done ? 'done' : ''}">${it.done ? '✅' : '⬜'} ${s.icon} ${s.name} <span class="o-tops">${tops}</span></div>`;
+      }).join('');
+      html += `<div class="bubble vipb" data-vseat="${v.seat}"><span class="keyhint">${keyLabel(SEAT_KEYS[v.seat])}</span><span class="vip-badge">💎 VIP</span>${rows}<div class="vip-price">💰 ${fmt(total)} (두 배 가격)</div><div class="pbar"><i></i></div></div>`;
+    }
+    v.el.innerHTML = html;
+    v.el.className = 'cust-ui st-' + c.state;
+  }
+  v.el.hidden = false;
+  const waiting = c.state === 'waiting', tr = G.trays[G.sel];
+  v.el.classList.toggle('targetable', !!(waiting && tr));
+  v.el.classList.toggle('match', !!(waiting && tr && c.items.some(it => !it.done && it.soup === tr.soup)));
+  v.el.classList.toggle('hurry', waiting && ratio < .25);
+  if (waiting){
+    const bar = v.el.querySelector('.pbar i');
+    if (bar){ bar.style.width = ratio * 100 + '%'; bar.style.background = ratio > .5 ? '#4caf50' : ratio > .25 ? '#f2b632' : '#e53935'; }
+  }
+  place(v.el, toScreen(g.position.x, 3.95 + g.position.y, SEAT_Z), true);
+}
+
+function syncVip(dt){
+  const V = W.vip, vip = G && G.vip;
+  const seats = vip ? vip.seats : [null, null, null];
+  const live = !!vip && inPhase('open') && G.floor === 3;
+  seats.forEach((c, i) => {
+    let v = V.seatViews[i];
+    if (v && (!c || v.id !== c.id)){
+      v.dir = VIP_SEAT_X[i] <= 0 ? -1 : 1;
+      v.el.remove(); v.el = null;
+      V.leaving.push(v); V.seatViews[i] = v = null;
+    }
+    if (c && !v){
+      const g = makeVipGuest(c.type);
+      g.position.set(VIP_X + (VIP_SEAT_X[i] <= 0 ? -14 : 14), 0, SEAT_Z);
+      V.root.add(g);
+      const el = document.createElement('div'); el.className = 'cust-ui';
+      $('labels').appendChild(el);
+      v = V.seatViews[i] = {id: c.id, seat: i, g, el, walking: true, walkT: 0, key: null, shakeT: 0, bowls: []};
+    }
+    if (v) updateVipGuest(v, c, dt, live);
+  });
+  for (let k = V.leaving.length - 1; k >= 0; k--){
+    const v = V.leaving[k];
+    v.walkT += dt;
+    v.g.rotation.y = v.dir * Math.PI / 2;
+    v.g.rotation.z = 0;
+    v.g.position.x += v.dir * 7 * dt;
+    v.g.position.y = Math.abs(Math.sin(v.walkT * 11)) * .12;
+    const P = v.g.userData;
+    P.legL.rotation.x = Math.sin(v.walkT * 11) * .6; P.legR.rotation.x = -P.legL.rotation.x;
+    if (v.bowls.length && v.walkT > .2){ v.bowls.forEach(b => scene.remove(b)); v.bowls = []; }
+    if (Math.abs(v.g.position.x - VIP_X) > 15){ V.root.remove(v.g); V.leaving.splice(k, 1); }
+  }
+  V.lamps.forEach((l, k) => { l.rotation.y = T * .2 + k; });
+}
+
 // ---------------- 점심 영업 행동 ----------------
 function orderSoup(id){
   const s = soupById(id);
@@ -3247,7 +3927,8 @@ function clickBurner(i){
   if (b.state === 'ready'){
     const t = G.trays[G.sel] === null ? G.sel : G.trays.findIndex(x => x === null);
     if (t < 0){ toast('조립대가 꽉 찼어요! 서빙하거나 버리세요'); sfx.err(); return; }
-    const from = W.burnerViews[i].g.position, to = W.trayViews[t].g.position;
+    const from = W.burnerViews[i].g.getWorldPosition(new THREE.Vector3());
+    const to = W.trayViews[t].g.getWorldPosition(new THREE.Vector3());
     const fly = makeBowl(b.soup, [], .6);
     fly.position.set(from.x, from.y + .6, from.z);
     scene.add(fly);
@@ -3284,7 +3965,7 @@ function toggleTop(id){
 
 function trashTray(){
   if (!G.trays[G.sel]) return;
-  const p = W.trayViews[G.sel].g.position;
+  const p = W.trayViews[G.sel].g.getWorldPosition(new THREE.Vector3());
   for (let k = 0; k < 4; k++) emitSteam(new THREE.Vector3(p.x, p.y + .5, p.z), true, .8);
   G.trays[G.sel] = null;
   sfx.trash();
@@ -3344,7 +4025,8 @@ function serve(i){
 
   const tv = W.trayViews[G.sel], v = W.seatViews[i];
   const bowl = makeBowl(tr.soup, tr.tops, .6);
-  bowl.position.copy(tv.g.position).add(new THREE.Vector3(0, .1, 0));
+  tv.g.getWorldPosition(bowl.position);
+  bowl.position.y += .1;
   scene.add(bowl);
   tweenArc(bowl, new THREE.Vector3(SEAT_X[i], COUNTER_TOP, -.75), .45, 2.2, () => { if (mistakes === 0) emitCoins(new THREE.Vector3(SEAT_X[i], 3.2, SEAT_Z + .5)); });
   if (v){ if (v.bowl) scene.remove(v.bowl); v.bowl = bowl; } else setTimeout(() => scene.remove(bowl), 2000);
@@ -3368,18 +4050,8 @@ function update(dt){
     G.spawnT -= dt;
     if (G.spawnT <= 0) G.spawnT = spawnCustomer() ? nextInterval() : 0.8;
   }
-  const ct = cookTime();
-  G.burners.forEach(b => {
-    if (b.state === 'cooking'){
-      b.t += dt;
-      if (b.t >= ct){ b.state = 'ready'; b.t = 0; sfx.ready(); }
-    } else if (b.state === 'ready'){
-      b.t += dt;
-      if (b.t >= BURN_TIME){ b.state = 'burnt'; sfx.burnt(); toast('💨 국밥이 타버렸어요!'); }
-    }
-  });
   G.seats.forEach((c, i) => {
-    if (c && c.jinsang){ updateJinsang(c, i, dt); return; }
+    if (c && c.jinsang){ updateJinsang(c, i, dt, 'lunch'); return; }
     if (c && c.state !== 'waiting'){
       c.t -= dt;
       if (c.t <= 0) G.seats[i] = null;
@@ -3393,7 +4065,10 @@ function update(dt){
       toast('🥲 재료가 다 떨어졌어요! 남은 손님만 받고 마감해요');
     }
   }
-  if (G.time <= 0 && G.seats.every(s => !s) && G.running) finishLunch();
+  if (G.time <= 0 && G.seats.every(s => !s) && G.running){
+    if (G.phase === 'open'){ G.lunchOn = false; toast('🍲 1층 국밥집 영업 끝!'); }
+    else finishLunch();
+  }
 }
 
 // =====================================================================
@@ -3484,7 +4159,7 @@ function updateCustomerView(v, c, dt, curTray, live){
       const tops = c.tops.length
         ? c.tops.map(t => { const T = topById(t); return `<span class="chip">${T.icon}${T.name}</span>`; }).join('')
         : `<span class="chip plain">토핑 없이</span>`;
-      html += `<div class="bubble" data-seat="${v.seat}"><span class="keyhint">${keyLabel(SEAT_KEYS[v.seat])}</span>${c.type.vip ? '<span class="vip-tag">VIP</span>' : ''}<div class="o-soup">${s.icon} ${s.name}</div><div class="o-tops">${tops}</div></div>`;
+      html += `<div class="bubble" data-seat="${v.seat}"><span class="keyhint">${keyLabel(SEAT_KEYS[v.seat])}</span>${c.type.vip ? '<span class="vip-tag">크리에이터</span>' : ''}<div class="o-soup">${s.icon} ${s.name}</div><div class="o-tops">${tops}</div></div>`;
     }
     v.el.innerHTML = html;
     v.el.className = 'cust-ui st-' + c.state + (c.type.vip ? ' vip' : '');
@@ -3506,7 +4181,7 @@ function syncBurners(burners, dt, ct, live){
       v.contents.children.filter(ch => !v.bubbles.includes(ch)).forEach(ch => v.contents.remove(ch));
       if (b.state !== 'empty') v.contents.add(makeContents(b.soup, [], .85 * .84, b.state === 'burnt'));
     }
-    const pos = v.g.position;
+    const pos = v.g.getWorldPosition(v.wp || (v.wp = new THREE.Vector3()));
     const cooking = b.state === 'cooking', ready = b.state === 'ready', burnt = b.state === 'burnt';
     const warn = ready && b.t > BURN_TIME * .55;
     v.flames.visible = cooking || ready;
@@ -3552,6 +4227,7 @@ function syncTrays(trays, sel, dt, live){
   trays.forEach((tr, i) => {
     const v = W.trayViews[i];
     if (!v) return;
+    const wp = v.g.getWorldPosition(v.wp || (v.wp = new THREE.Vector3()));
     const key = tr && !v.pendingKey ? tr.soup + ':' + tr.tops.join(',') : '-';
     if (v.key !== key){
       const wasEmpty = !v.key || v.key === '-';
@@ -3565,7 +4241,7 @@ function syncTrays(trays, sel, dt, live){
     v.holder.scale.setScalar(v.pop * v.scale);
     v.sel.visible = trays.length > 1 && sel === i;
     v.emitT -= dt;
-    if (tr && v.emitT <= 0){ emitSteam(new THREE.Vector3(v.g.position.x, v.g.position.y + .8, v.g.position.z), false, .6); v.emitT = .35; }
+    if (tr && v.emitT <= 0){ emitSteam(new THREE.Vector3(wp.x, wp.y + .8, wp.z), false, .6); v.emitT = .35; }
     if (!live){ v.label.hidden = true; return; }
     v.label.hidden = false;
     const lk = key + '|' + (v.sel.visible ? 1 : 0);
@@ -3575,7 +4251,7 @@ function syncTrays(trays, sel, dt, live){
       v.label.innerHTML = (trays.length > 1 ? `<span class="k">Tab</span>` : '') + (s ? `${s.icon} ${s.name}<small>${tr.tops.length ? tr.tops.map(t => topById(t).icon + topById(t).name).join(' ') : '토핑 없음'}</small>` : `조립대<small>빈 그릇 자리</small>`);
       v.label.className = 'plabel tray' + (v.sel.visible ? ' sel' : '') + (tr ? '' : ' empty');
     }
-    place(v.label, toScreen(v.g.position.x, v.g.position.y, v.g.position.z + .85));
+    place(v.label, toScreen(wp.x, wp.y, wp.z + .85));
   });
 }
 
@@ -3694,9 +4370,17 @@ function syncPrep(dt){
 // ---------------- HUD ----------------
 function renderHUD(){
   renderJinsangPanel();
+  renderFloorBar();
+  renderStaffBanner();
   if (!G) return;
   $('hudDay').textContent = `DAY ${G.day}`;
-  if (G.phase === 'cafe' || G.phase === 'cafeIntro'){
+  if (G.phase === 'open'){
+    const f = G.floor;
+    const t = f === 1 ? (G.lunchOn ? G.time : 0) : f === 2 ? (G.cafe && !G.cafe.done ? G.cafe.time : 0) : (G.vip && !G.vip.done ? G.vip.time : 0);
+    const tm = Math.ceil(t);
+    $('hudTime').textContent = `${FLOORS[f].icon} ${f}F ` + (t > 0 ? `${Math.floor(tm / 60)}:${String(tm % 60).padStart(2, '0')}` : '마감');
+    $('hudTime').classList.toggle('low', t > 0 && t <= 10);
+  } else if (G.phase === 'cafe' || G.phase === 'cafeIntro'){
     const ct = G.cafe ? G.cafe.time : CAFE_LEN, tm = Math.ceil(ct);
     $('hudTime').textContent = ct > 0 ? `☕ ${Math.floor(tm / 60)}:${String(tm % 60).padStart(2, '0')}` : '🔔 카페 마감';
     $('hudTime').classList.toggle('low', G.phase === 'cafe' && ct > 0 && ct <= 10);
@@ -3716,7 +4400,7 @@ function renderHUD(){
   const comboTxt = G.combo >= 2 ? `🔥 콤보 x${G.combo}` : '';
   if ($('hudCombo').textContent !== comboTxt) $('hudCombo').textContent = comboTxt;
 
-  if (G.phase === 'cafe' && G.cafe){
+  if ((G.phase === 'cafe' || G.phase === 'open') && G.cafe){
     document.querySelectorAll('[data-cing]').forEach(btn => {
       const id = btn.dataset.cing, it = MARKET_ITEMS[id], n = G.pantry[id];
       const txt = n > 0 ? `${n}${it.serve}` : '없음';
@@ -3726,7 +4410,7 @@ function renderHUD(){
       btn.classList.toggle('on', (it.cafe === 'drink' ? G.cafe.cup : G.cafe.plate).includes(id));
     });
   }
-  if (G.phase === 'lunch'){
+  if (G.phase === 'lunch' || G.phase === 'open'){
     const curTray = G.trays[G.sel];
     document.querySelectorAll('[data-top]').forEach(btn => btn.classList.toggle('on', !!(curTray && curTray.tops.includes(btn.dataset.top))));
     document.querySelectorAll('[data-soup]').forEach(btn => {
@@ -3768,9 +4452,11 @@ function endDay(){
   G.running = false;
   G.phase = 'result';
   const s = G.stats, rent = rentToday();
-  G.money -= rent;
+  const wages = wagesToday();
+  G.money -= rent + wages;
   const cafeIncome = s.cafeSales + s.cafeTips;
-  const net = s.sales + s.tips + cafeIncome - s.purchase - rent - s.jinsangLostMoney;
+  const vipIncome = s.vipSales + s.vipTips;
+  const net = s.sales + s.tips + cafeIncome + vipIncome - s.purchase - rent - wages - s.jinsangLostMoney;
   G.totalProfit += net; G.totalServed += s.served; G.totalPerfect += s.perfect;
   const p = G.prep, r = G.raw, st = G.stock;
   const waste = {
@@ -3794,13 +4480,16 @@ function endDay(){
         <tr><td>🍲 국밥 매출</td><td class="plus">+${fmt(s.sales)}</td></tr>
         <tr><td>💝 팁</td><td class="plus">+${fmt(s.tips)}</td></tr>
         ${s.cafeServed || cafeIncome ? `<tr><td>☕ 카페 매출·팁 (${s.cafeServed}명)</td><td class="plus">+${fmt(cafeIncome)}</td></tr>` : ''}
+        ${s.vipServed || vipIncome ? `<tr><td>👑 VIP 매출·팁 (${s.vipServed}명)</td><td class="plus">+${fmt(vipIncome)}</td></tr>` : ''}
         <tr><td>🛒 새벽 재료 구입비</td><td class="minus">-${fmt(s.purchase)}</td></tr>
         <tr><td>🏠 임대료</td><td class="minus">-${fmt(rent)}</td></tr>
+        ${wages ? `<tr><td>👷 직원 일당</td><td class="minus">-${fmt(wages)}</td></tr>` : ''}
         ${s.jinsangLostMoney ? `<tr><td>💸 진상에게 뺏긴 돈</td><td class="minus">-${fmt(s.jinsangLostMoney)}</td></tr>` : ''}
         <tr class="total"><td>오늘 순이익</td><td class="${net >= 0 ? 'plus' : 'minus'}">${net >= 0 ? '+' : ''}${fmt(net)}</td></tr>
       </table>
       <div class="waste">${wasteTxt ? `🗑️ 폐기된 재료: ${wasteTxt}` : '👍 재료를 남김없이 다 썼어요!'}</div>
       ${s.jinsangHandled || s.jinsangRobbed ? `<div class="waste">🚨 진상 손님: 퇴치 ${s.jinsangHandled}명 · 피해 ${s.jinsangRobbed}번</div>` : ''}
+      ${s.staffServed || s.vipAngry ? `<div class="waste">${s.staffServed ? `👷 직원이 서빙한 손님 ${s.staffServed}명` : ''}${s.staffServed && s.vipAngry ? ' · ' : ''}${s.vipAngry ? `👑 화나서 떠난 VIP ${s.vipAngry}명` : ''}</div>` : ''}
       <div style="font-size:19px;margin-top:8px">보유 자금 <b style="color:var(--red);font-weight:normal">${fmt(G.money)}</b> · 평판 ⭐ ${G.rep.toFixed(1)}</div>
       ${goalBar()}
       ${nextBtn}
@@ -3823,6 +4512,7 @@ function showShop(){
       <div class="shop-money">보유 자금 <b>${fmt(G.money)}</b> · 평판 ⭐ ${G.rep.toFixed(1)}</div>
       <div style="font-size:15px;color:#8a6e55;margin-bottom:8px">💡 업그레이드에 돈을 쓰면 100만원이 멀어져요. 내일 재료 살 돈도 남겨두세요!</div>
       <div class="shop-grid">${cards}</div>
+      ${staffShopHtml()}
       <button class="big-btn" onclick="nextDay()">DAY ${G.day + 1} 준비하기 ▶</button>
     </div>`);
 }
@@ -3882,19 +4572,29 @@ function showEnding(reason){
 }
 
 function togglePause(){
-  if (!(inPhase('lunch') || inPhase('cafe')) || (!G.running && !G.paused)) return;
+  if (!(inPhase('lunch') || inPhase('cafe') || inPhase('open')) || (!G.running && !G.paused)) return;
   G.paused = !G.paused;
   G.running = !G.paused;
   if (G.paused){
-    const cafe = inPhase('cafe');
-    const waiting = (cafe ? G.cafe.seats : G.seats).filter(c => c && c.state === 'waiting').length;
-    const timeLeft = cafe ? G.cafe.time : G.time;
+    const open = inPhase('open');
+    const cafe = inPhase('cafe') || (open && G.floor === 2);
+    const waitingIn = seats => seats.filter(c => c && c.state === 'waiting').length;
+    let waiting, timeLeft, closeFn;
+    if (open){
+      waiting = waitingIn(G.seats) + (G.cafe ? waitingIn(G.cafe.seats) : 0) + (G.vip ? waitingIn(G.vip.seats) : 0);
+      timeLeft = Math.max(G.lunchOn ? G.time : 0, G.cafe && !G.cafe.done ? G.cafe.time : 0, G.vip && !G.vip.done ? G.vip.time : 0);
+      closeFn = 'closeOpen()';
+    } else if (cafe){ waiting = waitingIn(G.cafe.seats); timeLeft = G.cafe.time; closeFn = 'closeCafe()'; }
+    else { waiting = waitingIn(G.seats); timeLeft = G.time; closeFn = 'closeEarly()'; }
+    const keys = (open ? 'Shift+1·2·3 층 이동 · ' : '')
+      + (cafe ? '1~8 음료 재료 · Q W E R T 샌드위치 재료 · Z X C 서빙 · Backspace 컵 비우기 · Delete 접시 비우기' : 'Q W E 국밥 · A S D F 가마솥 · 1~4 토핑 · Z X C V 서빙 · Tab 조립대 전환 · Backspace 버리기')
+      + ' · 진상: B 방망이 · G 총 · H 112';
     showOverlay(`
       <div class="card">
         <h2>⏸ 일시정지</h2>
-        <div class="keys-help" style="font-size:16px">${cafe ? '1~8 음료 재료 · Q W E R T 샌드위치 재료 · Z X C 서빙 · Backspace 컵 비우기 · Delete 접시 비우기 · 진상: B 방망이 · G 총 · H 112' : 'Q W E 국밥 · A S D F 가마솥 · 1~4 토핑 · Z X C V 서빙 · Tab 조립대 전환 · Backspace 버리기 · 진상: B 방망이 · G 총 · H 112'}</div>
+        <div class="keys-help" style="font-size:16px">${keys}</div>
         <button class="big-btn" onclick="togglePause()">계속하기 ▶</button><br>
-        ${timeLeft <= 0 && waiting ? `<button class="sub-btn" onclick="${cafe ? 'closeCafe()' : 'closeEarly()'}">🙇 남은 손님께 사과하고 마감 (평판 -${cafe ? '0.1' : '0.2'}/명)</button><br>` : ''}
+        ${timeLeft <= 0 && waiting ? `<button class="sub-btn" onclick="${closeFn}">🙇 남은 손님께 사과하고 마감 (평판이 조금 깎여요)</button><br>` : ''}
         <button class="sub-btn" onclick="showTitle()">처음으로</button>
       </div>`);
   } else hideOverlay();
@@ -3945,7 +4645,7 @@ const _ptr = new THREE.Vector2();
 function pickAt(cx, cy){
   _ptr.set(cx / window.innerWidth * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(_ptr, camera);
-  const list = W.mode === 'prep' ? W.prep.hits : W.mode === 'market' ? W.market.hits : W.mode === 'cafe' ? W.cafe.hits : [...W.seatHits, ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
+  const list = W.mode === 'prep' ? W.prep.hits : W.mode === 'market' ? W.market.hits : W.mode === 'cafe' ? W.cafe.hits : [...(W.mode === 'vip' ? W.vip.hits : W.seatHits), ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
   const hits = raycaster.intersectObjects(list, false);
   return hits.length ? hits[0].object.userData : null;
 }
@@ -3954,12 +4654,17 @@ function handleHit(u){
   else if (u.kind === 'burner') clickBurner(u.i);
   else if (u.kind === 'tray'){ if (u.i < G.trays.length){ G.sel = u.i; sfx.click(); } }
   else if (u.kind === 'seat') serve(u.i);
+  else if (u.kind === 'vseat') vipServe(u.i);
   else if (u.kind === 'top') toggleTop(u.id);
 }
 
 document.addEventListener('pointerdown', e => {
   if (e.button !== 0) return;
   const t = e.target;
+  const fb = t.closest('[data-floor]');
+  if (fb){ if (inPhase('open') && G.running && !G.paused) goFloor(+fb.dataset.floor); return; }
+  const jzb = t.closest('[data-jz]');
+  if (jzb){ jinsangAction(jzb.dataset.jz); return; }
   if (canMarket()){ marketPointer(e); return; }
   if (canCafe()){ cafePointer(e); return; }
   if (canPrep()){
@@ -3969,17 +4674,18 @@ document.addEventListener('pointerdown', e => {
     else if (t.closest('#startLunchBtn')) startLunch();
     return;
   }
-  if (!canAct()) return;
+  if (!(canAct() || canVip())) return;
   if (t === renderer.domElement){ const u = pickAt(e.clientX, e.clientY); if (u) handleHit(u); return; }
   let el;
   if ((el = t.closest('[data-jz]'))){ jinsangAction(el.dataset.jz); return; }
   if ((el = t.closest('[data-soup]'))) orderSoup(el.dataset.soup);
   else if ((el = t.closest('[data-top]'))) toggleTop(el.dataset.top);
   else if ((el = t.closest('[data-seat]'))) serve(+el.dataset.seat);
+  else if ((el = t.closest('[data-vseat]'))) vipServe(+el.dataset.vseat);
   else if (t.closest('#trashBtn')) trashTray();
 });
 document.addEventListener('pointermove', e => {
-  if (!(canAct() || canPrep() || canMarket() || canCafe()) || e.target !== renderer.domElement){ W.hover = null; renderer.domElement.style.cursor = ''; return; }
+  if (!(canAct() || canPrep() || canMarket() || canCafe() || canVip()) || e.target !== renderer.domElement){ W.hover = null; renderer.domElement.style.cursor = ''; return; }
   W.hover = pickAt(e.clientX, e.clientY);
   renderer.domElement.style.cursor = W.hover ? 'pointer' : '';
 });
@@ -3990,6 +4696,10 @@ $('muteBtn').addEventListener('click', () => { muted = !muted; $('muteBtn').text
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   const c = e.code;
+  if (inPhase('open') && e.shiftKey && /^Digit[1-3]$/.test(c)){
+    if (G.running && !G.paused && !e.repeat) goFloor(+c.slice(5));
+    return;
+  }
   if (canMarket()){ marketKey(e); return; }
   if (canPrep()){
     const m = /^(?:Digit|Numpad)([1-8])$/.exec(c);
@@ -3998,20 +4708,23 @@ window.addEventListener('keydown', e => {
     return;
   }
   if (c === 'Escape' || c === 'KeyP'){ togglePause(); return; }
-  if (canCafe()){ cafeKey(e); return; }
-  if (!canAct()) return;
   const jz = {KeyB: 'bat', KeyG: 'gun', KeyH: 'phone'}[c];
-  if (jz){ if (!e.repeat) jinsangAction(jz); return; }
+  if (jz && hereKind()){ if (!e.repeat) jinsangAction(jz); return; }
+  if (canCafe()){ cafeKey(e); return; }
+  if (!(canAct() || canVip())) return;
   let n;
   if ((n = SOUP_KEYS.indexOf(c)) >= 0) orderSoup(SOUPS[n].id);
   else if ((n = BURNER_KEYS.indexOf(c)) >= 0){ if (n < G.burners.length) clickBurner(n); }
-  else if ((n = SEAT_KEYS.indexOf(c)) >= 0) serve(n);
+  else if ((n = SEAT_KEYS.indexOf(c)) >= 0){
+    if (canVip()){ if (n < VIP_SEATS) vipServe(n); }
+    else serve(n);
+  }
   else if (/^Digit[1-4]$/.test(c)) toggleTop(TOPPINGS[+c.slice(5) - 1].id);
   else if (c === 'Tab'){ e.preventDefault(); G.sel = (G.sel + 1) % G.trays.length; sfx.click(); }
   else if (c === 'Backspace' || c === 'Delete'){ e.preventDefault(); trashTray(); }
 });
 
-document.addEventListener('visibilitychange', () => { if (document.hidden && (canAct() || canCafe())) togglePause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && (canAct() || canCafe() || (inPhase('open') && G.running))) togglePause(); });
 
 // ================= 메인 루프 =================
 let last = 0;
@@ -4020,15 +4733,23 @@ function loop(ts){
   const dt = Math.min(0.1, (ts - last) / 1000 || 0);
   last = ts;
   T += dt;
-  if (canAct()) update(dt);
-  if (canCafe()) updateCafe(dt);
+  if (!W.sized){   // 처음 열 때 창 크기가 0이었다면 지금 카메라 위치를 계산해요
+    onResize();
+    if (W.sized) W.snapCam = true;
+  }
+  // 직원이 있으면 여러 층이 동시에 돌아가요
+  if (lunchTick()) update(dt);
+  if (lunchTick() || vipTick()) tickBurners(dt);
+  if (cafeTick()) updateCafe(dt);
+  if (vipTick()) updateVip(dt);
+  if (inPhase('open') && G.running && !G.paused){ staffWork(dt); checkOpenEnd(); }
   if (inPhase('prep')) updatePrep(dt);
 
   const overlayOpen = !$('overlay').hidden;
   const frozen = G && G.paused;
   const fdt = frozen ? 0 : dt;
 
-  if (W.mode === 'lunch'){
+  if (W.mode === 'lunch' || W.mode === 'vip'){
     const real = !!G;
     const seats = real ? G.seats : DEMO.seats;
     const burners = real ? G.burners : DEMO.burners;
@@ -4036,10 +4757,14 @@ function loop(ts){
     const sel = real ? G.sel : 0;
     if (!real) DEMO.burners[1].t = T % 7;
     const curTray = trays[sel];
-    syncCustomers(seats, fdt, real ? curTray : null, real);
-    syncBurners(burners, fdt, real ? cookTime() : 7, real);
-    syncTrays(trays, sel, fdt, real);
-    syncBins(real ? curTray : null, fdt);
+    if (W.mode === 'lunch') syncCustomers(seats, fdt, real ? curTray : null, real);
+    else syncVip(fdt);
+    // 사장님이 직접 요리하는 곳에서만 가마솥·조립대 안내를 보여줘요
+    const kitchenHere = W.mode === 'vip' || !(real && G.vip);
+    const cookLive = real && kitchenHere && (W.mode === 'vip' || !(G.phase === 'open' && G.staff.gukbap));
+    syncBurners(burners, fdt, real ? cookTime() : 7, cookLive);
+    syncTrays(trays, sel, fdt, cookLive);
+    syncBins(cookLive ? curTray : null, fdt);
   } else if (W.mode === 'prep'){
     syncPrep(dt);
   } else if (W.mode === 'cafe'){
@@ -4048,6 +4773,7 @@ function loop(ts){
     syncMarket(dt);
   }
   syncFridge(dt);
+  syncStaff(fdt);
   if (!frozen) updateFx(dt);
   renderHUD();
   $('labels').style.visibility = overlayOpen ? 'hidden' : 'visible';
@@ -4065,7 +4791,7 @@ function loop(ts){
   W.sun.intensity = lerp(W.sun.intensity, Lt.sunI, lk);
 
   // 해 그림자는 지금 보는 곳을 따라가요
-  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : _origin;
+  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : W.mode === 'vip' ? W.vip.origin : _origin;
   W.sun.position.set(sunAt.x - 5, 14, sunAt.z + 8);
   W.sun.target.position.set(sunAt.x, 0, sunAt.z);
   W.sun.target.updateMatrixWorld();
@@ -4080,7 +4806,7 @@ function loop(ts){
     _lookTarget.copy(CAMS[W.mode].look);
   }
   if (overlayOpen){ _camTarget.x += Math.sin(T * .25) * 2.2; _camTarget.y += Math.sin(T * .17) * .4; }
-  if (W.snapCam){ camera.position.copy(_camTarget); curLook.copy(_lookTarget); W.snapCam = false; }
+  if (W.snapCam || !Number.isFinite(camera.position.x + curLook.x)){ camera.position.copy(_camTarget); curLook.copy(_lookTarget); W.snapCam = false; }
   const follow = W.mode === 'market' ? 6 : 2.5;
   camera.position.lerp(_camTarget, Math.min(1, dt * follow));
   curLook.lerp(_lookTarget, Math.min(1, dt * follow));
@@ -4095,7 +4821,7 @@ init3D();
 showTitle();
 camera.position.copy(CAMS.lunch.pos);
 requestAnimationFrame(loop);
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { redrawTex(W.menuTex); redrawTex(W.signTex); W.market.texts.forEach(redrawTex); redrawTex(W.cafe.boardTex); redrawTex(W.cafe.signTex); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { redrawTex(W.menuTex); redrawTex(W.signTex); W.market.texts.forEach(redrawTex); redrawTex(W.cafe.boardTex); redrawTex(W.cafe.signTex); redrawTex(W.vip.signTex); });
 </script>
 </body>
 </html>
