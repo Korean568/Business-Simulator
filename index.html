@@ -155,6 +155,26 @@ button{font-family:inherit;cursor:pointer}
 .cbtn.slim .swatch{width:10px;height:10px;margin-right:3px;vertical-align:0}
 .card.still{animation:none}
 .name-row .sub-btn{margin:0 0 0 8px;padding:6px 14px;font-size:16px}
+
+/* ---------- 진상 손님 ---------- */
+#jinsangPanel{position:fixed;top:112px;left:50%;transform:translateX(-50%);z-index:20;width:min(580px,calc(100% - 20px));background:linear-gradient(#5a1010,#3a0808);color:#fff3dc;border:3px solid #ff5a4a;border-radius:16px;padding:10px 14px 12px;text-align:center;box-shadow:0 0 0 4px rgba(255,90,74,.25),0 10px 24px rgba(0,0,0,.5);animation:jzPulse 1s infinite}
+@keyframes jzPulse{50%{box-shadow:0 0 0 10px rgba(255,90,74,.12),0 10px 24px rgba(0,0,0,.5)}}
+#jzTitle{font-size:20px;text-wrap:balance}
+.jz-bar{height:10px;background:rgba(255,255,255,.18);border-radius:6px;overflow:hidden;margin:6px 0 10px}
+.jz-bar i{display:block;height:100%;width:100%;transition:background .2s}
+.jz-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.jz-btn{flex:1;min-width:140px;background:var(--paper);color:var(--ink);border:none;border-radius:12px;padding:8px 6px;font-size:17px;box-shadow:0 4px 0 #b99b72}
+.jz-btn small{display:block;font-size:12px;color:#8a6e55}
+.jz-btn:disabled{background:#6a5a50;color:#d9c9c0;box-shadow:0 4px 0 #3a2a20;cursor:not-allowed}
+.jz-btn:disabled small{color:#bfaea4}
+.jz-btn:not(:disabled):hover{background:#fff}
+.jz-btn:not(:disabled):active{transform:translateY(3px);box-shadow:0 1px 0 #b99b72}
+.bubble.jinsang{background:#3a0d0d;color:#fff3dc;border-color:#e53935;animation:shake .5s infinite}
+.bubble.jinsang:after{border-top-color:#e53935}
+.bubble.jinsang .o-tops{color:#ffd27a}
+.jz-mini{height:8px;background:rgba(255,255,255,.2);border-radius:5px;overflow:hidden;margin-top:4px}
+.jz-mini i{display:block;height:100%;width:100%}
+.cust-ui.st-jinsang .line{background:#2a1a10;color:#ffd27a;font-size:17px;animation:pop .3s}
 .menu-list{display:flex;flex-direction:column;gap:6px;margin:12px 0;text-align:left}
 .menu-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto 84px 72px;align-items:center;gap:10px;background:#f3e6cf;border-radius:12px;padding:6px 12px}
 .menu-row b{font-weight:normal;font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -360,6 +380,15 @@ button{font-family:inherit;cursor:pointer}
   <div id="stallPanel" hidden></div>
   <div id="marketHint">🚶 방향키·WASD로 걷거나 바닥 클릭<br>🛒 상품을 클릭하면 사요 (가판대 앞에선 1~3 키)</div>
 </div>
+<div id="jinsangPanel" hidden>
+  <div id="jzTitle">🚨 진상 손님 등장!</div>
+  <div class="jz-bar"><i id="jzBar"></i></div>
+  <div class="jz-btns">
+    <button class="jz-btn" id="jzBat" data-jz="bat">🏏 방망이로 때리기<small>B 키</small></button>
+    <button class="jz-btn" id="jzGun" data-jz="gun">🔫 총으로 협박<small>G 키</small></button>
+    <button class="jz-btn" id="jzPhone" data-jz="phone">📞 112 신고<small>H 키</small></button>
+  </div>
+</div>
 <div id="overlay" class="overlay" hidden></div>
 <div id="toast"></div>
 
@@ -412,6 +441,7 @@ const MARKET_ITEMS = {
   tomato:  {name:'토마토',     unit:'개',   icon:'🍅', price:1500,   kind:'pantry', yield:2,  serve:'개', cafe:'food',  color:'#d9321f', desc:'샌드위치 2개분 · 창고 보관'},
   bat:     {name:'방망이',     unit:'개',   icon:'🏏', price:30000,  kind:'tool',   desc:'진상 손님 기절시키기용 · 계속 보유'},
   gun:     {name:'총',         unit:'자루', icon:'🔫', price:150000, kind:'tool',   desc:'진상 손님 협박용 · 계속 보유'},
+  phone:   {name:'전화기',     unit:'대',   icon:'📞', price:20000,  kind:'tool',   desc:'진상 손님 오면 112 신고 · 계속 보유'},
 };
 // 시장 거리 양옆 가판대 (side: -1 왼쪽, 1 오른쪽)
 const STALLS = [
@@ -420,7 +450,7 @@ const STALLS = [
   {name:'할매 양념',     icon:'🌶️', side:-1, z:-8, color:'#d9531e', keeper:'grandpa',  line:'우리 양념 넣으면 매운맛이 달라~',     items:['sauce']},
   {name:'모닝 원두',     icon:'☕', side:1,  z:8,  color:'#6b4226', keeper:'student',  line:'카페 여시게요? 향 한번 맡아보세요',   items:['coffee', 'tea']},
   {name:'굿모닝 델리',   icon:'🍞', side:1,  z:0,  color:'#e0a030', keeper:'hangover', line:'빵 방금 나왔어요... 하암',           items:['bread', 'cheese', 'ham']},
-  {name:'만물 잡화',     icon:'🧰', side:1,  z:-8, color:'#3a4a6a', keeper:'worker',   line:'요즘 진상 손님 많죠? 하나 챙겨가요',  items:['bat', 'gun']},
+  {name:'만물 잡화',     icon:'🧰', side:1,  z:-8, color:'#3a4a6a', keeper:'worker',   line:'요즘 진상 손님 많죠? 하나 챙겨가요',  items:['bat', 'gun', 'phone']},
   {name:'밀크&시럽',     icon:'🥛', side:-1, z:-16, color:'#4a86c8', keeper:'grandpa', line:'라떼엔 우리 우유가 최고지',          items:['milk', 'choco', 'vanilla']},
   {name:'과일청 공방',   icon:'🍓', side:1,  z:-16, color:'#d6456a', keeper:'youtuber', line:'요즘 과일청 음료가 대세예요!',       items:['strawberry', 'lemon', 'blueberry']},
 ];
@@ -462,9 +492,9 @@ const UPGRADES = [
 function dayNote(d){
   if (d === 1) return '새벽 시장에서 재료를 사고, 손질해서 점심 장사를 준비해요! 목표는 100만원!';
   if (d === 2) return '해장 손님이 오기 시작해요. 해장 손님은 항상 다대기를 원해요!';
-  if (d === 3) return '먹방 유튜버가 올지도? 완벽하게 주면 평판이 크게 올라요!';
-  if (d < 6) return '소문이 나서 손님이 늘어요. 재료를 넉넉히 준비하세요!';
-  return '손님들이 몰려옵니다! 100만원까지 힘내요!';
+  if (d === 3) return '🚨 오늘부터 식당과 카페에 진상 손님이 와요! 새벽시장 잡화점에서 방망이·총·전화기를 챙기세요 (먹방 유튜버도 올지 몰라요)';
+  if (d < 6) return '소문이 나서 손님이 늘어요. 진상 손님도 조심하세요!';
+  return '손님들이 몰려옵니다! 진상 손님 조심하고 100만원까지 힘내요!';
 }
 
 // ================= 유틸 =================
@@ -517,6 +547,10 @@ const sfx = {
   chop:  () => { tone(140, 0.08, 'sine', 0.14, 70); tone(1800, 0.03, 'square', 0.02); },
   pluck: () => tone(900, 0.06, 'triangle', 0.05, 1400),
   splash:() => { tone(1200, 0.12, 'sine', 0.04, 400); tone(700, 0.1, 'triangle', 0.03, 1500, 0.05); },
+  alarm: () => { tone(880, 0.15, 'square', 0.05); tone(660, 0.15, 'square', 0.05, null, 0.18); tone(880, 0.15, 'square', 0.05, null, 0.36); },
+  bonk:  () => { tone(160, 0.18, 'square', 0.12, 50); tone(1400, 0.05, 'triangle', 0.05); },
+  bang:  () => { tone(90, 0.35, 'sawtooth', 0.16, 30); tone(2400, 0.06, 'square', 0.08, 300); },
+  siren: () => { tone(650, 0.35, 'sine', 0.06, 950); tone(950, 0.35, 'sine', 0.06, 650, 0.35); tone(650, 0.35, 'sine', 0.06, 950, 0.7); },
   rooster: () => { tone(600, 0.15, 'sawtooth', 0.03, 900); tone(900, 0.35, 'sawtooth', 0.03, 700, 0.15); },
   fanfare: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.25, 'square', 0.04, null, i * 0.13)),
 };
@@ -1107,6 +1141,8 @@ const LOOKS = {
   grandma:  {skin: 0xf5cfa8, shirt: 0x8e5b9a, pants: 0x5a4a6a},
   youtuber: {skin: 0xffe0c0, shirt: 0xff7eb3, pants: 0x2d2d4d},
   owner:    {skin: 0xffd9b3, shirt: 0xeeeeee, pants: 0x3a3a44},
+  jinsang:  {skin: 0xf0b88a, shirt: 0x26262e, pants: 0x26262e},
+  police:   {skin: 0xffd9b3, shirt: 0x2c3e6b, pants: 0x1f2a44},
 };
 const faceCache = {};
 function faceTex(kind, mood){
@@ -1123,11 +1159,24 @@ function faceTex(kind, mood){
     const eyes = () => { dot(88, 128, 14, ink); dot(168, 128, 14, ink); dot(93, 122, 5, '#fff'); dot(173, 122, 5, '#fff'); };
     if (mood === 'happy'){ arc(88, 138, 20, Math.PI * 1.15, Math.PI * 1.85, 11); arc(168, 138, 20, Math.PI * 1.15, Math.PI * 1.85, 11); }
     else if (mood === 'worried'){ eyes(); line([60, 104, 110, 88], 9); line([196, 104, 146, 88], 9); x.fillStyle = '#6ec6ff'; x.beginPath(); x.moveTo(218, 60); x.quadraticCurveTo(236, 96, 218, 100); x.quadraticCurveTo(200, 96, 218, 60); x.fill(); }
+    else if (mood === 'angry'){ eyes(); line([52, 88, 112, 110], 12); line([204, 88, 144, 110], 12); }
+    else if (mood === 'dizzy'){ line([70, 110, 106, 146], 10); line([106, 110, 70, 146], 10); line([150, 110, 186, 146], 10); line([186, 110, 150, 146], 10); }
+    else if (mood === 'scared'){ dot(88, 126, 20, ink); dot(168, 126, 20, ink); dot(88, 126, 9, '#fff'); dot(168, 126, 9, '#fff'); line([58, 92, 108, 80], 8); line([198, 92, 148, 80], 8); }
+    else if (mood === 'smug'){ line([66, 132, 108, 126], 10); line([148, 126, 190, 132], 10); line([150, 96, 196, 84], 8); }
     else if (mood === 'sick'){ for (const cx of [88, 168]){ x.strokeStyle = ink; x.lineWidth = 5; x.beginPath(); for (let a = 0; a < 14; a += .3){ const r = a * 1.3; x.lineTo(cx + Math.cos(a) * r, 128 + Math.sin(a) * r); } x.stroke(); } }
     else if (mood === 'meh' || mood === 'annoyed'){ line([70, 130, 106, 130], 10); line([150, 130, 186, 130], 10); if (mood === 'annoyed'){ line([62, 108, 110, 116], 8); line([194, 108, 146, 116], 8); } }
     else eyes();
+    if (kind === 'jinsang' && (mood === 'angry' || mood === 'smug')){
+      for (const cx of [86, 170]){ x.fillStyle = '#111'; x.beginPath(); x.ellipse(cx, 124, 34, 22, 0, 0, Math.PI * 2); x.fill(); }
+      line([118, 118, 138, 118], 8, '#111');
+      x.fillStyle = 'rgba(255,255,255,.4)'; x.fillRect(66, 112, 14, 6); x.fillRect(150, 112, 14, 6);
+    }
     if (kind === 'grandpa'){ arc(88, 128, 30, 0, Math.PI * 2, 6, '#333'); arc(168, 128, 30, 0, Math.PI * 2, 6, '#333'); line([118, 128, 138, 128], 6, '#333'); x.fillStyle = '#d8d8d8'; x.beginPath(); x.ellipse(128, 168, 40, 13, 0, 0, Math.PI * 2); x.fill(); }
     if (mood === 'happy'){ x.fillStyle = '#8a1f1f'; x.beginPath(); x.arc(128, 178, 32, 0, Math.PI); x.closePath(); x.fill(); dot(128, 198, 12, '#ff7b7b'); }
+    else if (mood === 'angry') arc(128, 222, 30, Math.PI * 1.2, Math.PI * 1.8, 10);
+    else if (mood === 'scared'){ x.fillStyle = '#8a1f1f'; x.beginPath(); x.ellipse(128, 200, 16, 20, 0, 0, Math.PI * 2); x.fill(); }
+    else if (mood === 'smug') line([104, 196, 152, 184], 9);
+    else if (mood === 'dizzy'){ x.strokeStyle = ink; x.lineWidth = 8; x.beginPath(); x.moveTo(100, 198); x.quadraticCurveTo(114, 186, 128, 198); x.quadraticCurveTo(142, 210, 156, 198); x.stroke(); }
     else if (mood === 'annoyed') arc(128, 215, 22, Math.PI * 1.25, Math.PI * 1.75, 9);
     else if (mood === 'worried') arc(128, 222, 26, Math.PI * 1.2, Math.PI * 1.8, 9);
     else if (mood === 'sick'){ x.strokeStyle = ink; x.lineWidth = 8; x.beginPath(); x.moveTo(100, 195); x.quadraticCurveTo(114, 183, 128, 195); x.quadraticCurveTo(142, 207, 156, 195); x.stroke(); }
@@ -1204,6 +1253,18 @@ function makeCustomer(type){
       head.add(mesh(new THREE.SphereGeometry(.28, 16, 12), std(0xd6d6d6, {roughness: .8}), 0, .55, -.35));
       g.add(mesh(new THREE.TorusGeometry(.42, .045, 8, 24), std(0xfff8f0, {roughness: .2}), 0, 2.3, .12).rotateX(Math.PI / 2 - .25));
       break;
+    case 'jinsang':
+      head.add(hair(0x111111, .9));
+      g.add(mesh(new THREE.TorusGeometry(.4, .06, 8, 20), std(0xf2b632, {metalness: .6, roughness: .3}), 0, 2.25, .15).rotateX(Math.PI / 2 - .3));
+      for (const sx of [-1, 1]) g.add(mesh(new THREE.BoxGeometry(.06, 1.3, .02), std(0xffffff), sx * .3, 1.65, .6));
+      break;
+    case 'police': {
+      head.add(mesh(new THREE.CylinderGeometry(.66, .6, .32, 24), std(0x1f2a44), 0, .5, 0));
+      const pb = mesh(new THREE.BoxGeometry(.72, .05, .4), std(0x111111), 0, .36, .55); pb.rotation.x = .25; head.add(pb);
+      head.add(mesh(new THREE.BoxGeometry(.16, .16, .05), std(0xf2b632, {metalness: .6}), 0, .52, .66));
+      g.add(mesh(new THREE.BoxGeometry(.14, .14, .05), std(0xf2b632, {metalness: .6}), -.25, 2.0, .58));
+      break;
+    }
     case 'owner':
       head.add(hair(0x2b2118));
       head.add(mesh(new THREE.TorusGeometry(.63, .08, 8, 28), std(0xffffff), 0, .24, 0).rotateX(Math.PI / 2 - .12));
@@ -1430,7 +1491,7 @@ function startGame(){
     pantry: Object.fromEntries([...DRINK_INGS, ...FOOD_INGS].map(id => [id, 0])),
     recipes: DEFAULT_RECIPES.map(r => ({...r, ings: [...r.ings]})),
     cafeName: '',
-    tools: {bat: 0, gun: 0},
+    tools: {bat: 0, gun: 0, phone: 0},
   };
   $('hudName').textContent = '🍲 ' + name;
   sfx.click();
@@ -1486,7 +1547,8 @@ function buildDay(){
       spineWash: 0, washedSpine: 0, spicyBoil: null,
       warned: false,
     },
-    stats: {sales: 0, tips: 0, purchase: 0, served: 0, perfect: 0, soldout: 0, cafeSales: 0, cafeTips: 0, cafeServed: 0, cafeSoldout: 0},
+    stats: {sales: 0, tips: 0, purchase: 0, served: 0, perfect: 0, soldout: 0, cafeSales: 0, cafeTips: 0, cafeServed: 0, cafeSoldout: 0, jinsangHandled: 0, jinsangRobbed: 0, jinsangLostMoney: 0},
+    jinsangToday: 0,
     cafe: null,
     running: false, paused: false,
   });
@@ -1681,6 +1743,16 @@ function makeProduct(id){
         b.position.set(-.36 + k * .36, 0, k === 1 ? -.12 : .08);
         g.add(b);
       }
+      break;
+    }
+    case 'phone': {
+      g.add(mesh(new THREE.BoxGeometry(1.0, .1, .7), std(0x3a4a6a), 0, .05, 0));
+      g.add(mesh(new THREE.BoxGeometry(.6, .26, .45), std(0xc62d1f, {roughness: .35}), 0, .23, 0));
+      g.add(mesh(new THREE.CylinderGeometry(.14, .14, .04, 16), std(0xf2f2f2), 0, .38, .08));
+      const hand = new THREE.Group(); hand.position.set(0, .44, -.08);
+      hand.add(mesh(new THREE.BoxGeometry(.62, .08, .12), std(0xc62d1f, {roughness: .35}), 0, 0, 0));
+      for (const sx of [-1, 1]) hand.add(mesh(geo('phEar', () => new THREE.BoxGeometry(.16, .12, .16)), std(0xc62d1f, {roughness: .35}), sx * .3, -.03, 0));
+      g.add(hand);
       break;
     }
     case 'bat': {
@@ -2237,6 +2309,7 @@ function clearCafeCustomers(){
   const C = W.cafe;
   C.seatViews.forEach(v => { if (v){ C.root.remove(v.g); v.el.remove(); } });
   C.leaving.forEach(v => C.root.remove(v.g));
+  if (C.police){ C.root.remove(C.police.g); C.police = null; }
   C.seatViews = [null, null, null];
   C.leaving = [];
 }
@@ -2284,7 +2357,7 @@ function buildCafeButtons(){
 function startCafe(){
   if (!G.recipes.some(recipeMakeable)){ sfx.err(); return; }
   applyCafeName();
-  G.cafe = {time: CAFE_LEN, spawnT: 1, seats: Array(CAFE_SEATS).fill(null), cup: [], plate: []};
+  G.cafe = {time: CAFE_LEN, spawnT: 1, seats: Array(CAFE_SEATS).fill(null), cup: [], plate: [], jinsangCount: 0, jinsangPlanned: Math.random() < .6};
   G.phase = 'cafe';
   G.running = true; G.paused = false;
   hideOverlay();
@@ -2322,6 +2395,7 @@ function cafeSpawn(){
   const C = G.cafe;
   const free = C.seats.map((s, i) => s ? -1 : i).filter(i => i >= 0);
   if (!free.length) return false;
+  if (maybeSpawnJinsang(free)) return true;
   const res = cafeReserved();
   const menus = G.recipes.filter(r => r.ings.every(id => G.pantry[id] - (res[id] || 0) >= 1));
   if (!menus.length) return false;
@@ -2359,6 +2433,7 @@ function updateCafe(dt){
     if (C.spawnT <= 0) C.spawnT = cafeSpawn() ? rand(3.5, 6.5) : 1;
   }
   C.seats.forEach((c, i) => {
+    if (c && c.jinsang){ updateJinsang(c, i, dt); return; }
     if (c && c.state !== 'waiting'){ c.t -= dt; if (c.t <= 0) C.seats[i] = null; }
   });
   cafeCheckSoldOut();
@@ -2395,6 +2470,7 @@ function cafeEmpty(kind){
 }
 function cafeServe(i){
   const C = G.cafe, c = C.seats[i];
+  if (c && c.jinsang){ toast('🚨 진상 손님이에요! 방망이(B)·총(G)·112 신고(H)로 대처하세요'); sfx.err(); return; }
   if (!c || c.state !== 'waiting') return;
   const r = recipeById(c.menu), view = W.cafe.seatViews[i];
   const held = r.type === 'food' ? C.plate : C.cup;
@@ -2430,6 +2506,7 @@ function closeCafe(){
 function cafePointer(e){
   const t = e.target;
   let el;
+  if ((el = t.closest('[data-jz]'))){ jinsangAction(el.dataset.jz); return; }
   if ((el = t.closest('[data-cing]'))){ cafeAdd(el.dataset.cing); return; }
   if ((el = t.closest('[data-cseat]'))){ cafeServe(+el.dataset.cseat); return; }
   if (t.closest('#cupEmpty')){ cafeEmpty('cup'); return; }
@@ -2444,6 +2521,8 @@ function cafePointer(e){
 }
 function cafeKey(e){
   const c = e.code;
+  const jz = {KeyB: 'bat', KeyG: 'gun', KeyH: 'phone'}[c];
+  if (jz){ if (!e.repeat) jinsangAction(jz); return; }
   let n;
   const m = /^(?:Digit|Numpad)([1-8])$/.exec(c);
   if (m){ cafeAdd(DRINK_INGS[+m[1] - 1]); return; }
@@ -2527,6 +2606,7 @@ function renderLab(){
 
 // ---------------- 카페 3D 동기화 ----------------
 function updateCafeCustomer(v, c, dt, cup, plate){
+  if (c.jinsang){ updateJinsangView(v, c, dt, true, CAFE_X + CAFE_SEAT_X[v.seat]); return; }
   const g = v.g, P = g.userData, tx = CAFE_X + CAFE_SEAT_X[v.seat];
   v.walkT += dt;
   if (v.walking){
@@ -2590,12 +2670,13 @@ function syncCafe(dt){
     const v = C.leaving[k];
     v.walkT += dt;
     v.g.rotation.y = v.dir * Math.PI / 2;
-    v.g.position.x += v.dir * 7 * dt;
+    v.g.position.x += v.dir * (v.lastPhase === 'fleeing' ? 13 : 7) * dt;
     v.g.position.y = Math.abs(Math.sin(v.walkT * 11)) * .12;
     const P = v.g.userData;
     P.legL.rotation.x = Math.sin(v.walkT * 11) * .6; P.legR.rotation.x = -P.legL.rotation.x;
     if (Math.abs(v.g.position.x - CAFE_X) > 15){ C.root.remove(v.g); C.leaving.splice(k, 1); }
   }
+  syncPolice(C, seats, dt, i => CAFE_X + CAFE_SEAT_X[i], CAFE_X, C.root);
 
   for (const id in C.ings){
     const it = C.ings[id];
@@ -2835,6 +2916,7 @@ function checkSoldOut(){
 function spawnCustomer(){
   const free = G.seats.map((s, i) => s ? -1 : i).filter(i => i >= 0);
   if (!free.length) return false;
+  if (maybeSpawnJinsang(free)) return true;
   const soups = SOUPS.filter(s => canAccept(s.id));
   if (!soups.length) return false;
   const i = pick(free);
@@ -2862,6 +2944,287 @@ function addRep(d){
   if (G.rep <= 0 && G.running && !G.over){
     G.over = true; G.running = false;
     setTimeout(() => showEnding('rep'), 1200);
+  }
+}
+
+// ---------------- 진상 손님 (DAY 3부터, 점심 식당 · 오후 카페) ----------------
+const JINSANG = {
+  id: 'jinsang', tip: 0,
+  lines: ['야! 사장 나와!', '국밥 왜 이렇게 늦어? 돈 내놔!', '장사 똑바로 해라~ 삥 좀 뜯자'],
+  cafeLines: ['야! 커피 왜 이렇게 비싸?!', '이 카페 사장 누구야? 돈 내놔!', '음료값 대신 삥 좀 뜯자~'],
+};
+const JINSANG_DAY = 3, JINSANG_WAIT = 10, JINSANG_ROB = 5, JINSANG_DOWN = 5, POLICE_ETA = 3.5;
+
+// 지금 영업 중인 곳(점심 식당 / 오후 카페)의 자리 정보
+function jzVenue(){
+  if (G.phase === 'cafe' && G.cafe) return {cafe: true, seats: G.cafe.seats, views: W.cafe.seatViews, xOf: i => CAFE_X + CAFE_SEAT_X[i], len: CAFE_LEN, time: G.cafe.time};
+  return {cafe: false, seats: G.seats, views: W.seatViews, xOf: i => SEAT_X[i], len: DAY_LEN, time: G.time};
+}
+function jinsangActive(){
+  return jzVenue().seats.findIndex(c => c && c.jinsang && (c.phase === 'threat' || c.phase === 'robbing'));
+}
+
+function maybeSpawnJinsang(free){
+  if (G.day < JINSANG_DAY) return false;
+  const v = jzVenue();
+  if (v.seats.some(s => s && s.jinsang)) return false;
+  const elapsed = v.len - v.time;
+  let go;
+  if (v.cafe){
+    if (G.cafe.jinsangCount >= 1) return false;
+    go = (G.cafe.jinsangPlanned && elapsed > 10) || Math.random() < .08;
+  } else {
+    if (G.jinsangToday >= 2) return false;
+    go = (G.jinsangToday === 0 && elapsed > 12) || Math.random() < .12;
+  }
+  if (!go) return false;
+  const i = pick(free);
+  v.seats[i] = {id: ++G.custId, type: JINSANG, jinsang: true, state: 'jinsang', phase: 'threat', t: JINSANG_WAIT, policeT: 0, toy: false, soup: null, tops: [], menu: null, line: pick(v.cafe ? JINSANG.cafeLines : JINSANG.lines), v: 0};
+  if (v.cafe) G.cafe.jinsangCount++; else G.jinsangToday++;
+  sfx.alarm();
+  W.shake = .25;
+  toast(`🚨 ${v.cafe ? '카페에' : ''} 진상 손님 등장! ${JINSANG_WAIT}초 안에 대처하지 않으면 돈이나 재료를 뺏겨요`);
+  return true;
+}
+
+function updateJinsang(c, i, dt){
+  const venue = jzVenue(), x = venue.xOf(i);
+  if (c.phase === 'threat' || c.phase === 'robbing'){
+    // 경찰이 오는 동안에는 진상이 얼어붙어요
+    if (c.policeT > 0){
+      c.policeT -= dt;
+      if (c.policeT <= 0){
+        c.policeT = 0; c.phase = 'arrested'; c.t = 2.8; c.v++;
+        c.line = '저, 저는 억울해요...!';
+        G.stats.jinsangHandled++;
+        sfx.coin();
+        floatWorld(x, 4.3, SEAT_Z, '🚓 체포!', '#8fb0ff');
+        toast('🚓 경찰이 진상 손님을 잡아갔어요!');
+      }
+      return;
+    }
+    c.t -= dt;
+    if (c.t > 0) return;
+    if (c.phase === 'robbing'){
+      jinsangSteal(c, i);
+      c.phase = 'leaving'; c.t = 2; c.v++;
+      return;
+    }
+    c.phase = 'robbing'; c.t = JINSANG_ROB; c.v++;
+    c.line = '시간 끝났다! 가진 거 다 내놔!';
+    sfx.alarm(); W.shake = .3;
+    toast(`💸 ${JINSANG_ROB}초 뒤에 돈이나 재료를 뺏겨요! 빨리 대처하세요`);
+    return;
+  }
+  c.t -= dt;
+  if (c.t > 0) return;
+  if (c.phase === 'down'){
+    c.phase = 'fleeing'; c.t = 1.2; c.v++;
+    c.line = '으악! 튀어!';
+    sfx.whoosh();
+    return;
+  }
+  venue.seats[i] = null;   // 도망 · 떠남 · 체포 끝
+}
+
+// 식당에선 준비해 둔 국밥 재료, 카페에선 창고의 카페 재료를 뺏어가요
+function jinsangSteal(c, i){
+  const venue = jzVenue();
+  const pool = venue.cafe
+    ? [...DRINK_INGS, ...FOOD_INGS].filter(id => G.pantry[id] > 0)
+    : ['pork', 'kong', 'broth', 'spicy'].filter(k => G.stock[k] > 0);
+  let msg;
+  if (pool.length && (G.money <= 0 || Math.random() < .5)){
+    const lost = shuffle(pool).slice(0, 2).map(k => {
+      if (venue.cafe){
+        const it = MARKET_ITEMS[k], n = Math.ceil(G.pantry[k] / 2);
+        G.pantry[k] -= n;
+        return `${it.icon}${it.name} ${n}${it.serve}`;
+      }
+      const n = Math.ceil(G.stock[k] / 2);
+      G.stock[k] -= n;
+      return `${STOCKS[k].icon}${STOCKS[k].name} ${n}인분`;
+    });
+    msg = `재료를 뺏겼어요: ${lost.join(', ')}`;
+  } else if (G.money > 0){
+    const taken = Math.min(G.money, clamp(Math.round(G.money * .15 / 1000) * 1000, 5000, 50000));
+    G.money -= taken;
+    G.stats.jinsangLostMoney += taken;
+    msg = `${fmt(taken)}을 뺏겼어요`;
+  } else msg = '뺏을 게 없어서 그냥 갔어요';
+  G.stats.jinsangRobbed++;
+  c.line = 'ㅋㅋ 잘 받아간다~';
+  sfx.sad(); W.shake = .4;
+  floatWorld(venue.xOf(i), 4.3, SEAT_Z, '💸 뺏김!', '#ff6b5b');
+  toast('💸 진상에게 ' + msg);
+}
+
+function jinsangAction(kind){
+  if (!(canAct() || canCafe())) return;
+  const i = jinsangActive();
+  if (i < 0){ toast('지금은 진상 손님이 없어요'); return; }
+  const venue = jzVenue();
+  const c = venue.seats[i], x = venue.xOf(i), it = MARKET_ITEMS[kind], view = venue.views[i];
+  if (!G.tools[kind]){ toast(`${it.icon} ${it.name}이(가) 없어요! 새벽시장 만물 잡화에서 사요`); sfx.err(); return; }
+  if (c.policeT > 0){ toast('🚓 경찰이 오고 있어요! 조금만 기다려요'); return; }
+  if (c.toy && kind !== 'gun'){ toast('😏 장난감 총인 걸 들켜서 이제 쏘는 수밖에 없어요! (G)'); sfx.err(); return; }
+
+  if (kind === 'bat'){
+    c.phase = 'down'; c.t = JINSANG_DOWN; c.v++;
+    c.line = '으윽... 별이 보여...';
+    G.stats.jinsangHandled++;
+    sfx.bonk(); W.shake = .35;
+    if (view) view.shakeT = .3;
+    floatWorld(x, 4.3, SEAT_Z, '🏏 퍽!', '#ffd27a');
+    toast(`🏏 퍽! 진상이 쓰러졌어요. ${JINSANG_DOWN}초 뒤에 도망가요`);
+  } else if (kind === 'gun'){
+    if (c.toy){
+      c.phase = 'down'; c.t = JINSANG_DOWN; c.v++;
+      c.line = '으악! 진짜 쐈어?!';
+      G.stats.jinsangHandled++;
+      sfx.bang(); W.shake = .6;
+      floatWorld(x, 4.3, SEAT_Z, '💥 탕!', '#ff8a7a');
+      toast(`💥 탕! 진상이 쓰러졌어요. ${JINSANG_DOWN}초 뒤에 도망가요`);
+    } else if (Math.random() < .25){
+      c.toy = true; c.v++;
+      c.line = '그거 장난감 총인 거 다 알아 ㅋㅋ';
+      sfx.err();
+      floatWorld(x, 4.3, SEAT_Z, '😏 안 속아', '#ffd27a');
+      toast('😏 장난감 총인 걸 들켰어요! 이제 쏘는 수밖에 없어요 (G)');
+    } else {
+      c.phase = 'fleeing'; c.t = .8; c.v++;
+      c.line = '히익! 살려주세요!!';
+      G.stats.jinsangHandled++;
+      sfx.whoosh();
+      floatWorld(x, 4.3, SEAT_Z, '🔫 튀었다!', '#9fe39f');
+      toast('🔫 진상이 겁먹고 도망쳤어요!');
+    }
+  } else if (kind === 'phone'){
+    c.policeT = POLICE_ETA; c.v++;
+    c.line = '뭐? 경찰?! 자, 잠깐만...';
+    sfx.siren();
+    toast('📞 112 신고 완료! 경찰이 출동해요 🚓');
+  }
+}
+
+function renderJinsangPanel(){
+  const panel = $('jinsangPanel');
+  const i = inPhase('lunch') || inPhase('cafe') ? jinsangActive() : -1;
+  if (i < 0 || !$('overlay').hidden){ panel.hidden = true; return; }
+  const c = jzVenue().seats[i], police = c.policeT > 0, toy = c.toy;
+  panel.hidden = false;
+  const title = police ? `🚓 경찰 출동 중... ${Math.ceil(c.policeT)}초`
+    : c.phase === 'robbing' ? `💸 ${Math.ceil(c.t)}초 뒤 돈이나 재료를 뺏겨요!`
+    : toy ? `😏 "장난감 총인 거 다 알아" — 이제 쏘는 수밖에 없어요! (${Math.ceil(c.t)}초)`
+    : `🚨 진상 손님 등장! ${Math.ceil(c.t)}초 안에 대처하세요`;
+  if ($('jzTitle').textContent !== title) $('jzTitle').textContent = title;
+  const r = police ? 1 - c.policeT / POLICE_ETA : c.phase === 'robbing' ? c.t / JINSANG_ROB : c.t / JINSANG_WAIT;
+  $('jzBar').style.width = clamp(r, 0, 1) * 100 + '%';
+  $('jzBar').style.background = police ? '#5a9bf2' : c.phase === 'robbing' ? '#e53935' : '#f2b632';
+  const setBtn = (id, label, sub, disabled) => {
+    const b = $(id), html = `${label}<small>${sub}</small>`;
+    if (b.dataset.html !== html){ b.dataset.html = html; b.innerHTML = html; }
+    b.disabled = disabled;
+  };
+  setBtn('jzBat', '🏏 방망이로 때리기', G.tools.bat ? 'B 키' : '없음 · 잡화점에서 구매', !G.tools.bat || toy || police);
+  setBtn('jzGun', toy ? '🔫 쏘기' : '🔫 총으로 협박', G.tools.gun ? 'G 키' : '없음 · 잡화점에서 구매', !G.tools.gun || police);
+  setBtn('jzPhone', '📞 112 신고', G.tools.phone ? 'H 키' : '없음 · 잡화점에서 구매', !G.tools.phone || toy || police);
+}
+
+function updateJinsangView(v, c, dt, live, tx){
+  const g = v.g, P = g.userData;
+  v.walkT += dt;
+  v.lastPhase = c.phase;
+  if (v.walking){
+    const dx = tx - g.position.x;
+    g.position.x += Math.sign(dx) * Math.min(Math.abs(dx), 9 * dt);
+    g.rotation.y = dx > 0 ? Math.PI / 2 : -Math.PI / 2;
+    g.position.y = Math.abs(Math.sin(v.walkT * 9)) * .15;
+    P.legL.rotation.x = Math.sin(v.walkT * 9) * .7; P.legR.rotation.x = -P.legL.rotation.x;
+    if (Math.abs(dx) < .02){ v.walking = false; P.legL.rotation.x = P.legR.rotation.x = 0; }
+  } else {
+    const down = c.phase === 'down';
+    const k = Math.min(1, dt * 8);
+    g.rotation.y = lerp(g.rotation.y, 0, Math.min(1, dt * 10));
+    g.rotation.z = lerp(g.rotation.z, down ? 1.35 : 0, k);
+    g.position.y = lerp(g.position.y, down ? -.9 : 0, k);
+    if (v.shakeT > 0) v.shakeT -= dt;
+    const shaking = c.phase === 'robbing' || c.policeT > 0 || v.shakeT > 0;
+    g.position.x = tx + (shaking ? Math.sin(v.walkT * 40) * .07 : 0);
+    const menacing = (c.phase === 'threat' || c.phase === 'robbing') && !c.policeT;
+    P.armR.rotation.z = menacing ? .15 + Math.abs(Math.sin(v.walkT * 6)) * 1.2 : .15;
+    P.armL.rotation.x = c.phase === 'robbing' && !c.policeT ? -1.2 : c.phase === 'arrested' ? .8 : 0;
+  }
+  if (!P.stars){
+    P.stars = new THREE.Group();
+    for (let s = 0; s < 3; s++) P.stars.add(mesh(geo('dizzyStar', () => new THREE.OctahedronGeometry(.13)), new THREE.MeshBasicMaterial({color: 0xffe066}), 0, 0, 0, false));
+    P.stars.position.y = 3.75;
+    g.add(P.stars);
+  }
+  P.stars.visible = c.phase === 'down';
+  if (P.stars.visible) P.stars.children.forEach((s, n) => { const a = T * 4 + n * 2.1; s.position.set(Math.cos(a) * .6, Math.sin(T * 3 + n) * .1, Math.sin(a) * .6); s.rotation.y = a; });
+
+  const mood = c.phase === 'down' ? 'dizzy'
+    : c.phase === 'fleeing' || c.phase === 'arrested' || c.policeT > 0 ? 'scared'
+    : c.toy || c.phase === 'leaving' ? 'smug' : 'angry';
+  if (P.mood !== mood){ P.mood = mood; P.face.material.map = faceTex('jinsang', mood); }
+  P.skinMat.color.set(c.phase === 'robbing' && !c.policeT ? 0xff9a7a : LOOKS.jinsang.skin);
+
+  if (!live){ v.el.hidden = true; return; }
+  const active = c.phase === 'threat' || c.phase === 'robbing';
+  const key = `${c.phase}|${c.v}|${c.policeT > 0}|${c.toy}`;
+  if (v.key !== key){
+    v.key = key;
+    let html = `<div class="line">${esc(c.line || '')}</div>`;
+    if (active){
+      const how = c.policeT > 0 ? '🚓 경찰 출동 중' : c.toy ? '🔫 쏘기(G)만 통해요' : '🏏 B · 🔫 G · 📞 H';
+      html += `<div class="bubble jinsang"><div class="o-soup">🚨 진상 손님</div><div class="jz-mini"><i></i></div><div class="o-tops">${how}</div></div>`;
+    }
+    v.el.innerHTML = html;
+    v.el.className = 'cust-ui st-jinsang';
+  }
+  v.el.hidden = false;
+  const bar = v.el.querySelector('.jz-mini i');
+  if (bar){
+    const r = c.policeT > 0 ? 1 - c.policeT / POLICE_ETA : c.phase === 'robbing' ? c.t / JINSANG_ROB : c.t / JINSANG_WAIT;
+    bar.style.width = clamp(r, 0, 1) * 100 + '%';
+    bar.style.background = c.policeT > 0 ? '#5a9bf2' : c.phase === 'robbing' ? '#e53935' : '#f2b632';
+  }
+  place(v.el, toScreen(g.position.x, 3.75 + Math.max(0, g.position.y), SEAT_Z), true);
+}
+
+// 112 신고하면 경찰이 옆으로 걸어와 진상을 데려가요 (holder: 식당은 W, 카페는 W.cafe)
+function syncPolice(holder, seats, dt, xOf, cx, parent){
+  let pv = holder.police;
+  const idx = seats.findIndex(c => c && c.jinsang && (c.policeT > 0 || c.phase === 'arrested'));
+  if (idx >= 0 && !pv){
+    const dir = xOf(idx) <= cx ? -1 : 1;
+    const g = makeCustomer({id: 'police'});
+    g.position.set(cx + dir * 14, 0, SEAT_Z);
+    parent.add(g);
+    pv = holder.police = {g, seat: idx, id: seats[idx].id, tx: xOf(idx) + 1.3, dir, walkT: 0, leaving: false};
+  }
+  if (!pv) return;
+  const P = pv.g.userData, c = seats[pv.seat];
+  pv.walkT += dt;
+  if (!pv.leaving && (!c || c.id !== pv.id)) pv.leaving = true;
+  if (pv.leaving){
+    pv.g.rotation.y = pv.dir * Math.PI / 2;
+    pv.g.position.x += pv.dir * 7 * dt;
+    P.legL.rotation.x = Math.sin(pv.walkT * 11) * .6; P.legR.rotation.x = -P.legL.rotation.x;
+    P.armR.rotation.z = .15;
+    if (Math.abs(pv.g.position.x - cx) > 15){ parent.remove(pv.g); holder.police = null; }
+    return;
+  }
+  const dx = pv.tx - pv.g.position.x;
+  if (Math.abs(dx) > .03){
+    pv.g.position.x += Math.sign(dx) * Math.min(Math.abs(dx), 8 * dt);
+    pv.g.rotation.y = dx > 0 ? Math.PI / 2 : -Math.PI / 2;
+    P.legL.rotation.x = Math.sin(pv.walkT * 12) * .6; P.legR.rotation.x = -P.legL.rotation.x;
+  } else {
+    pv.g.rotation.y = lerp(pv.g.rotation.y, -Math.PI / 2, Math.min(1, dt * 8));
+    P.legL.rotation.x = P.legR.rotation.x = 0;
+    P.armR.rotation.z = c.phase === 'arrested' ? 1.3 : .15;
   }
 }
 
@@ -2935,6 +3298,7 @@ function switchToFilledTray(){
 
 function serve(i){
   const c = G.seats[i];
+  if (c && c.jinsang){ toast('🚨 진상 손님이에요! 방망이(B)·총(G)·112 신고(H)로 대처하세요'); sfx.err(); return; }
   if (!c || c.state !== 'waiting') return;
   const tr = G.trays[G.sel];
   const hx = SEAT_X[i], hy = 4.1, hz = SEAT_Z;
@@ -3015,6 +3379,7 @@ function update(dt){
     }
   });
   G.seats.forEach((c, i) => {
+    if (c && c.jinsang){ updateJinsang(c, i, dt); return; }
     if (c && c.state !== 'waiting'){
       c.t -= dt;
       if (c.t <= 0) G.seats[i] = null;
@@ -3037,6 +3402,7 @@ function update(dt){
 function clearCustomers(){
   W.seatViews.forEach(v => v && removeCustomerView(v));
   W.leaving.forEach(removeCustomerView);
+  if (W.police){ scene.remove(W.police.g); W.police = null; }
   W.seatViews = [null, null, null, null];
   W.leaving = [];
 }
@@ -3071,16 +3437,18 @@ function syncCustomers(seats, dt, curTray, live){
     const v = W.leaving[k];
     v.walkT += dt;
     v.g.rotation.y = v.leavingDir * Math.PI / 2;
-    v.g.position.x += v.leavingDir * 7 * dt;
+    v.g.position.x += v.leavingDir * (v.lastPhase === 'fleeing' ? 13 : 7) * dt;
     v.g.position.y = Math.abs(Math.sin(v.walkT * 11)) * .12;
     const P = v.g.userData;
     P.legL.rotation.x = Math.sin(v.walkT * 11) * .6; P.legR.rotation.x = -P.legL.rotation.x;
     if (v.bowl && v.walkT > .15){ scene.remove(v.bowl); v.bowl = null; }
     if (Math.abs(v.g.position.x) > 15){ removeCustomerView(v); W.leaving.splice(k, 1); }
   }
+  syncPolice(W, seats, dt, i => SEAT_X[i], 0, scene);
 }
 
 function updateCustomerView(v, c, dt, curTray, live){
+  if (c.jinsang){ updateJinsangView(v, c, dt, live, SEAT_X[v.seat]); return; }
   const g = v.g, P = g.userData, tx = SEAT_X[v.seat];
   v.walkT += dt;
   if (v.walking){
@@ -3325,6 +3693,7 @@ function syncPrep(dt){
 
 // ---------------- HUD ----------------
 function renderHUD(){
+  renderJinsangPanel();
   if (!G) return;
   $('hudDay').textContent = `DAY ${G.day}`;
   if (G.phase === 'cafe' || G.phase === 'cafeIntro'){
@@ -3401,7 +3770,7 @@ function endDay(){
   const s = G.stats, rent = rentToday();
   G.money -= rent;
   const cafeIncome = s.cafeSales + s.cafeTips;
-  const net = s.sales + s.tips + cafeIncome - s.purchase - rent;
+  const net = s.sales + s.tips + cafeIncome - s.purchase - rent - s.jinsangLostMoney;
   G.totalProfit += net; G.totalServed += s.served; G.totalPerfect += s.perfect;
   const p = G.prep, r = G.raw, st = G.stock;
   const waste = {
@@ -3427,9 +3796,11 @@ function endDay(){
         ${s.cafeServed || cafeIncome ? `<tr><td>☕ 카페 매출·팁 (${s.cafeServed}명)</td><td class="plus">+${fmt(cafeIncome)}</td></tr>` : ''}
         <tr><td>🛒 새벽 재료 구입비</td><td class="minus">-${fmt(s.purchase)}</td></tr>
         <tr><td>🏠 임대료</td><td class="minus">-${fmt(rent)}</td></tr>
+        ${s.jinsangLostMoney ? `<tr><td>💸 진상에게 뺏긴 돈</td><td class="minus">-${fmt(s.jinsangLostMoney)}</td></tr>` : ''}
         <tr class="total"><td>오늘 순이익</td><td class="${net >= 0 ? 'plus' : 'minus'}">${net >= 0 ? '+' : ''}${fmt(net)}</td></tr>
       </table>
       <div class="waste">${wasteTxt ? `🗑️ 폐기된 재료: ${wasteTxt}` : '👍 재료를 남김없이 다 썼어요!'}</div>
+      ${s.jinsangHandled || s.jinsangRobbed ? `<div class="waste">🚨 진상 손님: 퇴치 ${s.jinsangHandled}명 · 피해 ${s.jinsangRobbed}번</div>` : ''}
       <div style="font-size:19px;margin-top:8px">보유 자금 <b style="color:var(--red);font-weight:normal">${fmt(G.money)}</b> · 평판 ⭐ ${G.rep.toFixed(1)}</div>
       ${goalBar()}
       ${nextBtn}
@@ -3521,7 +3892,7 @@ function togglePause(){
     showOverlay(`
       <div class="card">
         <h2>⏸ 일시정지</h2>
-        <div class="keys-help" style="font-size:16px">${cafe ? '1~8 음료 재료 · Q W E R T 샌드위치 재료 · Z X C 서빙 · Backspace 컵 비우기 · Delete 접시 비우기' : 'Q W E 국밥 · A S D F 가마솥 · 1~4 토핑 · Z X C V 서빙 · Tab 조립대 전환 · Backspace 버리기'}</div>
+        <div class="keys-help" style="font-size:16px">${cafe ? '1~8 음료 재료 · Q W E R T 샌드위치 재료 · Z X C 서빙 · Backspace 컵 비우기 · Delete 접시 비우기 · 진상: B 방망이 · G 총 · H 112' : 'Q W E 국밥 · A S D F 가마솥 · 1~4 토핑 · Z X C V 서빙 · Tab 조립대 전환 · Backspace 버리기 · 진상: B 방망이 · G 총 · H 112'}</div>
         <button class="big-btn" onclick="togglePause()">계속하기 ▶</button><br>
         ${timeLeft <= 0 && waiting ? `<button class="sub-btn" onclick="${cafe ? 'closeCafe()' : 'closeEarly()'}">🙇 남은 손님께 사과하고 마감 (평판 -${cafe ? '0.1' : '0.2'}/명)</button><br>` : ''}
         <button class="sub-btn" onclick="showTitle()">처음으로</button>
@@ -3601,6 +3972,7 @@ document.addEventListener('pointerdown', e => {
   if (!canAct()) return;
   if (t === renderer.domElement){ const u = pickAt(e.clientX, e.clientY); if (u) handleHit(u); return; }
   let el;
+  if ((el = t.closest('[data-jz]'))){ jinsangAction(el.dataset.jz); return; }
   if ((el = t.closest('[data-soup]'))) orderSoup(el.dataset.soup);
   else if ((el = t.closest('[data-top]'))) toggleTop(el.dataset.top);
   else if ((el = t.closest('[data-seat]'))) serve(+el.dataset.seat);
@@ -3628,6 +4000,8 @@ window.addEventListener('keydown', e => {
   if (c === 'Escape' || c === 'KeyP'){ togglePause(); return; }
   if (canCafe()){ cafeKey(e); return; }
   if (!canAct()) return;
+  const jz = {KeyB: 'bat', KeyG: 'gun', KeyH: 'phone'}[c];
+  if (jz){ if (!e.repeat) jinsangAction(jz); return; }
   let n;
   if ((n = SOUP_KEYS.indexOf(c)) >= 0) orderSoup(SOUPS[n].id);
   else if ((n = BURNER_KEYS.indexOf(c)) >= 0){ if (n < G.burners.length) clickBurner(n); }
