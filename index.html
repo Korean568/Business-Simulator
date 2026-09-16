@@ -157,7 +157,7 @@ button{font-family:inherit;cursor:pointer}
 .name-row .sub-btn{margin:0 0 0 8px;padding:6px 14px;font-size:16px}
 
 /* ---------- 진상 손님 ---------- */
-#jinsangPanel{position:fixed;top:112px;left:50%;transform:translateX(-50%);z-index:20;width:min(580px,calc(100% - 20px));background:linear-gradient(#5a1010,#3a0808);color:#fff3dc;border:3px solid #ff5a4a;border-radius:16px;padding:10px 14px 12px;text-align:center;box-shadow:0 0 0 4px rgba(255,90,74,.25),0 10px 24px rgba(0,0,0,.5);animation:jzPulse 1s infinite}
+#jinsangPanel{position:fixed;bottom:118px;left:50%;transform:translateX(-50%);z-index:20;width:min(580px,calc(100% - 20px));background:linear-gradient(#5a1010,#3a0808);color:#fff3dc;border:3px solid #ff5a4a;border-radius:16px;padding:10px 14px 12px;text-align:center;box-shadow:0 0 0 4px rgba(255,90,74,.25),0 10px 24px rgba(0,0,0,.5);animation:jzPulse 1s infinite}
 @keyframes jzPulse{50%{box-shadow:0 0 0 10px rgba(255,90,74,.12),0 10px 24px rgba(0,0,0,.5)}}
 #jzTitle{font-size:20px;text-wrap:balance}
 .jz-bar{height:10px;background:rgba(255,255,255,.18);border-radius:6px;overflow:hidden;margin:6px 0 10px}
@@ -215,6 +215,9 @@ button{font-family:inherit;cursor:pointer}
 .shop-note{font-size:14px;color:#8a6e55;margin-bottom:8px}
 .up-card.hired{box-shadow:0 0 0 3px var(--green)}
 .buy.fire{background:#8a6e55;box-shadow:0 4px 0 #5a4030}
+.btn-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:auto}
+.btn-row .buy{margin-top:0}
+.shop-grid .up-desc b{color:var(--red);font-weight:normal}
 .up-card.vipcard{background:#2a1a24;color:#fff3dc}
 .up-card.vipcard .up-name{color:var(--gold)}
 .up-card.vipcard .up-desc{color:#e0cfc0}
@@ -1227,6 +1230,7 @@ const LOOKS = {
   police:   {skin: 0xffd9b3, shirt: 0x2c3e6b, pants: 0x1f2a44},
   staff:    {skin: 0xffd9b3, shirt: 0x3f8f47, pants: 0x2a2a33},
   barista:  {skin: 0xf5cfa8, shirt: 0x2f4a3a, pants: 0x2a2a33},
+  guard:    {skin: 0xf2c9a0, shirt: 0x1c2a3a, pants: 0x1c2a3a},
 };
 const faceCache = {};
 function faceTex(kind, mood){
@@ -1347,6 +1351,15 @@ function makeCustomer(type){
       const pb = mesh(new THREE.BoxGeometry(.72, .05, .4), std(0x111111), 0, .36, .55); pb.rotation.x = .25; head.add(pb);
       head.add(mesh(new THREE.BoxGeometry(.16, .16, .05), std(0xf2b632, {metalness: .6}), 0, .52, .66));
       g.add(mesh(new THREE.BoxGeometry(.14, .14, .05), std(0xf2b632, {metalness: .6}), -.25, 2.0, .58));
+      break;
+    }
+    case 'guard': {
+      head.add(mesh(new THREE.CylinderGeometry(.64, .6, .3, 24), std(0x111822), 0, .5, 0));
+      const gb = mesh(new THREE.BoxGeometry(.72, .05, .42), std(0x0a0e14), 0, .36, .55); gb.rotation.x = .25; head.add(gb);
+      head.add(mesh(new THREE.BoxGeometry(.18, .18, .05), std(0xc9d0d5, {metalness: .6}), 0, .52, .64));
+      g.add(mesh(new THREE.BoxGeometry(1.0, .9, .06), std(0xf2d230, {roughness: .6}), 0, 1.75, .6));
+      g.add(mesh(new THREE.BoxGeometry(1.0, .12, .07), std(0xe8e8e8), 0, 1.75, .62));
+      P.armL.add(mesh(new THREE.CylinderGeometry(.14, .14, .14, 10), std(0xc62d1f), 0, -.3, 0));
       break;
     }
     case 'staff':
@@ -1589,13 +1602,13 @@ function startGame(){
   const name = ($('shopName')?.value || '').trim() || '할매국밥';
   G = {
     name, day: 1, money: START_MONEY, rep: 3, totalProfit: 0, totalServed: 0, totalPerfect: 0,
-    up: {burner: 0, fire: 0, tray: 0, knife: 0, stockpot: 0, kkak: 0, sign: 0},
+    up: {burner: 0, fire: 0, tray: 0, knife: 0, stockpot: 0, kkak: 0, sign: 0, guard: 0},
     phase: 'intro', running: false, paused: false, over: false, custId: 0,
     pantry: Object.fromEntries(Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].kind === 'pantry').map(id => [id, 0])),
     recipes: DEFAULT_RECIPES.map(r => ({...r, ings: [...r.ings]})),
     cafeName: '',
     tools: {bat: 0, gun: 0, phone: 0},
-    staff: {gukbap: false, cafe: false},
+    staff: {gukbap: false, cafe: false, guard: false},
   };
   $('hudName').textContent = '🍲 ' + name;
   sfx.click();
@@ -2467,6 +2480,7 @@ function clearCafeCustomers(){
   C.seatViews.forEach(v => { if (v){ C.root.remove(v.g); v.el.remove(); } });
   C.leaving.forEach(v => C.root.remove(v.g));
   if (C.police){ C.root.remove(C.police.g); C.police = null; }
+  if (C.guard){ C.root.remove(C.guard.g); C.guard = null; }
   C.seatViews = [null, null, null];
   C.leaving = [];
 }
@@ -2839,6 +2853,7 @@ function syncCafe(dt){
     if (Math.abs(v.g.position.x - CAFE_X) > 15){ C.root.remove(v.g); C.leaving.splice(k, 1); }
   }
   syncPolice(C, seats, dt, i => CAFE_X + CAFE_SEAT_X[i], CAFE_X, C.root);
+  syncGuard(C, seats, dt, i => CAFE_X + CAFE_SEAT_X[i], CAFE_X, C.root);
 
   for (const id in C.ings){
     const it = C.ings[id];
@@ -3169,6 +3184,31 @@ function maybeSpawnJinsang(free, kind){
 function updateJinsang(c, i, dt, kind){
   const venue = jzVenue(kind), x = venue.xOf(i), here = hereKind() === kind;
   if (c.phase === 'threat' || c.phase === 'robbing'){
+    // 경비원: 쉬고 있으면 달려와 멱살을 잡고, 대처시간 동안 붙잡은 뒤 끌고 나가요
+    if (G.staff.guard && !c.guardT && !c.policeT && guardFree()){
+      c.guardT = guardTime(); c.guardMax = c.guardT; c.guardWalk = GUARD_WALK; c.v++;
+      toast(`💂 경비원이 ${FLOORS[venue.floor].name}로 출동! 멱살을 ${c.guardT}초 잡고 끌고 나가요`);
+    }
+    if (c.guardT > 0 && c.guardWalk > 0){
+      c.guardWalk -= dt;
+      if (c.guardWalk <= 0){
+        c.guardWalk = 0; c.v++;
+        c.line = '컥! 이, 이거 놔!';
+        if (here) W.shake = .2;
+      }
+    } else if (c.guardT > 0){
+      // 멱살 잡힌 동안에는 진상이 아무것도 못 해요
+      c.guardT -= dt;
+      if (c.guardT <= 0){
+        c.guardT = 0; c.phase = 'guarded'; c.t = .6; c.v++;
+        c.line = '아야야! 놔 주세요~';
+        G.stats.jinsangHandled++;
+        sfx.coin();
+        if (here) floatWorld(x, 4.3, SEAT_Z, '💂 제압!', '#9fe39f');
+        toast('💂 경비원이 진상 멱살을 잡고 끌고 나가요!');
+      }
+      return;
+    }
     // 경찰이 오는 동안에는 진상이 얼어붙어요
     if (c.policeT > 0){
       c.policeT -= dt;
@@ -3251,6 +3291,7 @@ function jinsangAction(kind){
   if (c.toy && kind !== 'gun'){ toast('😏 장난감 총인 걸 들켜서 이제 쏘는 수밖에 없어요! (G)'); sfx.err(); return; }
 
   if (kind === 'bat'){
+    c.guardT = 0;
     c.phase = 'down'; c.t = JINSANG_DOWN; c.v++;
     c.line = '으윽... 별이 보여...';
     G.stats.jinsangHandled++;
@@ -3260,6 +3301,7 @@ function jinsangAction(kind){
     toast(`🏏 퍽! 진상이 쓰러졌어요. ${JINSANG_DOWN}초 뒤에 도망가요`);
   } else if (kind === 'gun'){
     if (c.toy){
+      c.guardT = 0;
       c.phase = 'down'; c.t = JINSANG_DOWN; c.v++;
       c.line = '으악! 진짜 쐈어?!';
       G.stats.jinsangHandled++;
@@ -3273,6 +3315,7 @@ function jinsangAction(kind){
       floatWorld(x, 4.3, SEAT_Z, '😏 안 속아', '#ffd27a');
       toast('😏 장난감 총인 걸 들켰어요! 이제 쏘는 수밖에 없어요 (G)');
     } else {
+      c.guardT = 0;
       c.phase = 'fleeing'; c.t = .8; c.v++;
       c.line = '히익! 살려주세요!!';
       G.stats.jinsangHandled++;
@@ -3281,6 +3324,7 @@ function jinsangAction(kind){
       toast('🔫 진상이 겁먹고 도망쳤어요!');
     }
   } else if (kind === 'phone'){
+    c.guardT = 0;
     c.policeT = POLICE_ETA; c.v++;
     c.line = '뭐? 경찰?! 자, 잠깐만...';
     sfx.siren();
@@ -3293,16 +3337,17 @@ function renderJinsangPanel(){
   const where = hereKind();
   const i = where ? jinsangActive(where) : -1;
   if (i < 0 || !$('overlay').hidden){ panel.hidden = true; return; }
-  const c = jzVenue(where).seats[i], police = c.policeT > 0, toy = c.toy;
+  const c = jzVenue(where).seats[i], police = c.policeT > 0, toy = c.toy, guard = c.guardT > 0;
   panel.hidden = false;
   const title = police ? `🚓 경찰 출동 중... ${Math.ceil(c.policeT)}초`
+    : guard ? (c.guardWalk > 0 ? '💂 경비원이 달려오는 중... (직접 대처해도 돼요)' : `💂 경비원이 멱살 잡는 중... ${Math.ceil(c.guardT)}초 뒤 끌고 나가요`)
     : c.phase === 'robbing' ? `💸 ${Math.ceil(c.t)}초 뒤 돈이나 재료를 뺏겨요!`
     : toy ? `😏 "장난감 총인 거 다 알아" — 이제 쏘는 수밖에 없어요! (${Math.ceil(c.t)}초)`
     : `🚨 진상 손님 등장! ${Math.ceil(c.t)}초 안에 대처하세요`;
   if ($('jzTitle').textContent !== title) $('jzTitle').textContent = title;
-  const r = police ? 1 - c.policeT / POLICE_ETA : c.phase === 'robbing' ? c.t / JINSANG_ROB : c.t / JINSANG_WAIT;
+  const r = police ? 1 - c.policeT / POLICE_ETA : guard ? 1 - c.guardT / c.guardMax : c.phase === 'robbing' ? c.t / JINSANG_ROB : c.t / JINSANG_WAIT;
   $('jzBar').style.width = clamp(r, 0, 1) * 100 + '%';
-  $('jzBar').style.background = police ? '#5a9bf2' : c.phase === 'robbing' ? '#e53935' : '#f2b632';
+  $('jzBar').style.background = police ? '#5a9bf2' : guard ? '#4caf50' : c.phase === 'robbing' ? '#e53935' : '#f2b632';
   const setBtn = (id, label, sub, disabled) => {
     const b = $(id), html = `${label}<small>${sub}</small>`;
     if (b.dataset.html !== html){ b.dataset.html = html; b.innerHTML = html; }
@@ -3331,7 +3376,7 @@ function updateJinsangView(v, c, dt, live, tx){
     g.rotation.z = lerp(g.rotation.z, down ? 1.35 : 0, k);
     g.position.y = lerp(g.position.y, down ? -.9 : 0, k);
     if (v.shakeT > 0) v.shakeT -= dt;
-    const shaking = c.phase === 'robbing' || c.policeT > 0 || v.shakeT > 0;
+    const shaking = c.phase === 'robbing' || c.policeT > 0 || c.phase === 'guarded' || v.shakeT > 0;
     g.position.x = tx + (shaking ? Math.sin(v.walkT * 40) * .07 : 0);
     const menacing = (c.phase === 'threat' || c.phase === 'robbing') && !c.policeT;
     P.armR.rotation.z = menacing ? .15 + Math.abs(Math.sin(v.walkT * 6)) * 1.2 : .15;
@@ -3347,19 +3392,19 @@ function updateJinsangView(v, c, dt, live, tx){
   if (P.stars.visible) P.stars.children.forEach((s, n) => { const a = T * 4 + n * 2.1; s.position.set(Math.cos(a) * .6, Math.sin(T * 3 + n) * .1, Math.sin(a) * .6); s.rotation.y = a; });
 
   const mood = c.phase === 'down' ? 'dizzy'
-    : c.phase === 'fleeing' || c.phase === 'arrested' || c.policeT > 0 ? 'scared'
+    : c.phase === 'fleeing' || c.phase === 'arrested' || c.phase === 'guarded' || c.policeT > 0 || c.guardT > 0 ? 'scared'
     : c.toy || c.phase === 'leaving' ? 'smug' : 'angry';
   if (P.mood !== mood){ P.mood = mood; P.face.material.map = faceTex('jinsang', mood); }
   P.skinMat.color.set(c.phase === 'robbing' && !c.policeT ? 0xff9a7a : LOOKS.jinsang.skin);
 
   if (!live){ v.el.hidden = true; return; }
   const active = c.phase === 'threat' || c.phase === 'robbing';
-  const key = `${c.phase}|${c.v}|${c.policeT > 0}|${c.toy}`;
+  const key = `${c.phase}|${c.v}|${c.policeT > 0}|${c.guardT > 0}|${c.guardWalk > 0}|${c.toy}`;
   if (v.key !== key){
     v.key = key;
     let html = `<div class="line">${esc(c.line || '')}</div>`;
     if (active){
-      const how = c.policeT > 0 ? '🚓 경찰 출동 중' : c.toy ? '🔫 쏘기(G)만 통해요' : '🏏 B · 🔫 G · 📞 H';
+      const how = c.policeT > 0 ? '🚓 경찰 출동 중' : c.guardT > 0 ? (c.guardWalk > 0 ? '💂 경비원 출동 중' : '💂 멱살 잡힘!') : c.toy ? '🔫 쏘기(G)만 통해요' : '🏏 B · 🔫 G · 📞 H';
       html += `<div class="bubble jinsang"><div class="o-soup">🚨 진상 손님</div><div class="jz-mini"><i></i></div><div class="o-tops">${how}</div></div>`;
     }
     v.el.innerHTML = html;
@@ -3368,9 +3413,9 @@ function updateJinsangView(v, c, dt, live, tx){
   v.el.hidden = false;
   const bar = v.el.querySelector('.jz-mini i');
   if (bar){
-    const r = c.policeT > 0 ? 1 - c.policeT / POLICE_ETA : c.phase === 'robbing' ? c.t / JINSANG_ROB : c.t / JINSANG_WAIT;
+    const r = c.policeT > 0 ? 1 - c.policeT / POLICE_ETA : c.guardT > 0 ? 1 - c.guardT / c.guardMax : c.phase === 'robbing' ? c.t / JINSANG_ROB : c.t / JINSANG_WAIT;
     bar.style.width = clamp(r, 0, 1) * 100 + '%';
-    bar.style.background = c.policeT > 0 ? '#5a9bf2' : c.phase === 'robbing' ? '#e53935' : '#f2b632';
+    bar.style.background = c.policeT > 0 ? '#5a9bf2' : c.guardT > 0 ? '#4caf50' : c.phase === 'robbing' ? '#e53935' : '#f2b632';
   }
   place(v.el, toScreen(g.position.x, 3.75 + Math.max(0, g.position.y), SEAT_Z), true);
 }
@@ -3444,14 +3489,14 @@ function staffShopHtml(){
   const vip = vipUnlocked();
   return `<h3 class="shop-sub">👷 직원 고용</h3>
     <div class="shop-note">직원이 일하는 동안에는 <b>Shift+1·2·3</b>으로 1층 국밥집 · 2층 카페 · 3층 VIP존을 자유롭게 오갈 수 있어요.</div>
-    <div class="shop-grid">${cards}
+    <div class="shop-grid">${cards}${guardCardHtml()}
       <div class="up-card vipcard ${vip ? 'open' : ''}"><div class="up-ic">👑</div><div class="up-name">3층 VIP존</div>
         <div class="up-desc">${vip ? '열렸어요! VIP들이 포도주와 안주를 즐기며 쉬는 라운지 · 두 배 가격 · 진상 없음' : '국밥집 직원과 카페 직원을 모두 고용하면 열려요'}</div>
         <button class="buy" disabled>${vip ? '✅ 해금됨' : '🔒 잠김'}</button></div>
     </div>`;
 }
 function hireStaff(id){
-  const s = STAFF[id];
+  const s = id === 'guard' ? GUARD : STAFF[id];
   if (G.staff[id] || G.money < s.hire){ sfx.err(); return; }
   G.money -= s.hire;
   G.staff[id] = true;
@@ -3462,7 +3507,7 @@ function hireStaff(id){
 function fireStaff(id){
   G.staff[id] = false;
   sfx.trash();
-  toast(`${STAFF[id].name}을(를) 해고했어요`);
+  toast(`${(id === 'guard' ? GUARD : STAFF[id]).name}을(를) 해고했어요`);
   showShop();
 }
 
@@ -4245,6 +4290,130 @@ function syncVip(dt){
   V.lamps.forEach((l, k) => { l.rotation.y = T * .2 + k; });
 }
 
+// ---------------- 경비원 (진상 자동 제압) ----------------
+const GUARD = {name: '경비원', icon: '💂', hire: 100000, wage: 0, train: [30000, 60000, 90000], times: [6, 4.5, 3, 1.5]};
+const GUARD_WALK = 1.5;   // 경비원이 달려오는 시간
+function guardTime(){ return GUARD.times[G.up.guard || 0]; }
+// 경비원은 한 번에 한 명만 상대해요
+function guardFree(){
+  const busy = s => s && s.jinsang && (s.guardT > 0 || s.phase === 'guarded');
+  return !G.seats.some(busy) && !(G.cafe && G.cafe.seats.some(busy));
+}
+function trainGuard(){
+  const lv = G.up.guard || 0, cost = GUARD.train[lv];
+  if (!G.staff.guard || cost == null || G.money < cost){ sfx.err(); return; }
+  G.money -= cost;
+  G.up.guard = lv + 1;
+  sfx.coin();
+  toast(`💂 경비 훈련 완료! 이제 ${guardTime()}초 만에 진상을 잡아요`);
+  showShop();
+}
+function guardCardHtml(){
+  const hired = G.staff.guard, lv = G.up.guard || 0, max = GUARD.train.length;
+  const dots = Array.from({length: max}, (_, k) => `<i class="${k < lv ? 'on' : ''}"></i>`).join('');
+  const btns = !hired
+    ? `<button class="buy" ${G.money < GUARD.hire ? 'disabled' : ''} onclick="hireStaff('guard')">고용 ${fmt(GUARD.hire)}</button>`
+    : (lv < max
+        ? `<button class="buy" ${G.money < GUARD.train[lv] ? 'disabled' : ''} onclick="trainGuard()">훈련 ${fmt(GUARD.train[lv])}</button>`
+        : '<button class="buy" disabled>훈련 완료</button>')
+      + `<button class="buy fire" onclick="fireStaff('guard')">해고</button>`;
+  return `<div class="up-card ${hired ? 'hired' : ''}"><div class="up-ic">${GUARD.icon}</div><div class="up-name">${GUARD.name}${hired ? ' · 근무 중' : ''}</div>
+    <div class="up-desc">진상 손님이 오면 자동으로 달려가 멱살을 <b>${guardTime()}초</b> 잡고 끌고 나가요<br>훈련할수록 대처시간이 줄어요 · 일당 없음</div>
+    <div class="dots">${dots}</div><div class="btn-row">${btns}</div></div>`;
+}
+
+// 경비원이 달려와 진상 멱살(목)을 잡고, 대처시간이 끝나면 목을 잡은 채 출구로 밀고 나가요 (holder: 1층은 W, 2층은 W.cafe)
+const GUARD_GAP = 1.4, GUARD_LIFT = .3;
+// 두 손이 상대 목(어깨와 머리 사이) 높이에서 만나도록 팔을 뻗어요
+function guardGrabPose(P){
+  P.armR.rotation.set(-1.99, 0, -.3);
+  P.armL.rotation.set(-1.99, 0, .3);
+  P.armR.scale.y = P.armL.scale.y = 1.35;   // 쭉 뻗어서 거리를 둬요
+}
+function guardArmsRest(P){ P.armR.scale.y = P.armL.scale.y = 1; }
+function syncGuard(holder, seats, dt, xOf, cx, parent){
+  let gv = holder.guard;
+  const escorting = c => c && c.jinsang && (c.guardT > 0 || c.phase === 'guarded');
+  const idx = seats.findIndex(escorting);
+  if (idx >= 0 && !gv){
+    const c = seats[idx], dir = xOf(idx) <= cx ? -1 : 1;   // dir: 끌고 나갈 출구 쪽
+    const g = makeCustomer({id: 'guard'});
+    g.position.set(cx - dir * 14, 0, SEAT_Z);   // 반대편에서 달려와 진상 뒤(안쪽)에 서요
+    parent.add(g);
+    const tx = xOf(idx) - dir * GUARD_GAP;
+    const speed = Math.max(8, Math.abs(tx - g.position.x) / Math.max(.3, (c.guardWalk || GUARD_WALK) - .1));
+    gv = holder.guard = {g, seat: idx, id: c.id, tx, dir, speed, walkT: 0, dragging: false, leaving: false, victim: null};
+  }
+  if (!gv) return;
+  const P = gv.g.userData, c = seats[gv.seat], mine = c && c.id === gv.id;
+  const view = holder.seatViews[gv.seat];
+  if (mine && view && view.id === gv.id) gv.victim = view.g;
+  gv.walkT += dt;
+  if (!gv.dragging && !gv.leaving){
+    if (mine && c.phase === 'guarded') gv.dragging = true;
+    else if (!mine || !escorting(c)){ gv.leaving = true; if (gv.victim) gv.victim.userData.head.rotation.x = -.18; gv.victim = null; }   // 직접 대처하면 경비원은 그냥 돌아가요
+  }
+  const V = gv.victim && gv.victim.userData;
+  const walkLegs = (Q, sp, amp) => { Q.legL.rotation.x = Math.sin(gv.walkT * sp) * amp; Q.legR.rotation.x = -Q.legL.rotation.x; };
+  if (gv.dragging){
+    // 목을 잡은 채 둘 다 출구 쪽을 보고 앞으로 걸어가요
+    gv.g.rotation.y = gv.dir * Math.PI / 2;
+    gv.g.position.x += gv.dir * 5.5 * dt;
+    gv.g.position.y = Math.abs(Math.sin(gv.walkT * 9)) * .08;
+    walkLegs(P, 9, .6);
+    guardGrabPose(P);
+    if (V){
+      const vg = gv.victim;
+      vg.visible = true;
+      vg.position.x = gv.g.position.x + gv.dir * GUARD_GAP;
+      vg.position.y = GUARD_LIFT + gv.g.position.y;
+      vg.rotation.set(0, gv.dir * Math.PI / 2, 0);
+      V.head.rotation.x = -.5;
+      walkLegs(V, 14, .8);   // 발이 땅에 안 닿아 허우적
+      V.armL.rotation.set(-1.2 + Math.sin(gv.walkT * 12) * .5, 0, -.15);
+      V.armR.rotation.set(-1.2 - Math.sin(gv.walkT * 12) * .5, 0, .15);
+    }
+    if (Math.abs(gv.g.position.x - cx) > 15.5){ parent.remove(gv.g); holder.guard = null; }
+    return;
+  }
+  if (gv.leaving){
+    gv.g.rotation.y = -gv.dir * Math.PI / 2;
+    gv.g.position.x -= gv.dir * 7 * dt;
+    walkLegs(P, 11, .6);
+    P.armR.rotation.set(0, 0, .15); P.armL.rotation.set(0, 0, -.15);
+    guardArmsRest(P);
+    if (Math.abs(gv.g.position.x - cx) > 15.5){ parent.remove(gv.g); holder.guard = null; }
+    return;
+  }
+  const dx = gv.tx - gv.g.position.x;
+  if (Math.abs(dx) > .03){
+    gv.g.position.x += Math.sign(dx) * Math.min(Math.abs(dx), gv.speed * dt);
+    gv.g.rotation.y = dx > 0 ? Math.PI / 2 : -Math.PI / 2;
+    gv.g.position.y = Math.abs(Math.sin(gv.walkT * 16)) * .15;
+    walkLegs(P, 16, .8);
+    P.armL.rotation.set(-P.legL.rotation.x * .6, 0, -.15); P.armR.rotation.set(P.legL.rotation.x * .6, 0, .15);
+    return;
+  }
+  // 멱살 잡기: 진상과 마주 보고 두 손으로 목을 잡아 살짝 들어 올려요
+  gv.g.position.x = gv.tx;
+  gv.g.position.y = 0;
+  gv.g.rotation.y = gv.dir * Math.PI / 2;
+  P.legL.rotation.x = P.legR.rotation.x = 0;
+  const hold = c.guardWalk <= 0;
+  if (hold) guardGrabPose(P);
+  else { P.armR.rotation.set(-1.2, 0, -.2); P.armL.rotation.set(-1.2, 0, .2); guardArmsRest(P); }
+  if (hold && V && view && !view.walking){
+    const vg = gv.victim;
+    vg.position.x = gv.tx + gv.dir * GUARD_GAP + Math.sin(gv.walkT * 30) * .03;
+    vg.position.y = GUARD_LIFT + Math.sin(gv.walkT * 6) * .03;
+    vg.rotation.set(0, -gv.dir * Math.PI / 2, 0);   // 경비원을 마주 봐요
+    V.head.rotation.x = -.5;   // 고개가 뒤로 젖혀져요
+    walkLegs(V, 14, .7);   // 발버둥
+    V.armL.rotation.set(-1.3 + Math.sin(gv.walkT * 10) * .3, 0, -.15);
+    V.armR.rotation.set(-1.3 - Math.sin(gv.walkT * 10) * .3, 0, .15);
+  }
+}
+
 // ---------------- 점심 영업 행동 ----------------
 function orderSoup(id){
   const s = soupById(id);
@@ -4415,6 +4584,7 @@ function clearCustomers(){
   W.seatViews.forEach(v => v && removeCustomerView(v));
   W.leaving.forEach(removeCustomerView);
   if (W.police){ scene.remove(W.police.g); W.police = null; }
+  if (W.guard){ scene.remove(W.guard.g); W.guard = null; }
   W.seatViews = [null, null, null, null];
   W.leaving = [];
 }
@@ -4457,6 +4627,7 @@ function syncCustomers(seats, dt, curTray, live){
     if (Math.abs(v.g.position.x) > 15){ removeCustomerView(v); W.leaving.splice(k, 1); }
   }
   syncPolice(W, seats, dt, i => SEAT_X[i], 0, scene);
+  syncGuard(W, seats, dt, i => SEAT_X[i], 0, scene);
 }
 
 function updateCustomerView(v, c, dt, curTray, live){
