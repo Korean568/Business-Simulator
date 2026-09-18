@@ -7160,7 +7160,7 @@ function endDay(){
   sfx.fanfare();
   let nextBtn;
   if (G.money < 0) nextBtn = `<button class="big-btn" onclick="showEnding('bankrupt')">결과 보기...</button>`;
-  else if (G.money >= GOAL) nextBtn = `<button class="big-btn" onclick="showEnding('goal')">🏆 100만원 달성! 결과 보기</button>`;
+  else if (G.money >= GOAL && !G.continued) nextBtn = `<button class="big-btn" onclick="showEnding('goal')">🏆 100만원 달성! 결과 보기</button>`;
   else nextBtn = `<div class="home-note">🏠 퇴근은 원할 때! 늦을수록(${TIRE_SECS}초마다 1%) 피곤해지고 100%면 쓰러져요</div><button class="big-btn" onclick="startEvening()">🌙 저녁 자유시간</button> <button class="sub-btn" onclick="eveningShop()">업그레이드 상점 🛒</button>`;
   showOverlay(`
     <div class="card">
@@ -7224,6 +7224,13 @@ function nextDay(){
   showDayIntro();
 }
 
+// 100만원 달성 뒤에도 가게를 계속 운영해요 (다음부터는 달성 엔딩 없이 이어져요)
+function continueGame(){
+  G.continued = true;
+  G.afterWork = true;
+  sfx.click();
+  startEvening();
+}
 function showEnding(reason){
   G.running = false;
   G.phase = 'result';
@@ -7261,7 +7268,7 @@ function showEnding(reason){
         <tr><td>완벽한 국밥</td><td>${G.totalPerfect + (!done ? G.stats.perfect : 0)}그릇</td></tr>
         <tr><td>최종 평판</td><td>⭐ ${G.rep.toFixed(1)}</td></tr>
       </table>
-      <button class="big-btn" onclick="showTitle()">다시 하기 🔄</button>
+      ${done ? `<button class="big-btn" onclick="continueGame()">▶ 계속하기</button> ` : ''}<button class="${done ? 'sub-btn' : 'big-btn'}" onclick="showTitle()">다시 하기 🔄</button>
     </div>`);
 }
 
