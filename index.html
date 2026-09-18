@@ -127,6 +127,10 @@ button{font-family:inherit;cursor:pointer}
 
 .fb-btn.city{border-color:#8a6ad8}
 .mall-grid{flex-wrap:wrap;max-height:210px;overflow-y:auto;max-width:900px}
+#carHud{position:fixed;right:16px;bottom:16px;z-index:16;background:rgba(5,7,12,.85);border:2px solid #2a8aff;border-radius:16px;padding:8px 10px 6px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.5)}
+#carHud canvas{display:block;width:240px;height:120px}
+#carHud .ch-title{color:#9fc4ff;font-size:13px;margin-top:4px;white-space:nowrap}
+@media (max-width:700px){#carHud canvas{width:180px;height:90px}#carHud .ch-title{font-size:11px}}
 #tripBanner{position:fixed;left:50%;top:21%;transform:translate(-50%,-50%);z-index:30;width:min(520px,calc(100% - 32px));background:rgba(20,16,40,.92);color:#fff3dc;border:3px solid #8a6ad8;border-radius:18px;padding:14px 18px 16px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.5)}
 #tripBanner .tb-text{font-size:20px;margin-bottom:8px}
 #tripBanner .tb-road{position:relative;height:34px;background:#3a3d44;border-radius:8px;border-top:3px dashed #f2e6a0}
@@ -526,6 +530,7 @@ button{font-family:inherit;cursor:pointer}
 </div>
 <div class="controls town-controls" id="townControls" hidden></div>
 <div class="controls town-controls" id="cityControls" hidden></div>
+<div id="carHud" hidden><div class="ch-title"></div></div>
 <div id="tripBanner" hidden><div class="tb-text"></div><div class="tb-road"><span class="tb-car">🚌</span></div><div class="tb-bar"><i></i></div></div>
 <div id="joystick" hidden><div id="joyKnob"></div></div>
 <div id="staffBanner" hidden></div>
@@ -4562,12 +4567,22 @@ function buildCarRide(){
     x.fillStyle = '#05070c'; x.fillRect(0, 0, w, h);
     x.strokeStyle = '#2a8aff'; x.lineWidth = 6;
     x.beginPath(); x.arc(w / 2, h - 10, 90, Math.PI, 0); x.stroke();
+    // 눈금 (0~800km/h) · 이 차의 최고 속도는 빨간 눈금
+    for (let v = 0; v <= 800; v += 100){
+      const ta = Math.PI + v / 800 * Math.PI;
+      x.strokeStyle = '#9fc4ff'; x.lineWidth = 3;
+      x.beginPath(); x.moveTo(w / 2 + Math.cos(ta) * 90, h - 10 + Math.sin(ta) * 90); x.lineTo(w / 2 + Math.cos(ta) * 76, h - 10 + Math.sin(ta) * 76); x.stroke();
+    }
+    if (R.top){ const ta = Math.PI + R.top / 800 * Math.PI; x.strokeStyle = '#ff3a3a'; x.lineWidth = 6; x.beginPath(); x.arc(w / 2, h - 10, 90, ta - .04, ta + .04); x.stroke(); }
     const r = clamp((R.speed || 0) / 800, 0, 1), a = Math.PI + r * Math.PI;
     x.strokeStyle = '#ff5a3a'; x.lineWidth = 5;
     x.beginPath(); x.moveTo(w / 2, h - 10); x.lineTo(w / 2 + Math.cos(a) * 80, h - 10 + Math.sin(a) * 80); x.stroke();
     x.fillStyle = '#fff'; x.textAlign = 'center'; x.font = '30px Jua, sans-serif';
+    x.strokeStyle = '#05070c'; x.lineWidth = 7; x.lineJoin = 'round';
+    x.strokeText(`${Math.round(R.speed || 0)} km/h`, w / 2, h - 30);   // 바늘에 가려지지 않게 테두리
     x.fillText(`${Math.round(R.speed || 0)} km/h`, w / 2, h - 30);
   });
+  $('carHud').prepend(R.gaugeTex.userData.canvas);   // 1인칭에선 운전대에 가려서 화면에도 띄워요
   const gauge = mesh(new THREE.PlaneGeometry(.9, .45), new THREE.MeshBasicMaterial({map: R.gaugeTex}), -.8, 1.66, -.7, false);
   gauge.rotation.x = -.35; cab.add(gauge);
   R.screenTex = canvasTex(512, 256, (x, w, h) => {
@@ -6818,6 +6833,13 @@ function renderHUD(){
   renderTripBanner();
   if (G.phase === 'vipPrep') renderVipPrepHUD();
   if (G.phase === 'cafeRoast') renderRoastHUD();
+  const drive = W.mode === 'car' && inPhase('open') && !!G.trip;
+  $('carHud').hidden = !drive;
+  if (drive){
+    const tr = G.trip, ch = `🏎️ ${W.car.carName} · 최고 ${W.car.top}km/h · ${FLOORS[tr.to].name}까지 ${Math.ceil(tr.len - tr.t)}초`;
+    const el = $('carHud').querySelector('.ch-title');
+    if (el.textContent !== ch) el.textContent = ch;
+  }
   if (G.phase === 'lunch' || G.phase === 'open'){
     const curTray = G.trays[G.sel];
     document.querySelectorAll('[data-top]').forEach(btn => btn.classList.toggle('on', !!(curTray && curTray.tops.includes(btn.dataset.top))));
