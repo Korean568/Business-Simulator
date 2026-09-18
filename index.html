@@ -4282,7 +4282,7 @@ function storeFront(root, hits, kind, s, x, z, w, h, opts = {}){
 }
 
 // ---------------- 이동 (버스 · 내 차) ----------------
-const BUS_SECS = 10;
+const BUS_SECS = 15;
 // tier: 0 가장 싼 차 ~ 4 가장 비싼 차 · kmh: 최고 속도 · 실내: 시트 색 · 보닛 줄무늬 · 공기구멍 · 원목 · 무드등 · 큰 화면
 const CARS = [
   {id: 'car5', name: '스포츠 쿠페',   secs: 10, price: 100000, color: 0x2f6ad8, tier: 0, kmh: 200, seat: 0x55585f},
@@ -4734,7 +4734,7 @@ const CITY_SHOPS = [
   {id: 'mall', name: '메가 대형마트',   icon: '🛒', x: -20, color: 0xe0a030, sign: '#d98a1e', desc: '없는 게 없어요! 영업 중에도 모든 재료·손질된 국밥 재료·도구를 시장 가격에 사요'},
   {id: 'wine', name: '그랑 와인샵',     icon: '🍾', x: -10, color: 0x5a1428, sign: '#6a1428', desc: '고급 와인은 VIP에게 두 배 값에 팔려요'},
   {id: 'tv',   name: 'BSB 방송국',      icon: '📺', x: 0,   color: 0x2c3e6b, sign: '#2c3e6b', desc: 'TV 광고를 내면 오늘 손님이 1.5배로 늘어요'},
-  {id: 'cars', name: '프레스티지 모터스', icon: '🏎️', x: 10,  color: 0x222228, sign: '#1a1a1f', desc: '비싼 차일수록 대도시를 빨리 오가요 (버스는 10초)'},
+  {id: 'cars', name: '프레스티지 모터스', icon: '🏎️', x: 10,  color: 0x222228, sign: '#1a1a1f', desc: '비싼 차일수록 대도시를 빨리 오가요 (버스는 15초)'},
   {id: 'arms', name: '실버 호신용품',   icon: '🛡️', x: 20,  color: 0x3a3a44, sign: '#8a1a1a', desc: '합법 호신용품 · 하나 살 때마다 진상 방문 확률 -0.5%p'},
   {id: 'bus',  name: '대도시 정류장',   icon: '🚏', x: 30,  color: 0x2f6ad8, sign: '#2f6ad8', desc: '버스나 내 차를 타고 시내로 돌아가요'},
 ];
@@ -4850,7 +4850,7 @@ function cityBodyHtml(sel){
   }).join('');
   if (sel === 'tv') return `<button class="pstep town-act ${C.tv || G.money < TV_PRICE ? 'off' : ''}" data-cact="tv"><span class="key">1</span><span class="ic">📺</span>TV 광고 찍기 ${fmt(TV_PRICE)}<small>${C.tv ? '✅ 오늘 방송 중 · 손님 1.5배' : '오늘 손님 1.5배 · 평판 +0.2 · 하루 1번'}</small></button>`;
   if (sel === 'cars') return CARS.map((c, i) => card(`data-cact="car" data-cid="${c.id}"`, '🏎️', c.name, G.cars[c.id] ? `✅ 보유 · ${c.kmh}km/h` : `${fmt(c.price)} · ${c.secs}초 · ${c.kmh}km/h`, G.cars[c.id] || G.money < c.price, i + 1)).join('')
-    + `<div class="town-bank">지금 이동 시간 <b>${tripSecs()}초</b><small>${carSecs() ? '가장 빠른 내 차로 다녀요' : '차가 없으면 버스로 10초'}</small></div>`;
+    + `<div class="town-bank">지금 이동 시간 <b>${tripSecs()}초</b><small>${carSecs() ? '가장 빠른 내 차로 다녀요' : '차가 없으면 버스로 15초'}</small></div>`;
   if (sel === 'arms') return ARMS.map((a, i) => card(`data-cact="arm" data-cid="${a.id}"`, a.icon, a.name, G.arms[a.id] ? '✅ 보유' : `${fmt(a.price)} · 진상 -0.5%p`, G.arms[a.id] || G.money < a.price, i + 1)).join('')
     + `<div class="town-bank">진상 방문 확률 <b>-${(jinsangCut() * 100).toFixed(1)}%p</b><small>합법 호신용품만 팔아요</small></div>`;
   return `<button class="pstep town-act" data-cact="home"><span class="key">1</span><span class="ic">${carSecs() ? '🏎️' : '🚌'}</span>시내로 돌아가기<small>${tripBy()} · ${tripSecs()}초</small></button>`;
