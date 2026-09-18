@@ -4592,12 +4592,29 @@ function buildCarRide(){
   for (const sx of [-1.8, 1.8]){
     cab.add(mesh(new THREE.BoxGeometry(.15, .9, 3.6), R.paint, sx, 1.1, 0));
     cab.add(mesh(new THREE.BoxGeometry(.1, .08, 3.4), trim, sx * .98, 1.56, 0));
-    const pillar = mesh(new THREE.BoxGeometry(.14, 1.6, .14), dark, sx * .95, 2.2, -.9);
-    pillar.rotation.x = -.5; cab.add(pillar);
+    const pillar = mesh(new THREE.BoxGeometry(.16, 1.75, .16), R.paint, sx * .96, 2.4, -.62);
+    pillar.rotation.x = -.62; cab.add(pillar);
   }
-  cab.add(mesh(new THREE.BoxGeometry(3.6, .1, 2.2), dark, 0, 3.4, .4));
-  const glass = new THREE.MeshStandardMaterial({color: 0xcfe8ff, transparent: true, opacity: .12, roughness: .05});
-  const shield = mesh(new THREE.PlaneGeometry(3.4, 1.5), glass, 0, 2.2, -.95, false); shield.rotation.x = -.5; cab.add(shield);
+  // 지붕이 있는 차: 앞유리 윗틀 · 지붕 · 옆 창문 · 룸미러
+  const liner = std(0xd8cfc0, {roughness: .9});
+  cab.add(mesh(new THREE.BoxGeometry(3.5, .22, .3), R.paint, 0, 3.12, -.3));                 // 앞유리 윗틀
+  cab.add(mesh(new THREE.BoxGeometry(3.5, .1, 2.6), R.paint, 0, 3.28, 1.0));                 // 지붕 바깥
+  cab.add(mesh(new THREE.BoxGeometry(3.4, .04, 2.5), liner, 0, 3.21, 1.0, false));           // 지붕 안감
+  cab.add(mesh(new THREE.BoxGeometry(1.1, .03, .5), std(0xc9bfae), -.8, 3.18, -.05, false)); // 햇빛 가리개
+  cab.add(mesh(new THREE.BoxGeometry(1.1, .03, .5), std(0xc9bfae), .8, 3.18, -.05, false));
+  const mirror = new THREE.Group(); mirror.position.set(.05, 2.98, -.25);
+  mirror.add(mesh(new THREE.BoxGeometry(.05, .2, .05), dark, 0, .08, 0, false));
+  mirror.add(mesh(new THREE.BoxGeometry(.7, .2, .06), dark, 0, -.05, 0, false));
+  mirror.add(mesh(new THREE.PlaneGeometry(.62, .14), new THREE.MeshStandardMaterial({color: 0x9ab8d8, metalness: .8, roughness: .1}), 0, -.05, .035, false));
+  cab.add(mirror);
+  const glass = new THREE.MeshStandardMaterial({color: 0xcfe8ff, transparent: true, opacity: .12, roughness: .05, side: THREE.DoubleSide});
+  const shield = mesh(new THREE.PlaneGeometry(3.4, 1.7), glass, 0, 2.4, -.62, false); shield.rotation.x = -.62; cab.add(shield);
+  for (const sx of [-1.75, 1.75]){
+    cab.add(mesh(new THREE.PlaneGeometry(2.8, 1.5), glass, sx, 2.35, .7, false).rotateY(Math.PI / 2));
+    cab.add(mesh(new THREE.BoxGeometry(.12, 1.6, .16), R.paint, sx, 2.4, 1.5));             // B필러
+    cab.add(mesh(new THREE.BoxGeometry(.12, 1.6, .3), R.paint, sx, 2.4, 2.25));              // C필러
+  }
+  cab.add(mesh(new THREE.PlaneGeometry(3.4, 1.4), glass, 0, 2.4, 2.35, false));               // 뒷유리
   // 운전하는 사장님
   const o = R.owner = makeCustomer({id: 'owner'});
   o.position.set(-.8, -.05, 1); o.rotation.y = Math.PI;
