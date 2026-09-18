@@ -4285,11 +4285,11 @@ function storeFront(root, hits, kind, s, x, z, w, h, opts = {}){
 const BUS_SECS = 10;
 // tier: 0 가장 싼 차 ~ 4 가장 비싼 차 · kmh: 최고 속도 · 실내: 시트 색 · 보닛 줄무늬 · 공기구멍 · 원목 · 무드등 · 큰 화면
 const CARS = [
-  {id: 'car5', name: '스포츠 쿠페',   secs: 5, price: 100000, color: 0x2f6ad8, tier: 0, kmh: 200, seat: 0x55585f},
-  {id: 'car4', name: '로드스터',      secs: 4, price: 200000, color: 0xf2d230, tier: 1, kmh: 340, seat: 0x1a1a1a, stripe: 0x111111},
-  {id: 'car3', name: '그랜드 투어러', secs: 3, price: 300000, color: 0x3a3a44, tier: 2, kmh: 475, seat: 0xb08a5a, wood: true},
-  {id: 'car2', name: '슈퍼카',        secs: 2, price: 450000, color: 0xe0405a, tier: 3, kmh: 610, seat: 0x8e1c24, stripe: 0x111111, vents: true, neon: 0xff3a3a},
-  {id: 'car1', name: '하이퍼카',      secs: 1, price: 700000, color: 0xf28a1e, tier: 4, kmh: 750, seat: 0xf4f0e8, stripe: 0xf2b632, vents: true, neon: 0x3ad8ff, wood: true, big: true},
+  {id: 'car5', name: '스포츠 쿠페',   secs: 10, price: 100000, color: 0x2f6ad8, tier: 0, kmh: 200, seat: 0x55585f},
+  {id: 'car4', name: '로드스터',      secs: 9, price: 200000, color: 0xf2d230, tier: 1, kmh: 340, seat: 0x1a1a1a, stripe: 0x111111},
+  {id: 'car3', name: '그랜드 투어러', secs: 8, price: 300000, color: 0x3a3a44, tier: 2, kmh: 475, seat: 0xb08a5a, wood: true},
+  {id: 'car2', name: '슈퍼카',        secs: 7, price: 450000, color: 0xe0405a, tier: 3, kmh: 610, seat: 0x8e1c24, stripe: 0x111111, vents: true, neon: 0xff3a3a},
+  {id: 'car1', name: '하이퍼카',      secs: 6, price: 700000, color: 0xf28a1e, tier: 4, kmh: 750, seat: 0xf4f0e8, stripe: 0xf2b632, vents: true, neon: 0x3ad8ff, wood: true, big: true},
 ];
 function carSecs(){ const own = CARS.filter(c => G.cars[c.id]); return own.length ? Math.min(...own.map(c => c.secs)) : 0; }
 function tripSecs(){ return carSecs() || BUS_SECS; }
