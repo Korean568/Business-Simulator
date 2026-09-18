@@ -1586,7 +1586,7 @@ function setWorldMode(mode){
   $('vipControls').hidden = !(mode === 'vip' && open && !G.staff.vip);
   $('townControls').hidden = mode !== 'town';
   $('cityControls').hidden = mode !== 'city';
-  $('joystick').hidden = !(mode === 'town' || mode === 'city');
+  $('joystick').hidden = !(mode === 'town' || mode === 'city' || mode === 'car');
   W.keys.clear(); W.joy.x = W.joy.y = 0;
   if (W.town) W.town.target = null;
   if (W.city) W.city.target = null;
@@ -4304,7 +4304,7 @@ function startTrip(to){
 function updateTrip(dt){
   const tr = G.trip;
   if (!tr) return;
-  tr.t += dt;
+  tr.t += W.mode === 'car' && W.car.top ? dt * W.car.speed / W.car.top : dt;
   if (tr.t < tr.len) return;
   G.trip = null;
   G.floor = tr.to;
@@ -4316,7 +4316,7 @@ function renderTripBanner(){
   const el = $('tripBanner'), tr = G && inPhase('open') ? G.trip : null;
   el.hidden = !tr;
   if (!tr) return;
-  const txt = `${tr.by}(으)로 ${FLOORS[tr.to].icon} ${FLOORS[tr.to].name}에 가는 중... ${Math.ceil(tr.len - tr.t)}초`;
+  const txt = `${tr.by}(으)로 ${FLOORS[tr.to].icon} ${FLOORS[tr.to].name}에 가는 중... ${Math.ceil(tr.len - tr.t)}초` + (W.mode === 'car' ? ` · 🎮 W 가속 S 브레이크 A/D 핸들 · ${Math.round(W.car.speed)}km/h` : '');
   const t = el.querySelector('.tb-text');
   if (t.textContent !== txt) t.textContent = txt;
   const r = clamp(tr.t / tr.len, 0, 1);
@@ -4535,10 +4535,14 @@ function buildCarRide(){
     root.add(g); R.movers.push(g);
   }
   // 앞에서 달리는 다른 차
-  R.aheadCar = makeSportsCar(0x8a8a94, 1.1);
-  R.aheadCar.rotation.y = Math.PI / 2;
-  R.aheadCar.position.set(X + 5.2, 0, -26);
-  root.add(R.aheadCar);
+  // 도로 위 다른 차들 (x: 차선, 각자 속도로 달려요)
+  R.traffic = [[0x8a8a94, 5.2, -26, 70], [0x2f6ad8, -.3, -48, 55], [0xf2d230, 5.2, -70, 80], [0x3a8a4a, -.3, -95, 50]].map(([c, lx, z, kmh]) => {
+    const g = makeSportsCar(c, 1.1);
+    g.rotation.y = Math.PI / 2;
+    g.position.set(X + lx, 0, z);
+    root.add(g);
+    return {g, lane: lx, kmh};
+  });
   // 차 안
   // 사람 크기에 맞춘 차 안을 절반으로 줄여 길 위의 다른 차들과 크기를 맞춰요
   const cab = R.cab = new THREE.Group(); cab.position.set(X, 0, 0); cab.scale.setScalar(CAR_CAB_SCALE); root.add(cab);
@@ -4633,20 +4637,57 @@ function prepCarRide(){
   const R = W.car, car = bestCar();
   if (!car) return;
   R.paint.color.set(car.color);
-  R.speed = 60 + (5 - car.secs) * 55;
+  R.top = 120 + (5 - car.secs) * 70;   // 최고 속도 (km/h): 비싼 차일수록 빨라요
+  R.speed = R.top * .6;
   R.carName = car.name;
+  R.px = 0; R.cab.position.x = CAR_X; R.steer = 0; R.hitT = 0;
+  R.traffic.forEach((t, k) => { t.g.position.set(CAR_X + t.lane, 0, -26 - k * 22); });
   redrawTex(R.gaugeTex);
+  toast('🏎️ 직접 운전해요! W 가속 · S 브레이크 · A/D 핸들 (조이스틱도 돼요)');
 }
+function canDrive(){ return inPhase('open') && !!G.trip && W.mode === 'car' && G.running && !G.paused && $('overlay').hidden; }
 function syncCarRide(dt){
-  const R = W.car, tr = G && G.trip;
+  const R = W.car, tr = G && G.trip, live = canDrive();
+  // 입력: W/↑ 가속 · S/↓ 브레이크 · A/D/←/→ 핸들 · 조이스틱
+  const k = W.keys, joy = W.joy;
+  let gas = (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0);
+  let steer = (k.has('KeyD') || k.has('ArrowRight') ? 1 : 0) - (k.has('KeyA') || k.has('ArrowLeft') ? 1 : 0);
+  if (!gas && Math.abs(joy.y) > .15) gas = -joy.y;
+  if (!steer && Math.abs(joy.x) > .15) steer = joy.x;
+  if (!live){ gas = 0; steer = 0; }
+  const top = R.top || 200;
+  // 가속하면 최고 속도, 가만히 두면 60%로 순항, 브레이크를 밟으면 느려져요
+  const want = gas > 0 ? top * gas : gas < 0 ? top * .15 : top * .6;
+  R.speed = lerp(R.speed, want, Math.min(1, dt * (gas < 0 ? 2.2 : 1.1)));
+  if (R.hitT > 0) R.hitT -= dt;
+  R.steer = lerp(R.steer || 0, steer, Math.min(1, dt * 8));
+  // R.px: 도로 위 좌우 위치 (차선 사이를 오가요)
+  if (tr) R.px = clamp((R.px || 0) + R.steer * 7 * dt * clamp(R.speed / 80, .3, 1), -3.4, 6.4);
+  R.cab.position.x = CAR_X + (R.px || 0);
   const v = tr ? R.speed / 3.6 : 0;
   R.stripes.forEach(s => { s.position.z += v * dt; if (s.position.z > 10) s.position.z -= 120; });
   R.movers.forEach(g => { g.position.z += v * dt; if (g.position.z > 12) g.position.z -= 120; });
-  R.aheadCar.position.z += v * .35 * dt;
-  if (R.aheadCar.position.z > 14) R.aheadCar.position.z = -60;
+  // 다른 차: 내 차보다 느리면 다가와요. 부딪히면 쾅!
+  const myX = CAR_X + (R.px || 0);
+  R.traffic.forEach(t => {
+    t.g.position.z += (v - t.kmh / 3.6) * dt;
+    if (t.g.position.z > 14) t.g.position.z -= 110;
+    if (t.g.position.z < -120) t.g.position.z += 110;
+    if (live && R.hitT <= 0 && Math.abs(t.g.position.x - myX) < 1.5 && t.g.position.z > -3.7 && t.g.position.z < 2.7){
+      R.hitT = 1;
+      R.speed *= .25;
+      t.g.position.z -= 30;
+      W.shake = .5;
+      sfx.bonk();
+      toast('💥 쾅! 앞차와 부딪혔어요 · 속도가 뚝 떨어져요');
+    }
+  });
   R.cab.position.y = tr ? Math.sin(T * 13) * .006 : 0;
-  R.wheel.rotation.z = tr ? Math.sin(T * .9) * .12 : 0;
-  R.owner.userData.head.rotation.z = R.wheel.rotation.z * .5;
+  R.cab.rotation.y = -R.steer * .04;
+  R.wheel.rotation.z = -R.steer * .9;
+  R.owner.userData.head.rotation.z = R.wheel.rotation.z * .2;
+  const gk = Math.round(R.speed / 5);
+  if (R.gaugeKey !== gk){ R.gaugeKey = gk; redrawTex(R.gaugeTex); }
   const txt = tr ? `${R.carName || '내 차'}\n${FLOORS[tr.to].icon} ${FLOORS[tr.to].name}까지 ${Math.ceil(tr.len - tr.t)}초` : '🏎️ 내비게이션';
   if (R.screenKey !== txt){ R.screenKey = txt; R.screenText = txt; redrawTex(R.screenTex); }
 }
@@ -7002,6 +7043,7 @@ document.addEventListener('pointerdown', e => {
   if (canMarket()){ marketPointer(e); return; }
   if (canCafe()){ cafePointer(e); return; }
   if (canVip()){ vipPointer(e); return; }
+  if (canDrive() && t.closest('#joystick')) return;
   if (canCity()){
     let el;
     if (t.closest('#joystick')) return;
@@ -7102,6 +7144,10 @@ window.addEventListener('keydown', e => {
   if (jz && hereKind()){ if (!e.repeat) jinsangAction(jz); return; }
   if (canCafe()){ cafeKey(e); return; }
   if (canVip()){ vipKey(e); return; }
+  if (canDrive()){
+    if (MOVE_KEYS.includes(c)){ W.keys.add(c); e.preventDefault(); }
+    return;
+  }
   if (canCity()){
     if (MOVE_KEYS.includes(c)){ W.keys.add(c); e.preventDefault(); return; }
     const m = /^(?:Digit|Numpad)([1-9])$/.exec(c);
@@ -7233,7 +7279,7 @@ function loop(ts){
     _lookTarget.copy(CAMS[W.mode].look);
   }
   if (W.mode === 'bus'){ _camTarget.y += W.bus.cabin.position.y; _lookTarget.y += W.bus.cabin.position.y; }
-  if (W.mode === 'car'){ _camTarget.y += W.car.cab.position.y; }
+  if (W.mode === 'car'){ _camTarget.y += W.car.cab.position.y; _camTarget.x += W.car.px || 0; _lookTarget.x += (W.car.px || 0) + (W.car.steer || 0) * 1.5; }
   if (overlayOpen){ _camTarget.x += Math.sin(T * .25) * 2.2; _camTarget.y += Math.sin(T * .17) * .4; }
   if (W.snapCam || !Number.isFinite(camera.position.x + curLook.x)){ camera.position.copy(_camTarget); curLook.copy(_lookTarget); W.snapCam = false; }
   const follow = W.mode === 'market' ? 6 : W.mode === 'town' || W.mode === 'city' ? 4 : W.mode === 'bus' || W.mode === 'car' ? 12 : 2.5;
