@@ -127,6 +127,17 @@ button{font-family:inherit;cursor:pointer}
 
 .fb-btn.city{border-color:#8a6ad8}
 .mall-grid{flex-wrap:wrap;max-height:210px;overflow-y:auto;max-width:900px}
+#fatigueVeil{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:45;transition:opacity .5s}
+#eveningBar{position:fixed;left:50%;top:64px;transform:translateX(-50%);z-index:16;background:rgba(20,16,40,.9);color:#fff3dc;border:2px solid #8a6ad8;border-radius:14px;padding:8px 14px;text-align:center;width:min(460px,calc(100% - 32px))}
+#eveningBar .eb-text{font-size:16px}
+#eveningBar .eb-bar{height:8px;background:rgba(255,255,255,.15);border-radius:5px;overflow:hidden;margin:5px 0}
+#eveningBar .eb-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f2b632,#e53935)}
+#eveningBar .eb-btns{display:flex;gap:8px;justify-content:center;align-items:center}
+#eveningBar .big-btn{font-size:18px;padding:6px 16px;margin:0}
+#eveningBar .sub-btn{margin:0}
+.fb-btn.home{border-color:#e0a030}
+.home-note{font-size:15px;color:#8a6e55;margin:6px 0}
+.vp-log{text-align:left;font-size:16px;background:#fff0c2;border-radius:10px;padding:8px 12px;margin:8px 0;max-height:200px;overflow:auto}
 #carHud{position:fixed;right:16px;bottom:16px;z-index:16;background:rgba(5,7,12,.85);border:2px solid #2a8aff;border-radius:16px;padding:8px 10px 6px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.5)}
 #carHud canvas{display:block;width:240px;height:120px}
 #carHud .ch-title{color:#9fc4ff;font-size:13px;margin-top:4px;white-space:nowrap}
@@ -526,10 +537,13 @@ button{font-family:inherit;cursor:pointer}
   <button class="fb-btn" data-floor="2"><b>2F</b><span class="fb-name">☕ 카페</span><small id="fb2"></small></button>
   <button class="fb-btn" data-floor="1"><b>1F</b><span class="fb-name">🍲 국밥집</span><small id="fb1"></small></button>
   <button class="fb-btn town" data-floor="4"><b>🏙️</b><span class="fb-name">시내 외출</span><small id="fb4"></small></button>
+  <button class="fb-btn home" data-floor="6" hidden><b>🏠</b><span class="fb-name">퇴근하기</span><small id="fb6"></small></button>
   <button class="fb-btn city" data-floor="5"><b>🌆</b><span class="fb-name">대도시로 이동</span><small id="fb5"></small></button>
 </div>
 <div class="controls town-controls" id="townControls" hidden></div>
 <div class="controls town-controls" id="cityControls" hidden></div>
+<div id="fatigueVeil"></div>
+<div id="eveningBar" hidden><div class="eb-text"></div><div class="eb-bar"><i></i></div><div class="eb-btns"><button class="sub-btn" onclick="eveningShop()">🛒 업그레이드 상점</button><button class="big-btn" onclick="goFloor(6)">🏠 퇴근하기 <small>Shift+6</small></button></div></div>
 <div id="carHud" hidden><div class="ch-title"></div></div>
 <div id="tripBanner" hidden><div class="tb-text"></div><div class="tb-road"><span class="tb-car">🚌</span></div><div class="tb-bar"><i></i></div></div>
 <div id="joystick" hidden><div id="joyKnob"></div></div>
@@ -625,7 +639,7 @@ const MOVE_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'K
 const DRINK_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'drink');
 const FOOD_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'food');
 const CAFE_LEN = 60, CAFE_SEATS = 3, CAFE_X = -120;
-const VIP_X = 240, TOWN_X = 360, CITY_X = 480, BUS_X = 600, CAR_X = 720;
+const VIP_X = 240, TOWN_X = 360, CITY_X = 480, BUS_X = 600, CAR_X = 720, HOME_X = 960;
 const DEFAULT_RECIPES = [
   {id:'greentea', name:'녹차',     type:'drink', ings:['tea'],                                     price:4000},
   {id:'coffee',   name:'커피',     type:'drink', ings:['coffee'],                                  price:4500},
@@ -735,6 +749,7 @@ const CAMS = {
   town:  {look: new THREE.Vector3(TOWN_X, 2.2, -2.5), base: new THREE.Vector3(TOWN_X, 11.5, 14.5), pos: new THREE.Vector3()},
   city:  {look: new THREE.Vector3(CITY_X, 2.6, -3),   base: new THREE.Vector3(CITY_X, 12,   15),   pos: new THREE.Vector3()},
   car:   {look: new THREE.Vector3(CAR_X - .4, -1.5, -14), base: new THREE.Vector3(CAR_X - .4, 1.5, .55), pos: new THREE.Vector3()},   // 1인칭 (운전석)
+  home:  {look: new THREE.Vector3(HOME_X, 2, -2.5),   base: new THREE.Vector3(HOME_X, 8.5, 12),  pos: new THREE.Vector3()},
   bus:   {look: new THREE.Vector3(BUS_X + 16, 2.2, .2),  base: new THREE.Vector3(BUS_X + 3.45, 2.95, 2.1),  pos: new THREE.Vector3()},   // 1인칭 (창가 좌석)
 };
 const curLook = CAMS.lunch.look.clone();
@@ -754,6 +769,7 @@ const LIGHTS = {
   vip:   {bg: new THREE.Color(0x1a0c14), hemi: new THREE.Color(0xffe8d0), hemiI: .7,  sun: new THREE.Color(0xffe0b0), sunI: .7},
   town:  {bg: new THREE.Color(0x8cc0e8), hemi: new THREE.Color(0xffffff), hemiI: .85, sun: new THREE.Color(0xfff2d8), sunI: .95},
   car:   {bg: new THREE.Color(0x9cc8ec), hemi: new THREE.Color(0xffffff), hemiI: .9,  sun: new THREE.Color(0xfff2d8), sunI: .9},
+  home:  {bg: new THREE.Color(0x2a1a14), hemi: new THREE.Color(0xfff1dc), hemiI: .75, sun: new THREE.Color(0xffe2b8), sunI: .7},
   bus:   {bg: new THREE.Color(0x9cc8ec), hemi: new THREE.Color(0xffffff), hemiI: .9,  sun: new THREE.Color(0xfff2d8), sunI: .9},
   city:  {bg: new THREE.Color(0x4a4a78), hemi: new THREE.Color(0xe8e4ff), hemiI: .85, sun: new THREE.Color(0xffd8b0), sunI: .8},
 };
@@ -860,6 +876,7 @@ function init3D(){
   buildCity();
   buildBus();
   buildCarRide();
+  buildHome();
   buildStaffModels();
   onResize();
   window.addEventListener('resize', onResize);
@@ -1735,7 +1752,8 @@ function startGame(){
     cafeName: '', vipName: '', beans: 0,
     cellar: {redwine: [], whitewine: []},
     tools: {bat: 0, gun: 0, phone: 0},
-    staff: {gukbap: false, cafe: false, vip: false, guard: false},
+    staff: {gukbap: false, cafe: false, vip: false, vp: false, guard: false},
+    fatigue: 0, lateT: 0, afterWork: false,
     cars: {}, arms: {},
     savings: 0,
   };
@@ -1749,7 +1767,8 @@ function showDayIntro(){
   const bankNote = payoutSavings();
   $('hudName').textContent = '🍲 ' + G.name;
   buildDay();
-  setWorldMode('prep');
+  W.home.night = false;
+  setWorldMode('home'); W.snapCam = true;
   const newTops = TOPPINGS.filter(t => t.unlock === G.day && G.day > 1);
   const unlocks = newTops.map(t => `<span class="unlock">🆕 토핑: ${t.icon} ${t.name}</span>`).join('');
   sfx.rooster();
@@ -1763,7 +1782,9 @@ function showDayIntro(){
       <div class="day-flow"><span>🌅 새벽 시장</span>→<span>🔪 재료 준비</span>→${hasStaff() ? (vipUnlocked() ? '<span>👑 VIP 아침 준비</span>→' : '') + '<span>🏢 1·2·3층 동시 영업 (직원 근무)</span>' : '<span>☀️ 점심 영업</span>→<span>☕ 오후 카페</span>'}</div>
       <div>${unlocks}</div>
       <div style="font-size:16px;color:#8a6e55;margin-top:8px">오늘의 임대료: ${fmt(rentToday())}${wagesToday() ? ` · 직원 일당 ${fmt(wagesToday())}` : ''}</div>
-      <button class="big-btn" onclick="enterMarket()">🌅 새벽시장 가기</button>
+      <div class="home-note">🏠 집에서 일어났어요!</div>
+      ${G.staff.vp ? `<button class="big-btn" onclick="vpMorning()">👔 부사장에게 장보기·준비 맡기기</button><br><button class="sub-btn" onclick="enterMarket()">🌅 직접 새벽시장 가기</button>`
+        : `<button class="big-btn" onclick="enterMarket()">🌅 새벽시장 가기</button>`}
     </div>`, true);
 }
 
@@ -3203,7 +3224,7 @@ function startLunch(){
     if (b){ G.stock[stockKey] += Math.floor(b.sets * yieldN * b.t / b.dur); G.prep[key] = null; }
   }
   if (hasStaff()){
-    if (vipUnlocked()){ showVipIntro(); return; }
+    if (vipUnlocked() && !G.staff.vp){ showVipIntro(); return; }   // 부사장이 있으면 와인 확인도 끝나 있어요
     setWorldMode('lunch'); W.snapCam = true; showOpenIntro(); return;
   }
   G.phase = 'lunch';
@@ -3630,6 +3651,7 @@ function syncPolice(holder, seats, dt, xOf, cx, parent){
 const STAFF = {
   gukbap: {name: '국밥집 직원', icon: '👩‍🍳', floor: 1, work: 60, hire: 50000, wage: 30000, desc: '1층 국밥집을 매일 60초 동안 대신 운영해요'},
   cafe:   {name: '카페 직원',   icon: '🧑‍🍳', floor: 2, work: 30, hire: 40000, wage: 20000, desc: '2층 카페를 매일 30초 동안 대신 운영해요'},
+  vp:     {name: '부사장',       icon: '👔', floor: 0, work: 0, hire: 150000, wage: 50000, desc: '매일 아침 새벽시장 장보기 · 재료 손질 · 원두 볶기 · 와인 숙성 확인을 대신해요'},
   vip:    {name: 'VIP 소믈리에', icon: '🤵', floor: 3, work: 60, hire: 80000, wage: 40000, desc: '3층 VIP존에서 포도주와 안주를 매일 60초 동안 대신 내요'},
 };
 const FLOORS = {
@@ -3638,6 +3660,7 @@ const FLOORS = {
   3: {name: '3층 VIP존',  icon: '👑', mode: 'vip'},
   4: {name: '시내',       icon: '🏙️', mode: 'town'},
   5: {name: '대도시',     icon: '🌆', mode: 'city'},
+  6: {name: '우리 집',    icon: '🏠', mode: 'home'},
 };
 const VIP_SEATS = 3, VIP_LEN = 60, VIP_SEAT_X = [-4.5, 0, 4.5];
 
@@ -4035,8 +4058,14 @@ function startOpen(){
 }
 
 function goFloor(n, silent){
-  if (!inPhase('open')) return;
+  if (!outOK()) return;
   if (G.trip){ toast(`${G.trip.by}(으)로 이동 중이에요! 조금만 기다려요`); sfx.err(); return; }
+  if (inPhase('evening') && n <= 3){ toast('🌙 오늘 영업은 끝났어요 · 🏠 퇴근은 Shift+6'); sfx.err(); return; }
+  if (n === 6){
+    if (!inPhase('evening')){ toast('🏢 영업이 끝나야 퇴근할 수 있어요'); sfx.err(); return; }
+    if (G.floor === 5){ startTrip(6); return; }
+    G.floor = 6; arriveHome(); return;
+  }
   if (n === 2 && !G.cafe){ toast('💤 오늘 카페는 휴무예요'); sfx.err(); return; }
   if (n === 3 && !G.vip){ toast(vipUnlocked() ? '💤 오늘 VIP 라운지는 휴무예요 (포도주·안주 재료 부족)' : '🔒 VIP존은 국밥집·카페 직원을 모두 고용하면 열려요'); sfx.err(); return; }
   if (G.floor === n) return;
@@ -4314,12 +4343,13 @@ function updateTrip(dt){
   if (tr.t < tr.len) return;
   G.trip = null;
   G.floor = tr.to;
+  if (tr.to === 6){ arriveHome(); return; }
   if (W.mode !== FLOORS[tr.to].mode){ setWorldMode(FLOORS[tr.to].mode); W.snapCam = true; }
   sfx.bell();
   toast(`${FLOORS[tr.to].icon} ${FLOORS[tr.to].name} 도착!`);
 }
 function renderTripBanner(){
-  const el = $('tripBanner'), tr = G && inPhase('open') ? G.trip : null;
+  const el = $('tripBanner'), tr = G && outOK() ? G.trip : null;
   el.hidden = !tr || W.mode === 'bus' || W.mode === 'car';
   if (!tr) return;
   const txt = `${tr.by}(으)로 ${FLOORS[tr.to].icon} ${FLOORS[tr.to].name}에 가는 중... ${Math.ceil(tr.len - tr.t)}초` + (W.mode === 'car' ? ` · 🎮 W 가속 S 브레이크 A/D 핸들 · ${Math.round(W.car.speed)}km/h` : '');
@@ -4682,7 +4712,8 @@ function prepCarRide(){
   redrawTex(R.gaugeTex);
   toast('🏎️ 직접 운전해요! W 가속 · S 브레이크 · A/D 핸들 (조이스틱도 돼요)');
 }
-function canDrive(){ return inPhase('open') && !!G.trip && W.mode === 'car' && G.running && !G.paused && $('overlay').hidden; }
+function outOK(){ return inPhase('open') || inPhase('evening'); }
+function canDrive(){ return outOK() && !!G.trip && W.mode === 'car' && G.running && !G.paused && $('overlay').hidden; }
 function syncCarRide(dt){
   const R = W.car, tr = G && G.trip, live = canDrive();
   // 입력: W/↑ 가속 · S/↓ 브레이크 · A/D/←/→ 핸들 · 조이스틱
@@ -4729,6 +4760,217 @@ function syncCarRide(dt){
   if (R.screenKey !== txt){ R.screenKey = txt; R.screenText = txt; redrawTex(R.screenTex); }
 }
 
+// ---------------- 부사장 (아침 장보기 · 재료 준비 대행) ----------------
+// 오늘 쓸 만큼 사서 바로 손질까지 해 둬요. 카페 · VIP 재료는 창고에 모자란 것만 채워요.
+const VP_RAW = {pork: 3, kong: 2, bones: 3, spine: 2, sauce: 2};
+const VP_PANTRY_MIN = {tea: 5, milk: 4, bread: 3, ham: 3, cheese: 3, lettuce: 3, tomato: 3};
+const VP_VIP_MIN = {redwine: 5, whitewine: 5, cracker: 3, fruit: 3, jerky: 3, nuts: 3, salami: 3};
+const VP_RESERVE = 30000;   // 장보고 나서도 이만큼은 남겨 둬요
+function vpBuy(id, n, log){
+  const it = MARKET_ITEMS[id];
+  let got = 0;
+  for (let k = 0; k < n; k++){
+    if (G.money - it.price < VP_RESERVE) break;
+    G.money -= it.price; G.stats.purchase += it.price;
+    addOwned(id, 1);
+    got++;
+  }
+  if (got) log.push(`${it.icon} ${it.name} ${got}${it.unit} (${fmt(it.price * got)})`);
+  return got;
+}
+function vpMorning(){
+  if (!inPhase('intro') || !G.staff.vp) return;
+  const log = [], spent0 = G.stats.purchase;
+  for (const id in VP_RAW) vpBuy(id, VP_RAW[id], log);
+  if (G.pantry.coffee + G.beans * 10 < 10) vpBuy('coffee', 1, log);
+  for (const id in VP_PANTRY_MIN) if (G.pantry[id] < VP_PANTRY_MIN[id]) vpBuy(id, Math.ceil((VP_PANTRY_MIN[id] - G.pantry[id]) / MARKET_ITEMS[id].yield), log);
+  if (vipUnlocked()) for (const id in VP_VIP_MIN) if (G.pantry[id] < VP_VIP_MIN[id]) vpBuy(id, Math.ceil((VP_VIP_MIN[id] - G.pantry[id]) / MARKET_ITEMS[id].yield), log);
+  // 재료 손질: 고기 썰기 · 콩나물 다듬기 · 육수 끓이기 · 매운 육수
+  const r = G.raw, st = G.stock;
+  st.pork += r.pork * 4; r.pork = 0;
+  st.kong += r.kong * 5; r.kong = 0;
+  st.broth += r.bones * 8; r.bones = 0;
+  const sp = Math.min(r.spine, r.sauce);
+  st.spicy += sp * 5; r.spine -= sp; r.sauce -= sp;
+  // 원두 볶기(딱 좋은 중배전) · 와인 숙성 확인
+  let roasted = 0;
+  while (G.beans > 0){ G.beans--; G.pantry.coffee += 10; roasted += 10; }
+  AGING_WINES.forEach(id => { G.vipPrep.checked[id] = true; });
+  sfx.coin();
+  const spent = G.stats.purchase - spent0;
+  showOverlay(`
+    <div class="card">
+      <h2>👔 부사장 아침 보고</h2>
+      <div class="day-note">사장님, 새벽시장 장보기와 재료 준비를 끝내 뒀습니다!</div>
+      <div class="vp-log">${log.length ? log.map(l => `<div>🛒 ${l}</div>`).join('') : '<div>🛒 창고가 넉넉해서 살 게 없었어요</div>'}</div>
+      <div class="mk-info">🔪 손질 완료 · 🥩 고기 ${st.pork} · 🌱 콩나물 ${st.kong} · 🍲 맑은 육수 ${st.broth} · 🌶️ 매운 육수 ${st.spicy}인분${roasted ? ` · ☕ 원두 ${roasted}잔 볶음` : ''}${vipUnlocked() ? ' · 🍾 와인 숙성 확인' : ''}</div>
+      <div style="font-size:18px;margin:8px 0">장보기 비용 <b style="color:var(--red);font-weight:normal">-${fmt(spent)}</b> · 남은 돈 ${fmt(G.money)}</div>
+      <button class="big-btn" onclick="vpStartDay()">☀️ 영업하러 가기</button>
+    </div>`, true);
+}
+function vpStartDay(){
+  G.phase = 'prep';
+  G.prep.warned = true;
+  hideOverlay();
+  setWorldMode('prep');
+  startLunch();
+}
+
+// ---------------- 집 · 퇴근 · 피곤함 ----------------
+// 영업이 끝나면 원할 때 퇴근해요. 늦게 퇴근할수록(5초마다 1%) 피곤해지고, 100%가 되면 쓰러져요.
+const TIRE_SECS = 5;
+function afterWorkTick(dt){
+  if (!G || !G.afterWork || G.paused) return;
+  G.lateT += dt;
+  const f = Math.min(100, Math.floor(G.lateT / TIRE_SECS));
+  if (f !== G.fatigue){
+    G.fatigue = f;
+    if (f === 50 || f === 80 || f === 95) toast(`😵 피곤함 ${f}%! 얼른 퇴근하세요 (Shift+6)`);
+    if (f >= 100){ G.afterWork = false; showEnding('tired'); }
+  }
+}
+function renderFatigue(){
+  const f = G && G.afterWork ? G.fatigue : 0;
+  $('fatigueVeil').style.opacity = f / 100;
+  const el = $('eveningBar'), on = inPhase('evening') && $('overlay').hidden;
+  el.hidden = !on;
+  if (!on) return;
+  const txt = `🌙 퇴근 전 자유시간 · 😪 피곤함 ${f}%`;
+  const t = el.querySelector('.eb-text');
+  if (t.textContent !== txt) t.textContent = txt;
+  el.querySelector('.eb-bar i').style.width = f + '%';
+}
+function startEvening(){
+  G.phase = 'evening';
+  G.running = true; G.paused = false;
+  G.trip = null;
+  hideOverlay();
+  G.floor = 0;
+  goFloor(4, true);
+  $('hudName').textContent = '🌙 ' + G.name;
+  toast('🌙 영업 끝! 시내·대도시를 둘러보다 원할 때 🏠 퇴근하세요 (늦을수록 피곤해져요)');
+}
+function eveningShop(){
+  if (!G.afterWork) return;
+  showShop();
+}
+function arriveHome(){
+  G.afterWork = false;
+  G.fatigue = 0; G.lateT = 0;
+  G.running = false;
+  W.home.night = true;
+  setWorldMode('home'); W.snapCam = true;
+  sfx.bell();
+  showOverlay(`
+    <div class="card">
+      <div class="ending-ic">🏠</div>
+      <h2>퇴근 완료!</h2>
+      <div class="day-note">오늘도 수고했어요. 피곤함이 0%로 돌아왔어요.<br>푹 자고 내일도 힘내요!</div>
+      <button class="big-btn" onclick="nextDay()">💤 자고 DAY ${G.day + 1} 시작하기</button>
+    </div>`, true);
+}
+
+// ---- 집 3D ----
+function buildHome(){
+  const X = HOME_X;
+  const H = W.home = {origin: new THREE.Vector3(X, 0, 0), hits: [], night: false};
+  const root = H.root = new THREE.Group(); scene.add(root);
+  const floorTex = woodTex('#c9a47c', '#a8845c', 10); floorTex.repeat.set(4, 3);
+  const floor = mesh(new THREE.PlaneGeometry(24, 16), std(0xffffff, {map: floorTex, roughness: .8}), X, 0, -1, false);
+  floor.rotation.x = -Math.PI / 2; root.add(floor);
+  const paper = canvasTex(128, 128, (x, w, h) => {
+    x.fillStyle = '#f3e3c8'; x.fillRect(0, 0, w, h);
+    x.fillStyle = 'rgba(200,150,110,.35)'; for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++){ x.beginPath(); x.arc(16 + i * 32, 16 + j * 32, 4, 0, Math.PI * 2); x.fill(); }
+  });
+  paper.wrapS = paper.wrapT = THREE.RepeatWrapping; paper.repeat.set(6, 3);
+  root.add(mesh(new THREE.PlaneGeometry(24, 10), std(0xffffff, {map: paper, roughness: .9}), X, 5, -6, false));
+  for (const sx of [-1, 1]){ const w = mesh(new THREE.PlaneGeometry(14, 10), std(0xffffff, {map: paper, roughness: .9}), X + sx * 10, 5, 0, false); w.rotation.y = -sx * Math.PI / 2; root.add(w); }
+  // 창문 (아침엔 하늘, 밤엔 달)
+  H.skyTex = canvasTex(256, 192, (x, w, h) => {
+    const night = W.home && W.home.night;
+    const g = x.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, night ? '#0a1030' : '#7fc0f0'); g.addColorStop(1, night ? '#2a2a5a' : '#ffe0b0');
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    x.fillStyle = night ? '#fff6c8' : '#ffd24a';
+    x.beginPath(); x.arc(w * .7, h * .35, night ? 22 : 30, 0, Math.PI * 2); x.fill();
+    if (night){ x.fillStyle = '#0a1030'; x.beginPath(); x.arc(w * .7 + 10, h * .35 - 6, 20, 0, Math.PI * 2); x.fill(); for (let k = 0; k < 12; k++){ x.fillStyle = '#fff'; x.fillRect(prand(k + 1700) * w, prand(k + 1710) * h * .6, 2, 2); } }
+    x.fillStyle = night ? '#1a1a30' : '#8aa0c0';
+    for (let k = 0; k < 6; k++){ const bh = 40 + prand(k + 1720) * 60; x.fillRect(k * 44, h - bh, 38, bh); }
+  });
+  const win = new THREE.Group(); win.position.set(X + 3, 4.2, -5.9);
+  win.add(mesh(new THREE.PlaneGeometry(4, 3), new THREE.MeshBasicMaterial({map: H.skyTex}), 0, 0, 0, false));
+  const frame = std(0xffffff, {roughness: .5});
+  win.add(mesh(new THREE.BoxGeometry(4.3, .15, .15), frame, 0, 1.55, .05), mesh(new THREE.BoxGeometry(4.3, .15, .15), frame, 0, -1.55, .05));
+  win.add(mesh(new THREE.BoxGeometry(.15, 3.2, .15), frame, -2.1, 0, .05), mesh(new THREE.BoxGeometry(.15, 3.2, .15), frame, 2.1, 0, .05), mesh(new THREE.BoxGeometry(.1, 3.1, .1), frame, 0, 0, .05));
+  for (const sx of [-1, 1]){ const c = mesh(new THREE.BoxGeometry(1, 3.6, .1), std(0x8e5b9a, {roughness: .9}), sx * 2.6, 0, .15); win.add(c); }
+  root.add(win);
+  // 침대
+  const bed = new THREE.Group(); bed.position.set(X - 4, 0, -3.4);
+  bed.add(mesh(new THREE.BoxGeometry(3.4, .6, 5), std(0x8a5a36), 0, .3, 0));
+  bed.add(mesh(new THREE.BoxGeometry(3.4, 1.6, .3), std(0x7a4a2a), 0, .8, -2.5));
+  bed.add(mesh(new THREE.BoxGeometry(3.2, .4, 4.8), std(0xf8f4ec), 0, .8, 0));
+  bed.add(mesh(new THREE.BoxGeometry(2.2, .35, .9), std(0xffffff), 0, 1.15, -1.9));
+  H.blanket = mesh(new THREE.BoxGeometry(3.3, .25, 3.2), std(0x4f86c6, {roughness: .9}), 0, 1.1, .8);
+  bed.add(H.blanket);
+  root.add(bed);
+  H.bed = bed;
+  // 책상 · 스탠드 · 러그 · 화분 · 시계 · 트로피
+  const desk = new THREE.Group(); desk.position.set(X + 5.5, 0, -4.4);
+  desk.add(mesh(new THREE.BoxGeometry(3.2, .15, 1.6), std(0x9a6a3a), 0, 1.6, 0));
+  for (const lx of [-1.4, 1.4]) desk.add(mesh(new THREE.BoxGeometry(.15, 1.6, 1.4), std(0x7a4a2a), lx, .8, 0));
+  desk.add(mesh(new THREE.CylinderGeometry(.08, .2, .1, 12), std(0x333333), -.9, 1.72, 0));
+  desk.add(mesh(new THREE.CylinderGeometry(.03, .03, .8, 8), std(0x333333), -.9, 2.1, 0));
+  H.lampShade = mesh(new THREE.ConeGeometry(.35, .4, 16, 1, true), std(0xffe0a0, {side: THREE.DoubleSide, emissive: 0xffc060, emissiveIntensity: .3}), -.9, 2.6, 0);
+  desk.add(H.lampShade);
+  H.lamp = new THREE.PointLight(0xffd090, .6, 10); H.lamp.position.set(-.9, 2.4, .3); desk.add(H.lamp);
+  desk.add(mesh(new THREE.BoxGeometry(.9, .6, .08), std(0x222228), .5, 2.0, -.3));
+  desk.add(mesh(geo('trophyCup', () => new THREE.CylinderGeometry(.18, .1, .35, 12)), std(0xf2b632, {metalness: .7, roughness: .25}), 1.2, 1.85, .3));
+  root.add(desk);
+  root.add(mesh(new THREE.CylinderGeometry(3, 3, .03, 32), std(0xd46a5a, {roughness: 1}), X + 1, .02, 0, false));
+  const pl = new THREE.Group(); pl.position.set(X + 8.6, 0, -1);
+  pl.add(mesh(new THREE.CylinderGeometry(.5, .4, .8, 14), std(0xd8c8b0), 0, .4, 0));
+  for (let k = 0; k < 4; k++) pl.add(mesh(geo('leafBall', () => new THREE.SphereGeometry(.55, 12, 10)), std(0x4f8f4a, {roughness: .9}), (prand(k + 1730) - .5) * .7, 1.2 + k * .25, (prand(k + 1740) - .5) * .5));
+  root.add(pl);
+  const clock = new THREE.Group(); clock.position.set(X - 3.5, 6.2, -5.9);
+  clock.add(mesh(new THREE.CylinderGeometry(.6, .6, .1, 24), std(0xffffff), 0, 0, 0).rotateX(Math.PI / 2));
+  H.clockHand = mesh(new THREE.BoxGeometry(.05, .45, .03), std(0x222222), 0, .2, .07, false);
+  const hand = new THREE.Group(); hand.position.z = .02; hand.add(H.clockHand); clock.add(hand); H.hand = hand;
+  root.add(clock);
+  // 현관문
+  const door = new THREE.Group(); door.position.set(X - 9.9, 0, 1.5); door.rotation.y = Math.PI / 2;
+  door.add(mesh(new THREE.BoxGeometry(2, 4, .15), std(0x8a5a36), 0, 2, 0));
+  door.add(mesh(new THREE.SphereGeometry(.1, 10, 8), std(0xf2b632, {metalness: .7}), .7, 2, .12));
+  root.add(door);
+  // 사장님
+  H.owner = makeCustomer({id: 'owner'});
+  root.add(H.owner);
+}
+function syncHome(dt){
+  const H = W.home, o = H.owner, P = o.userData;
+  const key = H.night ? 'n' : 'd';
+  if (H.skyKey !== key){ H.skyKey = key; redrawTex(H.skyTex); H.lamp.intensity = H.night ? 1.1 : .3; }
+  H.hand.rotation.z = -T * .3;
+  if (H.night){
+    // 이불 덮고 쿨쿨
+    o.position.set(HOME_X - 4, 1.05, -3.1);
+    o.rotation.set(-Math.PI / 2, 0, 0);
+    P.legL.rotation.x = P.legR.rotation.x = 0;
+    P.armL.rotation.x = P.armR.rotation.x = 0;
+    P.head.rotation.y = 0;
+    o.position.y = 1.05 + Math.sin(T * 1.5) * .03;
+    H.zT = (H.zT || 0) - dt;
+    if (H.zT <= 0 && W.mode === 'home' && $('overlay').hidden){ H.zT = 1.4; floatWorld(HOME_X - 4, 2.6, -4.6, '💤', '#9fc4ff'); }
+  } else {
+    // 아침: 침대 옆에서 기지개
+    o.rotation.set(0, .3, 0);
+    o.position.set(HOME_X - 1.2, 0, -1.4);
+    const s = (Math.sin(T * 1.6) + 1) / 2;
+    P.armL.rotation.x = P.armR.rotation.x = -2.8 * s;
+    P.armL.rotation.z = -.15 - .3 * s; P.armR.rotation.z = .15 + .3 * s;
+    P.legL.rotation.x = P.legR.rotation.x = 0;
+  }
+}
+
 // ---------------- 대도시 ----------------
 const CITY_SHOPS = [
   {id: 'mall', name: '메가 대형마트',   icon: '🛒', x: -20, color: 0xe0a030, sign: '#d98a1e', desc: '없는 게 없어요! 영업 중에도 모든 재료·손질된 국밥 재료·도구를 시장 가격에 사요'},
@@ -4756,7 +4998,7 @@ const ARM_CUT = .005;
 function crowdRate(){ return G && G.city && G.city.tv ? TV_RATE : 1; }
 function jinsangCut(){ return ARMS.filter(a => G.arms[a.id]).length * ARM_CUT; }
 const CITY_MIN_X = CITY_X - 27, CITY_MAX_X = CITY_X + 33, CITY_MIN_Z = -5.2, CITY_MAX_Z = 4;
-function canCity(){ return inPhase('open') && G.floor === 5 && G.running && !G.paused && $('overlay').hidden; }
+function canCity(){ return outOK() && G.floor === 5 && G.running && !G.paused && $('overlay').hidden; }
 function cityShopNear(pos){
   if (pos.z > -.6) return null;
   const s = CITY_SHOPS.find(t => Math.abs(pos.x - (CITY_X + t.x)) < 3.6);
@@ -5070,10 +5312,11 @@ const SNACK_PRICE = 15000, SNACK_SPEED = .7;
 function staffPace(){ return G.town && G.town.snack ? SNACK_SPEED : 1; }
 const MART_RATE = 1.5, AD_PRICE = 20000, AD_REP = .3, FLYER_MAX = 5, FLYER_REP = .05, SAVE_UNIT = 50000, SAVE_RATE = .05;
 function martPrice(id){ return Math.round(MARKET_ITEMS[id].price * MART_RATE / 100) * 100; }
-function canTown(){ return inPhase('open') && G.floor === 4 && G.running && !G.paused && $('overlay').hidden; }
+function canTown(){ return outOK() && G.floor === 4 && G.running && !G.paused && $('overlay').hidden; }
 // 직원 없이 사장님이 직접 맡아야 하는데 아직 영업 중인 층
 function ownerNeeded(){
   const need = [];
+  if (!inPhase('open')) return need;
   if (G.lunchOn && !G.staff.gukbap) need.push('1층 국밥집');
   if (G.cafe && !G.cafe.done && !G.staff.cafe) need.push('2층 카페');
   if (G.vip && !G.vip.done && !G.staff.vip) need.push('3층 VIP존');
@@ -5196,6 +5439,7 @@ function townAct(act){
 // 가게에서 날뛰는 진상 목록 (경찰이 아직 안 온 것만)
 function townJinsangs(){
   const list = [];
+  if (!inPhase('open')) return list;
   for (const kind of ['lunch', 'cafe']){
     if (kind === 'cafe' && (!G.cafe || G.cafe.done)) continue;
     if (kind === 'lunch' && !G.lunchOn) continue;
@@ -5553,6 +5797,8 @@ function syncTown(dt){
 // ---- 사장님 현황판 (층 버튼 · 직원 안내) ----
 function floorStatus(n){
   const waiting = seats => seats.filter(c => c && c.state === 'waiting').length;
+  if (n === 6) return {text: `😪 피곤함 ${G.fatigue}%`, cls: G.fatigue >= 70 ? 'alert' : ''};
+  if (inPhase('evening') && n <= 3) return {text: '✅ 영업 끝', cls: 'done'};
   const secs = t => `${Math.ceil(t)}초`;
   if (n === 1){
     if (!G.lunchOn) return {text: '✅ 영업 끝', cls: 'done'};
@@ -5582,10 +5828,11 @@ function floorStatus(n){
 }
 function renderFloorBar(){
   const bar = $('floorBar');
-  const show = inPhase('open') && $('overlay').hidden;
+  const show = outOK() && $('overlay').hidden;
   bar.hidden = !show;
   if (!show) return;
-  for (const n of [1, 2, 3, 4, 5]){
+  $('fb6').parentElement.hidden = !inPhase('evening');
+  for (const n of [1, 2, 3, 4, 5, 6]){
     const st = floorStatus(n);
     const el = $('fb' + n);
     if (el.textContent !== st.text) el.textContent = st.text;
@@ -6790,7 +7037,11 @@ function renderHUD(){
   renderStaffBanner();
   if (!G) return;
   $('hudDay').textContent = `DAY ${G.day}`;
-  if (G.phase === 'open'){
+  if (G.phase === 'evening'){
+    const txt = G.trip ? '🚌 이동 중' : `🌙 퇴근 전 · 😪 ${G.fatigue}%`;
+    if ($('hudTime').textContent !== txt) $('hudTime').textContent = txt;
+    $('hudTime').classList.toggle('low', G.fatigue >= 70);
+  } else if (G.phase === 'open'){
     const f = G.floor;
     const t1 = G.lunchOn ? G.time : 0, t2 = G.cafe && !G.cafe.done ? G.cafe.time : 0, t3 = G.vip && !G.vip.done ? G.vip.time : 0;
     const t = f === 1 ? t1 : f === 2 ? t2 : f === 3 ? t3 : Math.max(t1, t2, t3);
@@ -6828,12 +7079,13 @@ function renderHUD(){
     });
   }
   if (G.phase === 'open' && G.vip) renderVipButtons();
-  if (G.phase === 'open' && G.floor === 4) renderTownHUD();
-  if (G.phase === 'open' && G.floor === 5) renderCityHUD();
+  if (outOK() && G.floor === 4) renderTownHUD();
+  if (outOK() && G.floor === 5) renderCityHUD();
+  renderFatigue();
   renderTripBanner();
   if (G.phase === 'vipPrep') renderVipPrepHUD();
   if (G.phase === 'cafeRoast') renderRoastHUD();
-  const drive = W.mode === 'car' && inPhase('open') && !!G.trip;
+  const drive = W.mode === 'car' && outOK() && !!G.trip;
   $('carHud').hidden = !drive;
   if (drive){
     const tr = G.trip, ch = `🏎️ ${W.car.carName} · 최고 ${W.car.top}km/h · ${FLOORS[tr.to].name}까지 ${Math.ceil(tr.len - tr.t)}초`;
@@ -6881,6 +7133,7 @@ function goalBar(){
 function endDay(){
   G.running = false;
   G.trip = null;
+  G.afterWork = true; G.lateT = 0; G.fatigue = 0;   // 지금부터 퇴근이 늦을수록 피곤해져요
   G.phase = 'result';
   const s = G.stats, rent = rentToday();
   const wages = wagesToday();
@@ -6906,7 +7159,7 @@ function endDay(){
   let nextBtn;
   if (G.money < 0) nextBtn = `<button class="big-btn" onclick="showEnding('bankrupt')">결과 보기...</button>`;
   else if (G.money >= GOAL) nextBtn = `<button class="big-btn" onclick="showEnding('goal')">🏆 100만원 달성! 결과 보기</button>`;
-  else nextBtn = `<button class="big-btn" onclick="showShop()">업그레이드 상점 🛒</button>`;
+  else nextBtn = `<div class="home-note">🏠 퇴근은 원할 때! 늦을수록(${TIRE_SECS}초마다 1%) 피곤해지고 100%면 쓰러져요</div><button class="big-btn" onclick="startEvening()">🌙 저녁 자유시간</button> <button class="sub-btn" onclick="eveningShop()">업그레이드 상점 🛒</button>`;
   showOverlay(`
     <div class="card">
       <h2>🏮 DAY ${G.day} 영업 결과</h2>
@@ -6950,7 +7203,7 @@ function showShop(){
       <div style="font-size:15px;color:#8a6e55;margin-bottom:8px">💡 업그레이드에 돈을 쓰면 100만원이 멀어져요. 내일 재료 살 돈도 남겨두세요!</div>
       <div class="shop-grid">${cards}</div>
       ${staffShopHtml()}
-      <button class="big-btn" onclick="nextDay()">DAY ${G.day + 1} 준비하기 ▶</button>
+      ${G.afterWork ? `<button class="big-btn" onclick="${inPhase('evening') ? 'hideOverlay()' : 'startEvening()'}">🌙 저녁으로 돌아가기</button><div class="home-note">🏠 퇴근은 Shift+6 또는 왼쪽 🏠 버튼</div>` : `<button class="big-btn" onclick="nextDay()">DAY ${G.day + 1} 준비하기 ▶</button>`}
     </div>`);
 }
 
@@ -6974,7 +7227,9 @@ function showEnding(reason){
   G.phase = 'result';
   const d = G.day;
   let grade;
-  if (reason === 'rep') grade = {e: '🥀', t: '폐업... 손님이 발길을 끊었어요', d: '평판이 바닥났어요. 국밥은 정성입니다!'};
+  G.afterWork = false;
+  if (reason === 'tired') grade = {e: '😵', t: '과로로 쓰러졌어요...', d: '퇴근을 너무 미뤄서 피곤함이 100%가 됐어요. 사장님도 쉬어야 해요!'};
+  else if (reason === 'rep') grade = {e: '🥀', t: '폐업... 손님이 발길을 끊었어요', d: '평판이 바닥났어요. 국밥은 정성입니다!'};
   else if (reason === 'bankrupt') grade = {e: '💸', t: '파산... 임대료를 못 냈어요', d: '재료 구입비와 임대료 관리가 중요해요.'};
   else {
     grade = d <= 6  ? {e: '👑', t: '국밥 프랜차이즈 회장님', d: `단 ${d}일 만에 100만원! 전국에 지점이 생겼어요!`}
@@ -7082,7 +7337,7 @@ const _ptr = new THREE.Vector2();
 function pickAt(cx, cy){
   _ptr.set(cx / window.innerWidth * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(_ptr, camera);
-  const list = W.mode === 'prep' ? W.prep.hits : W.mode === 'market' ? W.market.hits : W.mode === 'cafe' ? W.cafe.hits : W.mode === 'vip' ? W.vip.hits : W.mode === 'town' ? W.town.hits : W.mode === 'city' ? W.city.hits : W.mode === 'bus' ? W.bus.hits : W.mode === 'car' ? W.car.hits : [...W.seatHits, ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
+  const list = W.mode === 'prep' ? W.prep.hits : W.mode === 'market' ? W.market.hits : W.mode === 'cafe' ? W.cafe.hits : W.mode === 'vip' ? W.vip.hits : W.mode === 'town' ? W.town.hits : W.mode === 'city' ? W.city.hits : W.mode === 'bus' ? W.bus.hits : W.mode === 'car' ? W.car.hits : W.mode === 'home' ? W.home.hits : [...W.seatHits, ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
   const hits = raycaster.intersectObjects(list, false);
   return hits.length ? hits[0].object.userData : null;
 }
@@ -7099,7 +7354,7 @@ document.addEventListener('pointerdown', e => {
   if (e.button !== 0) return;
   const t = e.target;
   const fb = t.closest('[data-floor]');
-  if (fb){ if (inPhase('open') && G.running && !G.paused) goFloor(+fb.dataset.floor); return; }
+  if (fb){ if (outOK() && G.running && !G.paused) goFloor(+fb.dataset.floor); return; }
   const jzb = t.closest('[data-jz]');
   if (jzb){ jinsangAction(jzb.dataset.jz); return; }
   if (canMarket()){ marketPointer(e); return; }
@@ -7179,7 +7434,7 @@ $('muteBtn').addEventListener('click', () => { muted = !muted; $('muteBtn').text
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   const c = e.code;
-  if (inPhase('open') && e.shiftKey && /^Digit[1-5]$/.test(c)){
+  if (outOK() && e.shiftKey && /^Digit[1-6]$/.test(c)){
     if (G.running && !G.paused && !e.repeat) goFloor(+c.slice(5));
     return;
   }
@@ -7263,6 +7518,8 @@ function loop(ts){
   if (cafeTick()) updateCafe(dt);
   if (vipTick()) updateVip(dt);
   if (inPhase('open') && G.running && !G.paused){ staffWork(dt); updateTrip(dt); checkOpenEnd(); }
+  if (inPhase('evening') && G.running && !G.paused) updateTrip(dt);
+  afterWorkTick(dt);
   if (inPhase('prep')) updatePrep(dt);
   if (canVipPrep()) updateVipPrep(dt);
   if (canRoast()) updateRoast(dt);
@@ -7296,6 +7553,8 @@ function loop(ts){
     syncBus(fdt);
   } else if (W.mode === 'car'){
     syncCarRide(fdt);
+  } else if (W.mode === 'home'){
+    syncHome(dt);
   } else if (W.mode === 'prep'){
     syncPrep(dt);
   } else if (W.mode === 'cafe'){
@@ -7322,7 +7581,7 @@ function loop(ts){
   W.sun.intensity = lerp(W.sun.intensity, Lt.sunI, lk);
 
   // 해 그림자는 지금 보는 곳을 따라가요
-  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : W.mode === 'vip' ? W.vip.origin : W.mode === 'town' ? W.town.owner.position : W.mode === 'city' ? W.city.owner.position : W.mode === 'bus' ? W.bus.origin : W.mode === 'car' ? W.car.origin : _origin;
+  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : W.mode === 'vip' ? W.vip.origin : W.mode === 'town' ? W.town.owner.position : W.mode === 'city' ? W.city.owner.position : W.mode === 'bus' ? W.bus.origin : W.mode === 'car' ? W.car.origin : W.mode === 'home' ? W.home.origin : _origin;
   W.sun.position.set(sunAt.x - 5, 14, sunAt.z + 8);
   W.sun.target.position.set(sunAt.x, 0, sunAt.z);
   W.sun.target.updateMatrixWorld();
