@@ -4855,6 +4855,8 @@ function eveningShop(){
   showShop();
 }
 function arriveHome(){
+  G.phase = 'night';   // 집에 오면 저녁 자유시간 끝 (층 버튼 · 저녁 막대가 사라져요)
+  G.trip = null;
   G.afterWork = false;
   G.fatigue = 0; G.lateT = 0;
   G.running = false;
