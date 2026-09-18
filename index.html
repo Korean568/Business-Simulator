@@ -127,7 +127,7 @@ button{font-family:inherit;cursor:pointer}
 
 .fb-btn.city{border-color:#8a6ad8}
 .mall-grid{flex-wrap:wrap;max-height:210px;overflow-y:auto;max-width:900px}
-#tripBanner{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:30;width:min(520px,calc(100% - 32px));background:rgba(20,16,40,.92);color:#fff3dc;border:3px solid #8a6ad8;border-radius:18px;padding:14px 18px 16px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+#tripBanner{position:fixed;left:50%;top:21%;transform:translate(-50%,-50%);z-index:30;width:min(520px,calc(100% - 32px));background:rgba(20,16,40,.92);color:#fff3dc;border:3px solid #8a6ad8;border-radius:18px;padding:14px 18px 16px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.5)}
 #tripBanner .tb-text{font-size:20px;margin-bottom:8px}
 #tripBanner .tb-road{position:relative;height:34px;background:#3a3d44;border-radius:8px;border-top:3px dashed #f2e6a0}
 #tripBanner .tb-car{position:absolute;top:0;font-size:28px;transition:left .1s linear;transform:scaleX(-1)}
@@ -620,7 +620,7 @@ const MOVE_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'K
 const DRINK_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'drink');
 const FOOD_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'food');
 const CAFE_LEN = 60, CAFE_SEATS = 3, CAFE_X = -120;
-const VIP_X = 240, TOWN_X = 360, CITY_X = 480;
+const VIP_X = 240, TOWN_X = 360, CITY_X = 480, BUS_X = 600;
 const DEFAULT_RECIPES = [
   {id:'greentea', name:'녹차',     type:'drink', ings:['tea'],                                     price:4000},
   {id:'coffee',   name:'커피',     type:'drink', ings:['coffee'],                                  price:4500},
@@ -729,6 +729,7 @@ const CAMS = {
   vip:   {look: new THREE.Vector3(VIP_X, 1.8, 0.4),  base: new THREE.Vector3(VIP_X, 12.3, 14.05),  pos: new THREE.Vector3()},
   town:  {look: new THREE.Vector3(TOWN_X, 2.2, -2.5), base: new THREE.Vector3(TOWN_X, 11.5, 14.5), pos: new THREE.Vector3()},
   city:  {look: new THREE.Vector3(CITY_X, 2.6, -3),   base: new THREE.Vector3(CITY_X, 12,   15),   pos: new THREE.Vector3()},
+  bus:   {look: new THREE.Vector3(BUS_X, 1.9, -1.2),  base: new THREE.Vector3(BUS_X, 7,    17),   pos: new THREE.Vector3()},
 };
 const curLook = CAMS.lunch.look.clone();
 const SEAT_X = [-6, -2, 2, 6], SEAT_Z = -2.15, COUNTER_TOP = 1.32;
@@ -746,6 +747,7 @@ const LIGHTS = {
   cafe:  {bg: new THREE.Color(0x3a2a1e), hemi: new THREE.Color(0xfff2dc), hemiI: .85, sun: new THREE.Color(0xffe6c0), sunI: .8},
   vip:   {bg: new THREE.Color(0x1a0c14), hemi: new THREE.Color(0xffe8d0), hemiI: .7,  sun: new THREE.Color(0xffe0b0), sunI: .7},
   town:  {bg: new THREE.Color(0x8cc0e8), hemi: new THREE.Color(0xffffff), hemiI: .85, sun: new THREE.Color(0xfff2d8), sunI: .95},
+  bus:   {bg: new THREE.Color(0x9cc8ec), hemi: new THREE.Color(0xffffff), hemiI: .9,  sun: new THREE.Color(0xfff2d8), sunI: .9},
   city:  {bg: new THREE.Color(0x4a4a78), hemi: new THREE.Color(0xe8e4ff), hemiI: .85, sun: new THREE.Color(0xffd8b0), sunI: .8},
 };
 
@@ -849,6 +851,7 @@ function init3D(){
   buildVip();
   buildTown();
   buildCity();
+  buildBus();
   buildStaffModels();
   onResize();
   window.addEventListener('resize', onResize);
@@ -4289,7 +4292,8 @@ function startTrip(to){
   G.trip = {to, t: 0, len, by, from: G.floor};
   G.floor = 0;
   W.keys.clear(); W.joy.x = W.joy.y = 0;
-  setWorldMode(FLOORS[to].mode); W.snapCam = true;
+  // 버스를 타면 버스 안이 보여요 (내 차는 금방이라 바로 도착지)
+  setWorldMode(carSecs() ? FLOORS[to].mode : 'bus'); W.snapCam = true;
   sfx.whoosh();
   toast(`${by}(으)로 ${FLOORS[to].name}에 가요 · ${len}초`);
 }
@@ -4300,7 +4304,7 @@ function updateTrip(dt){
   if (tr.t < tr.len) return;
   G.trip = null;
   G.floor = tr.to;
-  setWorldMode(FLOORS[tr.to].mode);
+  if (W.mode !== FLOORS[tr.to].mode){ setWorldMode(FLOORS[tr.to].mode); W.snapCam = true; }
   sfx.bell();
   toast(`${FLOORS[tr.to].icon} ${FLOORS[tr.to].name} 도착!`);
 }
@@ -4315,6 +4319,157 @@ function renderTripBanner(){
   el.querySelector('.tb-bar i').style.width = r * 100 + '%';
   el.querySelector('.tb-car').textContent = tr.by.startsWith('🚌') ? '🚌' : '🏎️';
   el.querySelector('.tb-car').style.left = `calc(${r * 100}% - 18px)`;
+}
+
+// ---------------- 버스 안 (버스로 대도시를 오가는 동안) ----------------
+const BUS_SEATS_X = [-6.4, -4, -1.6, .8, 3.2, 5.6];
+function seatPerson(g, x, z){
+  const P = g.userData;
+  g.position.set(x, -.12, z);
+  g.rotation.y = Math.PI / 2;
+  P.legL.rotation.x = P.legR.rotation.x = -1.4;
+  return g;
+}
+function buildBus(){
+  const X = BUS_X;
+  const B = W.bus = {origin: new THREE.Vector3(X, 0, 0), hits: [], scenery: [], straps: [], riders: [], ledKey: ''};
+  const root = B.root = new THREE.Group(); scene.add(root);
+  const cabin = B.cabin = new THREE.Group(); root.add(cabin);
+  // 바깥 풍경 (버스는 +x로 달리고, 풍경은 뒤로 흘러가요)
+  const ground = mesh(new THREE.PlaneGeometry(120, 70), std(0x6a7a5a, {roughness: 1}), X, -.3, -8, false);
+  ground.rotation.x = -Math.PI / 2; root.add(ground);
+  const road = mesh(new THREE.PlaneGeometry(120, 16), std(0x3a3d44, {roughness: .95}), X, -.28, 0, false);
+  road.rotation.x = -Math.PI / 2; root.add(road);
+  const winTex = canvasTex(128, 256, (x, w, h) => {
+    x.fillStyle = '#5a6478'; x.fillRect(0, 0, w, h);
+    for (let r = 0; r < 10; r++) for (let c = 0; c < 4; c++){
+      x.fillStyle = prand(r * 5 + c * 9 + 1) > .5 ? '#ffe9a8' : '#34394a';
+      x.fillRect(10 + c * 30, 10 + r * 24, 18, 14);
+    }
+  });
+  const bodyCols = [0xc9b8a0, 0x8aa0c0, 0xd8a080, 0xa0b890, 0xe0d0b0];
+  for (let k = 0; k < 14; k++){
+    const g = new THREE.Group();
+    const far = k % 2;
+    const h = far ? 8 + prand(k + 1300) * 14 : 3 + prand(k + 1310) * 5;
+    const w = 3 + prand(k + 1320) * 3;
+    g.add(mesh(new THREE.BoxGeometry(w, h, 3), far ? std(0xffffff, {map: winTex, roughness: .7}) : std(bodyCols[k % bodyCols.length], {roughness: .8}), 0, h / 2 - .3, 0, false));
+    if (!far) g.add(mesh(geo('leafBall', () => new THREE.SphereGeometry(.55, 12, 10)), std(0x4f8f4a, {roughness: .9}), w / 2 + .9, .8, 2, false));
+    g.position.set(X - 50 + k * 7.5, 0, far ? -20 : -12);
+    root.add(g);
+    B.scenery.push({g, speed: far ? .45 : 1});
+  }
+  for (let k = 0; k < 10; k++){
+    const lp = new THREE.Group();
+    lp.add(mesh(geo('lampPole', () => new THREE.CylinderGeometry(.08, .1, 4.4, 8)), std(0x2a2a30), 0, 1.9, 0, false));
+    lp.add(mesh(geo('lampHead', () => new THREE.SphereGeometry(.28, 12, 8)), new THREE.MeshBasicMaterial({color: 0xfff2c8}), 0, 4.2, 0, false));
+    lp.position.set(X - 50 + k * 11, 0, -4.4);
+    root.add(lp);
+    B.scenery.push({g: lp, speed: 1.3});
+  }
+  // 버스 바닥 · 벽 · 창문
+  cabin.add(mesh(new THREE.BoxGeometry(19, .3, 6.4), std(0x4a4a52, {roughness: .9}), X, -.15, 0));
+  cabin.add(mesh(new THREE.BoxGeometry(19, .02, .12), std(0xf2d230), X, .01, 1.2, false));
+  const body = std(0x2f8f5a, {roughness: .6}), white = std(0xf4f4ee, {roughness: .5});
+  cabin.add(mesh(new THREE.BoxGeometry(19, 1.3, .2), body, X, .65, -3.2));
+  cabin.add(mesh(new THREE.BoxGeometry(19, .9, .2), white, X, 3.55, -3.2));
+  const glass = new THREE.MeshStandardMaterial({color: 0xcfe8ff, transparent: true, opacity: .18, roughness: .05});
+  cabin.add(mesh(new THREE.PlaneGeometry(19, 1.8), glass, X, 2.2, -3.15, false));
+  for (let k = 0; k <= 6; k++) cabin.add(mesh(new THREE.BoxGeometry(.25, 1.8, .22), white, X - 9.4 + k * 3.13, 2.2, -3.2));
+  // 앞(운전석) 벽 · 앞유리
+  cabin.add(mesh(new THREE.BoxGeometry(.2, 1.3, 6.4), body, X + 9.5, .65, 0));
+  cabin.add(mesh(new THREE.PlaneGeometry(6.4, 2.2), glass, X + 9.45, 2.4, 0, false).rotateY(-Math.PI / 2));
+  cabin.add(mesh(new THREE.BoxGeometry(.2, 1.3, 6.4), body, X - 9.5, .65, 0));
+  cabin.add(mesh(new THREE.BoxGeometry(19.2, .7, .2), body, X, .2, 3.2));
+  cabin.add(mesh(new THREE.BoxGeometry(19.2, .08, .24), std(0xf2d230), X, .58, 3.2));
+  // 운전석
+  cabin.add(mesh(new THREE.BoxGeometry(1.2, 1.1, 2.2), std(0x222228), X + 8.7, .55, -1.6));
+  const wheel = mesh(new THREE.TorusGeometry(.38, .05, 8, 20), std(0x111111), X + 8.1, 1.45, -1.6);
+  wheel.rotation.y = Math.PI / 2; wheel.rotation.x = .5; cabin.add(wheel);
+  B.wheel = wheel;
+  const driverSeat = new THREE.Group(); driverSeat.position.set(X + 7.2, 0, -1.6);
+  driverSeat.add(mesh(new THREE.BoxGeometry(1.1, .5, 1.1), std(0x2a2a30), 0, .7, 0));
+  driverSeat.add(mesh(new THREE.BoxGeometry(.15, 1.2, 1.1), std(0x2a2a30), -.5, 1.4, 0));
+  cabin.add(driverSeat);
+  const driver = seatPerson(makeCustomer({id: 'worker'}), X + 7.3, -1.6);
+  driver.userData.head.add(mesh(new THREE.CylinderGeometry(.64, .66, .22, 20), std(0x2f6ad8), 0, .5, 0));
+  driver.userData.armL.rotation.x = driver.userData.armR.rotation.x = -1.2;
+  cabin.add(driver);
+  B.driver = driver;
+  // 승객 좌석 (창가 쪽, 앞을 보고 앉아요)
+  const fabric = std(0x3a5aa0, {roughness: .9}), frame = std(0x9a9aa4, {metalness: .5, roughness: .3});
+  BUS_SEATS_X.forEach(sx => {
+    const s = new THREE.Group(); s.position.set(X + sx, 0, -2.1);
+    s.add(mesh(new THREE.BoxGeometry(1.1, .25, 1.6), fabric, 0, .85, 0));
+    s.add(mesh(new THREE.BoxGeometry(.18, 1.3, 1.6), fabric, -.55, 1.55, 0));
+    s.add(mesh(new THREE.BoxGeometry(.08, .75, .08), frame, 0, .37, .6));
+    s.add(mesh(new THREE.BoxGeometry(.08, .75, .08), frame, 0, .37, -.6));
+    s.add(mesh(new THREE.CylinderGeometry(.04, .04, 1.6, 6), frame, -.55, 2.25, 0, false).rotateX(Math.PI / 2));
+    cabin.add(s);
+  });
+  // 손잡이 봉 · 가죽 손잡이 · 하차벨
+  const rail = mesh(new THREE.CylinderGeometry(.05, .05, 18, 8), frame, X, 3.2, .3, false);
+  rail.rotation.z = Math.PI / 2; cabin.add(rail);
+  for (let k = 0; k < 9; k++){
+    const strap = new THREE.Group(); strap.position.set(X - 8 + k * 2, 3.2, .3);
+    strap.add(mesh(geo('strapBand', () => new THREE.BoxGeometry(.06, .5, .12)), std(0x2a2a30), 0, -.25, 0, false));
+    strap.add(mesh(geo('strapRing', () => new THREE.TorusGeometry(.13, .03, 6, 12)), std(0xf2d230), 0, -.62, 0, false));
+    cabin.add(strap); B.straps.push(strap);
+  }
+  for (const px of [-5.2, -.4, 4.4]){
+    cabin.add(mesh(geo('busPole', () => new THREE.CylinderGeometry(.05, .05, 3.2, 8)), std(0xf2d230, {metalness: .4, roughness: .3}), X + px, 1.6, .3));
+    cabin.add(mesh(geo('bellBtn', () => new THREE.BoxGeometry(.14, .14, .08)), std(0xe0302a), X + px, 1.5, .36, false));
+  }
+  // 전광판
+  B.ledTex = canvasTex(1024, 128, (x, w, h) => {
+    x.fillStyle = '#111'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#ff9a2a'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = '60px Jua, "Malgun Gothic", sans-serif';
+    x.fillText(B.ledText || '🚌 시내버스', w / 2, h / 2 + 4);
+  });
+  cabin.add(mesh(new THREE.PlaneGeometry(7, .9), new THREE.MeshBasicMaterial({map: B.ledTex}), X, 3.55, -3.08, false));
+  // 승객들
+  [['grandma', -6.4], ['student', -4], ['hangover', .8], ['youtuber', 5.6]].forEach(([id, sx], k) => {
+    const g = seatPerson(makeCustomer({id}), X + sx, -2.1);
+    cabin.add(g); B.riders.push({g, t: k * 1.7});
+  });
+  // 사장님 자리
+  B.owner = seatPerson(makeCustomer({id: 'owner'}), X - 1.6, -2.1);
+  cabin.add(B.owner);
+  B.riders.push({g: B.owner, t: 3, owner: true});
+  // 서 있는 승객
+  const stand = makeCustomer({id: 'worker'});
+  stand.position.set(X - 8.2, 0, .6); stand.rotation.y = Math.PI / 2;
+  stand.userData.armR.rotation.x = -2.9;
+  cabin.add(stand);
+  B.stander = stand;
+}
+function syncBus(dt){
+  const B = W.bus, X = BUS_X, tr = G && G.trip;
+  const run = tr ? 1 : 0;
+  const v = 16 * run;
+  B.scenery.forEach(s => {
+    s.g.position.x -= v * s.speed * dt;
+    if (s.g.position.x < X - 55) s.g.position.x += 110;
+  });
+  // 덜컹덜컹
+  B.cabin.position.y = run ? Math.abs(Math.sin(T * 9)) * .04 + Math.sin(T * 2.3) * .02 : 0;
+  B.cabin.rotation.x = run ? Math.sin(T * 1.7) * .006 : 0;
+  B.straps.forEach((s, k) => { s.rotation.z = run ? Math.sin(T * 2.4 + k * .4) * .25 : 0; });
+  B.wheel.rotation.z = run ? Math.sin(T * .8) * .3 : 0;
+  B.riders.forEach(r => {
+    r.t += dt;
+    const P = r.g.userData;
+    P.head.rotation.z = Math.sin(r.t * 1.3) * .06;
+    if (r.owner){
+      // 사장님은 창밖을 봐요
+      P.head.rotation.y = lerp(P.head.rotation.y, -1.1, Math.min(1, dt * 3));
+    }
+  });
+  B.stander.rotation.z = Math.sin(T * 2.4) * .03;
+  // 전광판: 행선지 · 남은 시간
+  const txt = tr ? `🚌 ${FLOORS[tr.to].name}행 · 다음 정류장까지 ${Math.ceil(tr.len - tr.t)}초` : '🚌 시내버스';
+  if (B.ledKey !== txt){ B.ledKey = txt; B.ledText = txt; redrawTex(B.ledTex); }
 }
 
 // ---------------- 대도시 ----------------
@@ -6645,7 +6800,7 @@ const _ptr = new THREE.Vector2();
 function pickAt(cx, cy){
   _ptr.set(cx / window.innerWidth * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(_ptr, camera);
-  const list = W.mode === 'prep' ? W.prep.hits : W.mode === 'market' ? W.market.hits : W.mode === 'cafe' ? W.cafe.hits : W.mode === 'vip' ? W.vip.hits : W.mode === 'town' ? W.town.hits : W.mode === 'city' ? W.city.hits : [...W.seatHits, ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
+  const list = W.mode === 'prep' ? W.prep.hits : W.mode === 'market' ? W.market.hits : W.mode === 'cafe' ? W.cafe.hits : W.mode === 'vip' ? W.vip.hits : W.mode === 'town' ? W.town.hits : W.mode === 'city' ? W.city.hits : W.mode === 'bus' ? W.bus.hits : [...W.seatHits, ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
   const hits = raycaster.intersectObjects(list, false);
   return hits.length ? hits[0].object.userData : null;
 }
@@ -6850,6 +7005,8 @@ function loop(ts){
     syncTown(fdt);
   } else if (W.mode === 'city'){
     syncCity(fdt);
+  } else if (W.mode === 'bus'){
+    syncBus(fdt);
   } else if (W.mode === 'prep'){
     syncPrep(dt);
   } else if (W.mode === 'cafe'){
@@ -6876,7 +7033,7 @@ function loop(ts){
   W.sun.intensity = lerp(W.sun.intensity, Lt.sunI, lk);
 
   // 해 그림자는 지금 보는 곳을 따라가요
-  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : W.mode === 'vip' ? W.vip.origin : W.mode === 'town' ? W.town.owner.position : W.mode === 'city' ? W.city.owner.position : _origin;
+  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : W.mode === 'vip' ? W.vip.origin : W.mode === 'town' ? W.town.owner.position : W.mode === 'city' ? W.city.owner.position : W.mode === 'bus' ? W.bus.origin : _origin;
   W.sun.position.set(sunAt.x - 5, 14, sunAt.z + 8);
   W.sun.target.position.set(sunAt.x, 0, sunAt.z);
   W.sun.target.updateMatrixWorld();
