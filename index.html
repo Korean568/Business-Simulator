@@ -732,6 +732,8 @@ const sfx = {
   bonk:  () => { tone(160, 0.18, 'square', 0.12, 50); tone(1400, 0.05, 'triangle', 0.05); },
   bang:  () => { tone(90, 0.35, 'sawtooth', 0.16, 30); tone(2400, 0.06, 'square', 0.08, 300); },
   siren: () => { tone(650, 0.35, 'sine', 0.06, 950); tone(950, 0.35, 'sine', 0.06, 650, 0.35); tone(650, 0.35, 'sine', 0.06, 950, 0.7); },
+  zap:   () => { tone(1800, 0.3, 'sawtooth', 0.05, 300); tone(900, 0.25, 'square', 0.03, 2400, 0.05); },
+  cuff:  () => { tone(1500, 0.05, 'square', 0.05); tone(1100, 0.08, 'square', 0.05, null, 0.08); },
   elevator: () => { tone(1320, 0.15, 'sine', 0.06); tone(990, 0.35, 'sine', 0.06, null, 0.15); },
   rooster: () => { tone(600, 0.15, 'sawtooth', 0.03, 900); tone(900, 0.35, 'sawtooth', 0.03, 700, 0.15); },
   fanfare: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.25, 'square', 0.04, null, i * 0.13)),
@@ -6497,6 +6499,12 @@ function guardGrabPose(P){
   P.armR.scale.y = P.armL.scale.y = 1.35;   // 쭉 뻗어서 거리를 둬요
 }
 function guardArmsRest(P){ P.armR.scale.y = P.armL.scale.y = 1; }
+function removeGuard(holder, parent){
+  const gv = holder.guard;
+  parent.remove(gv.g);
+  if (gv.wire){ parent.remove(gv.wire); parent.remove(gv.sparks); }
+  holder.guard = null;
+}
 function syncGuard(holder, seats, dt, xOf, cx, parent){
   let gv = holder.guard;
   const escorting = c => c && c.jinsang && (c.guardT > 0 || c.phase === 'guarded');
@@ -6508,7 +6516,24 @@ function syncGuard(holder, seats, dt, xOf, cx, parent){
     parent.add(g);
     const tx = xOf(idx) - dir * GUARD_GAP;
     const speed = Math.max(8, Math.abs(tx - g.position.x) / Math.max(.3, (c.guardWalk || GUARD_WALK) - .1));
-    gv = holder.guard = {g, seat: idx, id: c.id, tx, dir, speed, walkT: 0, dragging: false, leaving: false, victim: null};
+    gv = holder.guard = {g, seat: idx, id: c.id, tx, dir, speed, walkT: 0, dragging: false, leaving: false, victim: null,
+      taser: !!(G.arms && G.arms.guardTaser), cuffs: !!(G.arms && G.arms.guardCuffs), zapT: 0, zapped: false};
+    const GP = g.userData;
+    if (gv.taser){   // 오른손에 테이저건
+      const tz = new THREE.Group(); tz.position.set(0, -.95, .12);
+      tz.add(mesh(new THREE.BoxGeometry(.14, .2, .38), std(0xf2d230, {roughness: .4}), 0, 0, .05, false));
+      tz.add(mesh(new THREE.BoxGeometry(.1, .1, .1), std(0x111111), 0, 0, .28, false));
+      tz.add(mesh(new THREE.BoxGeometry(.08, .18, .08), std(0x222222), 0, -.14, -.05, false));
+      GP.armR.add(tz);
+      // 전선 · 불꽃 (쏠 때만 보여요)
+      gv.wire = mesh(new THREE.CylinderGeometry(.025, .025, 1, 6), new THREE.MeshBasicMaterial({color: 0x7ae8ff}), 0, 0, SEAT_Z, false);
+      gv.wire.rotation.z = Math.PI / 2; gv.wire.visible = false; parent.add(gv.wire);
+      gv.sparks = new THREE.Group(); gv.sparks.visible = false; parent.add(gv.sparks);
+      for (let k = 0; k < 6; k++) gv.sparks.add(mesh(geo('spark', () => new THREE.OctahedronGeometry(.09)), new THREE.MeshBasicMaterial({color: k % 2 ? 0x7ae8ff : 0xffffff}), 0, 0, 0, false));
+    }
+    if (gv.cuffs){   // 허리에 수갑
+      for (const sx of [-.12, .12]) g.add(mesh(geo('cuffRing', () => new THREE.TorusGeometry(.12, .03, 6, 14)), std(0xc9d0d5, {metalness: .8, roughness: .2}), .45 + sx, 1.25, .45, false));
+    }
   }
   if (!gv) return;
   const P = gv.g.userData, c = seats[gv.seat], mine = c && c.id === gv.id;
@@ -6536,10 +6561,25 @@ function syncGuard(holder, seats, dt, xOf, cx, parent){
       vg.rotation.set(0, gv.dir * Math.PI / 2, 0);
       V.head.rotation.x = -.5;
       walkLegs(V, 14, .8);   // 발이 땅에 안 닿아 허우적
-      V.armL.rotation.set(-1.2 + Math.sin(gv.walkT * 12) * .5, 0, -.15);
-      V.armR.rotation.set(-1.2 - Math.sin(gv.walkT * 12) * .5, 0, .15);
+      if (gv.cuffs){
+        // 손을 뒤로 모아 수갑을 채워요
+        if (!gv.cuffObj){
+          gv.cuffObj = new THREE.Group(); gv.cuffObj.position.set(0, 1.3, -.62);
+          const steel = std(0xc9d0d5, {metalness: .8, roughness: .2});
+          for (const sx of [-.16, .16]){ const r = mesh(geo('cuffRing', () => new THREE.TorusGeometry(.12, .03, 6, 14)), steel, sx, 0, 0, false); r.rotation.y = Math.PI / 2; gv.cuffObj.add(r); }
+          gv.cuffObj.add(mesh(new THREE.BoxGeometry(.2, .03, .03), steel, 0, 0, 0, false));
+          gv.victim.add(gv.cuffObj);
+          sfx.cuff();
+          floatWorld(vg.position.x, 4.4, SEAT_Z, '⛓️ 철컥!', '#c9d0d5');
+        }
+        V.armL.rotation.set(.55, 0, .4);
+        V.armR.rotation.set(.55, 0, -.4);
+      } else {
+        V.armL.rotation.set(-1.2 + Math.sin(gv.walkT * 12) * .5, 0, -.15);
+        V.armR.rotation.set(-1.2 - Math.sin(gv.walkT * 12) * .5, 0, .15);
+      }
     }
-    if (Math.abs(gv.g.position.x - cx) > 15.5){ parent.remove(gv.g); holder.guard = null; }
+    if (Math.abs(gv.g.position.x - cx) > 15.5){ removeGuard(holder, parent); }
     return;
   }
   if (gv.leaving){
@@ -6548,7 +6588,8 @@ function syncGuard(holder, seats, dt, xOf, cx, parent){
     walkLegs(P, 11, .6);
     P.armR.rotation.set(0, 0, .15); P.armL.rotation.set(0, 0, -.15);
     guardArmsRest(P);
-    if (Math.abs(gv.g.position.x - cx) > 15.5){ parent.remove(gv.g); holder.guard = null; }
+    if (gv.wire) gv.wire.visible = gv.sparks.visible = false;
+    if (Math.abs(gv.g.position.x - cx) > 15.5){ removeGuard(holder, parent); }
     return;
   }
   const dx = gv.tx - gv.g.position.x;
@@ -6566,6 +6607,27 @@ function syncGuard(holder, seats, dt, xOf, cx, parent){
   gv.g.rotation.y = gv.dir * Math.PI / 2;
   P.legL.rotation.x = P.legR.rotation.x = 0;
   const hold = c.guardWalk <= 0;
+  // 테이저건: 도착하자마자 한 방 쏘고 (진상이 부들부들), 그다음 멱살을 잡아요
+  if (gv.taser && !gv.zapped && V && view && !view.walking){ gv.zapped = true; gv.zapT = .8; sfx.zap(); W.shake = .15; floatWorld(xOf(gv.seat), 4.4, SEAT_Z, '⚡ 지지직!', '#7ae8ff'); }
+  if (gv.zapT > 0){
+    gv.zapT -= dt;
+    guardArmsRest(P);
+    P.armR.rotation.set(-1.57, 0, -.1); P.armL.rotation.set(0, 0, .15);
+    const vg = gv.victim, vx = vg.position.x, hx = gv.g.position.x + gv.dir * .95;
+    gv.wire.visible = gv.sparks.visible = Math.sin(gv.walkT * 60) > -.6;
+    gv.wire.position.set((hx + vx) / 2, 2.25 + Math.sin(gv.walkT * 80) * .03, SEAT_Z + .2);
+    gv.wire.scale.y = Math.max(.1, Math.abs(vx - hx) - .3);
+    gv.sparks.position.set(vx, 2.2, SEAT_Z + .3);
+    gv.sparks.children.forEach(sp => sp.position.set((Math.random() - .5) * .9, (Math.random() - .5) * 1.4, (Math.random() - .5) * .6));
+    // 진상: 몸이 뻣뻣하게 굳고 파랗게 번쩍
+    vg.position.x = gv.tx + gv.dir * GUARD_GAP + (Math.random() - .5) * .16;
+    vg.rotation.set(0, -gv.dir * Math.PI / 2, (Math.random() - .5) * .1);
+    V.armL.rotation.set(0, 0, -1.3 + Math.random() * .3); V.armR.rotation.set(0, 0, 1.3 - Math.random() * .3);
+    V.legL.rotation.x = V.legR.rotation.x = 0;
+    V.skinMat.color.set(Math.sin(gv.walkT * 50) > 0 ? 0x9fe8ff : LOOKS.jinsang.skin);
+    if (gv.zapT <= 0){ gv.wire.visible = gv.sparks.visible = false; V.skinMat.color.set(LOOKS.jinsang.skin); }
+    return;
+  }
   if (hold) guardGrabPose(P);
   else { P.armR.rotation.set(-1.2, 0, -.2); P.armL.rotation.set(-1.2, 0, .2); guardArmsRest(P); }
   if (hold && V && view && !view.walking){
