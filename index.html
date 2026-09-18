@@ -620,7 +620,7 @@ const MOVE_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'K
 const DRINK_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'drink');
 const FOOD_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'food');
 const CAFE_LEN = 60, CAFE_SEATS = 3, CAFE_X = -120;
-const VIP_X = 240, TOWN_X = 360, CITY_X = 480, BUS_X = 600;
+const VIP_X = 240, TOWN_X = 360, CITY_X = 480, BUS_X = 600, CAR_X = 720;
 const DEFAULT_RECIPES = [
   {id:'greentea', name:'녹차',     type:'drink', ings:['tea'],                                     price:4000},
   {id:'coffee',   name:'커피',     type:'drink', ings:['coffee'],                                  price:4500},
@@ -729,6 +729,7 @@ const CAMS = {
   vip:   {look: new THREE.Vector3(VIP_X, 1.8, 0.4),  base: new THREE.Vector3(VIP_X, 12.3, 14.05),  pos: new THREE.Vector3()},
   town:  {look: new THREE.Vector3(TOWN_X, 2.2, -2.5), base: new THREE.Vector3(TOWN_X, 11.5, 14.5), pos: new THREE.Vector3()},
   city:  {look: new THREE.Vector3(CITY_X, 2.6, -3),   base: new THREE.Vector3(CITY_X, 12,   15),   pos: new THREE.Vector3()},
+  car:   {look: new THREE.Vector3(CAR_X + .15, 1.0, -9), base: new THREE.Vector3(CAR_X + .22, 1.52, 1.25), pos: new THREE.Vector3()},
   bus:   {look: new THREE.Vector3(BUS_X, 1.9, -1.2),  base: new THREE.Vector3(BUS_X, 7,    17),   pos: new THREE.Vector3()},
 };
 const curLook = CAMS.lunch.look.clone();
@@ -747,6 +748,7 @@ const LIGHTS = {
   cafe:  {bg: new THREE.Color(0x3a2a1e), hemi: new THREE.Color(0xfff2dc), hemiI: .85, sun: new THREE.Color(0xffe6c0), sunI: .8},
   vip:   {bg: new THREE.Color(0x1a0c14), hemi: new THREE.Color(0xffe8d0), hemiI: .7,  sun: new THREE.Color(0xffe0b0), sunI: .7},
   town:  {bg: new THREE.Color(0x8cc0e8), hemi: new THREE.Color(0xffffff), hemiI: .85, sun: new THREE.Color(0xfff2d8), sunI: .95},
+  car:   {bg: new THREE.Color(0x9cc8ec), hemi: new THREE.Color(0xffffff), hemiI: .9,  sun: new THREE.Color(0xfff2d8), sunI: .9},
   bus:   {bg: new THREE.Color(0x9cc8ec), hemi: new THREE.Color(0xffffff), hemiI: .9,  sun: new THREE.Color(0xfff2d8), sunI: .9},
   city:  {bg: new THREE.Color(0x4a4a78), hemi: new THREE.Color(0xe8e4ff), hemiI: .85, sun: new THREE.Color(0xffd8b0), sunI: .8},
 };
@@ -852,6 +854,7 @@ function init3D(){
   buildTown();
   buildCity();
   buildBus();
+  buildCarRide();
   buildStaffModels();
   onResize();
   window.addEventListener('resize', onResize);
@@ -864,7 +867,7 @@ function onResize(){
   camera.aspect = w / h;
   const k = clamp(1.75 / camera.aspect, 1, 2.3);
   W.camK = k;
-  for (const c of Object.values(CAMS)) c.pos.copy(c.look).add(c.base.clone().sub(c.look).multiplyScalar(k));
+  for (const c of Object.values(CAMS)) c.pos.copy(c.look).add(c.base.clone().sub(c.look).multiplyScalar(c === CAMS.car ? 1 : k));
   camera.updateProjectionMatrix();
   W.sized = true;
 }
@@ -4292,8 +4295,9 @@ function startTrip(to){
   G.trip = {to, t: 0, len, by, from: G.floor};
   G.floor = 0;
   W.keys.clear(); W.joy.x = W.joy.y = 0;
-  // 버스를 타면 버스 안이 보여요 (내 차는 금방이라 바로 도착지)
-  setWorldMode(carSecs() ? FLOORS[to].mode : 'bus'); W.snapCam = true;
+  // 가는 동안 버스 안 · 내 차 안이 보여요
+  if (carSecs()) prepCarRide();
+  setWorldMode(carSecs() ? 'car' : 'bus'); W.snapCam = true;
   sfx.whoosh();
   toast(`${by}(으)로 ${FLOORS[to].name}에 가요 · ${len}초`);
 }
@@ -4470,6 +4474,147 @@ function syncBus(dt){
   // 전광판: 행선지 · 남은 시간
   const txt = tr ? `🚌 ${FLOORS[tr.to].name}행 · 다음 정류장까지 ${Math.ceil(tr.len - tr.t)}초` : '🚌 시내버스';
   if (B.ledKey !== txt){ B.ledKey = txt; B.ledText = txt; redrawTex(B.ledTex); }
+}
+
+// ---------------- 내 차 안 (자동차로 대도시를 오가는 동안) ----------------
+const CAR_CAB_SCALE = .5;
+function bestCar(){ const own = CARS.filter(c => G.cars[c.id]); return own.length ? own.reduce((a, b) => a.secs <= b.secs ? a : b) : null; }
+function buildCarRide(){
+  const X = CAR_X;
+  const R = W.car = {origin: new THREE.Vector3(X, 0, -4), hits: [], movers: [], stripes: [], speed: 40, screenKey: ''};
+  const root = R.root = new THREE.Group(); scene.add(root);
+  // 바깥: 풀밭 · 도로 · 차선 · 길가 풍경 (차는 -z로 달리고, 풍경은 +z로 흘러와요)
+  const grass = mesh(new THREE.PlaneGeometry(160, 200), std(0x6a8a4a, {roughness: 1}), X, -.02, -60, false);
+  grass.rotation.x = -Math.PI / 2; root.add(grass);
+  const road = mesh(new THREE.PlaneGeometry(12, 200), std(0x3a3d44, {roughness: .95}), X + 1.5, 0, -60, false);
+  road.rotation.x = -Math.PI / 2; root.add(road);
+  for (let k = 0; k < 20; k++){
+    const st = mesh(geo('carStripe', () => new THREE.BoxGeometry(.2, .02, 2.2)), std(0xf4f4f4), X + 3.2, .02, 8 - k * 6, false);
+    root.add(st); R.stripes.push(st);
+  }
+  for (const ex of [-4.4, 7.4]) root.add(mesh(new THREE.BoxGeometry(.2, .02, 200), std(0xf2d230), X + ex, .02, -60, false));
+  const winTex = canvasTex(128, 256, (x, w, h) => {
+    x.fillStyle = '#5a6478'; x.fillRect(0, 0, w, h);
+    for (let r = 0; r < 10; r++) for (let c = 0; c < 4; c++){
+      x.fillStyle = prand(r * 13 + c * 5 + 3) > .5 ? '#ffe9a8' : '#34394a';
+      x.fillRect(10 + c * 30, 10 + r * 24, 18, 14);
+    }
+  });
+  const tower = std(0xffffff, {map: winTex, roughness: .7});
+  for (let k = 0; k < 16; k++){
+    const side = k % 2 ? 1 : -1, g = new THREE.Group();
+    const h = 6 + prand(k + 1500) * 16, w = 4 + prand(k + 1510) * 4;
+    g.add(mesh(new THREE.BoxGeometry(w, h, 5), tower, 0, h / 2, 0, false));
+    g.position.set(X + 1.5 + side * (14 + prand(k + 1520) * 6), 0, 6 - k * 7.5);
+    root.add(g); R.movers.push(g);
+  }
+  for (let k = 0; k < 16; k++){
+    const side = k % 2 ? 1 : -1, g = new THREE.Group();
+    if (k % 4 < 2){
+      g.add(mesh(geo('lampPole', () => new THREE.CylinderGeometry(.08, .1, 4.4, 8)), std(0x2a2a30), 0, 2.2, 0, false));
+      g.add(mesh(geo('lampHead', () => new THREE.SphereGeometry(.28, 12, 8)), new THREE.MeshBasicMaterial({color: 0xfff2c8}), 0, 4.5, 0, false));
+    } else {
+      g.add(mesh(geo('trunk', () => new THREE.CylinderGeometry(.14, .18, 2, 8)), std(0x6a4a2a), 0, 1, 0, false));
+      const leaf = mesh(geo('leafBall', () => new THREE.SphereGeometry(.55, 12, 10)), std(0x4f8f4a, {roughness: .9}), 0, 2.4, 0, false);
+      leaf.scale.setScalar(1.6); g.add(leaf);
+    }
+    g.position.set(X + 1.5 + side * 7.8, 0, 4 - k * 7.5);
+    root.add(g); R.movers.push(g);
+  }
+  // 앞에서 달리는 다른 차
+  R.aheadCar = makeSportsCar(0x8a8a94, 1.1);
+  R.aheadCar.rotation.y = Math.PI / 2;
+  R.aheadCar.position.set(X + 5.2, 0, -26);
+  root.add(R.aheadCar);
+  // 차 안
+  // 사람 크기에 맞춘 차 안을 절반으로 줄여 길 위의 다른 차들과 크기를 맞춰요
+  const cab = R.cab = new THREE.Group(); cab.position.set(X, 0, 0); cab.scale.setScalar(CAR_CAB_SCALE); root.add(cab);
+  R.paint = new THREE.MeshStandardMaterial({color: 0xe0405a, roughness: .15, metalness: .6});
+  const leather = std(0x2a1a14, {roughness: .5}), dark = std(0x16161a, {roughness: .4}), trim = std(0xc9a14a, {metalness: .7, roughness: .3});
+  cab.add(mesh(new THREE.BoxGeometry(3.6, .3, 4.4), dark, 0, .55, .4));
+  // 보닛 (앞유리 너머)
+  const hood = mesh(new THREE.BoxGeometry(3.4, .35, 2.8), R.paint, 0, 1.15, -2.9);
+  hood.rotation.x = .08; cab.add(hood);
+  cab.add(mesh(new THREE.BoxGeometry(.5, .06, 2.6), std(0x111111), 0, 1.36, -2.9));
+  // 대시보드
+  cab.add(mesh(new THREE.BoxGeometry(3.6, .55, 1.1), dark, 0, 1.35, -1.2));
+  cab.add(mesh(new THREE.BoxGeometry(3.6, .06, .08), trim, 0, 1.36, -.62));
+  // 계기판 · 가운데 화면
+  R.gaugeTex = canvasTex(256, 128, (x, w, h) => {
+    x.fillStyle = '#05070c'; x.fillRect(0, 0, w, h);
+    x.strokeStyle = '#2a8aff'; x.lineWidth = 6;
+    x.beginPath(); x.arc(w / 2, h - 10, 90, Math.PI, 0); x.stroke();
+    const r = clamp((R.speed || 0) / 320, 0, 1), a = Math.PI + r * Math.PI;
+    x.strokeStyle = '#ff5a3a'; x.lineWidth = 5;
+    x.beginPath(); x.moveTo(w / 2, h - 10); x.lineTo(w / 2 + Math.cos(a) * 80, h - 10 + Math.sin(a) * 80); x.stroke();
+    x.fillStyle = '#fff'; x.textAlign = 'center'; x.font = '30px Jua, sans-serif';
+    x.fillText(`${Math.round(R.speed || 0)} km/h`, w / 2, h - 30);
+  });
+  const gauge = mesh(new THREE.PlaneGeometry(.9, .45), new THREE.MeshBasicMaterial({map: R.gaugeTex}), -.8, 1.66, -.7, false);
+  gauge.rotation.x = -.35; cab.add(gauge);
+  R.screenTex = canvasTex(512, 256, (x, w, h) => {
+    const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#101a30'); g.addColorStop(1, '#05070c');
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#9fc4ff'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = '40px Jua, "Malgun Gothic", sans-serif';
+    (R.screenText || '🏎️ 내비게이션').split('\n').forEach((ln, i) => x.fillText(ln, w / 2, 80 + i * 70));
+  });
+  const screen = mesh(new THREE.PlaneGeometry(.9, .45), new THREE.MeshBasicMaterial({map: R.screenTex}), .25, 1.72, -.72, false);
+  screen.rotation.x = -.3; cab.add(screen);
+  // 운전대
+  R.wheel = new THREE.Group(); R.wheel.position.set(-.8, 1.62, -.35); R.wheel.rotation.x = -.5;
+  R.wheel.add(mesh(new THREE.TorusGeometry(.34, .05, 8, 24), leather, 0, 0, 0, false));
+  R.wheel.add(mesh(new THREE.BoxGeometry(.6, .06, .05), dark, 0, 0, 0, false));
+  R.wheel.add(mesh(new THREE.CylinderGeometry(.09, .09, .06, 12), trim, 0, 0, .02, false).rotateX(Math.PI / 2));
+  cab.add(R.wheel);
+  // 좌석
+  for (const sx of [-.8, .8]){
+    const s = new THREE.Group(); s.position.set(sx, 0, 1);
+    s.add(mesh(new THREE.BoxGeometry(1.1, .3, 1.1), leather, 0, .85, 0));
+    const back = mesh(new THREE.BoxGeometry(1.1, 1.4, .25), leather, 0, 1.6, .55); back.rotation.x = -.15; s.add(back);
+    s.add(mesh(new THREE.BoxGeometry(.6, .35, .22), leather, 0, 2.45, .66));
+    cab.add(s);
+  }
+  // 문 · 창틀 · 지붕
+  for (const sx of [-1.8, 1.8]){
+    cab.add(mesh(new THREE.BoxGeometry(.15, .9, 3.6), R.paint, sx, 1.1, 0));
+    cab.add(mesh(new THREE.BoxGeometry(.1, .08, 3.4), trim, sx * .98, 1.56, 0));
+    const pillar = mesh(new THREE.BoxGeometry(.14, 1.6, .14), dark, sx * .95, 2.2, -.9);
+    pillar.rotation.x = -.5; cab.add(pillar);
+  }
+  cab.add(mesh(new THREE.BoxGeometry(3.6, .1, 2.2), dark, 0, 3.4, .4));
+  const glass = new THREE.MeshStandardMaterial({color: 0xcfe8ff, transparent: true, opacity: .12, roughness: .05});
+  const shield = mesh(new THREE.PlaneGeometry(3.4, 1.5), glass, 0, 2.2, -.95, false); shield.rotation.x = -.5; cab.add(shield);
+  // 운전하는 사장님
+  const o = R.owner = makeCustomer({id: 'owner'});
+  o.position.set(-.8, -.05, 1); o.rotation.y = Math.PI;
+  const P = o.userData;
+  P.legL.rotation.x = P.legR.rotation.x = -1.4;
+  P.armL.rotation.x = P.armR.rotation.x = -1.25;
+  P.armL.rotation.z = .35; P.armR.rotation.z = -.35;
+  cab.add(o);
+}
+// 차에 타는 순간 가진 차 중 가장 빠른 차의 색 · 속도로 바꿔요
+function prepCarRide(){
+  const R = W.car, car = bestCar();
+  if (!car) return;
+  R.paint.color.set(car.color);
+  R.speed = 60 + (5 - car.secs) * 55;
+  R.carName = car.name;
+  redrawTex(R.gaugeTex);
+}
+function syncCarRide(dt){
+  const R = W.car, tr = G && G.trip;
+  const v = tr ? R.speed / 3.6 : 0;
+  R.stripes.forEach(s => { s.position.z += v * dt; if (s.position.z > 10) s.position.z -= 120; });
+  R.movers.forEach(g => { g.position.z += v * dt; if (g.position.z > 12) g.position.z -= 120; });
+  R.aheadCar.position.z += v * .35 * dt;
+  if (R.aheadCar.position.z > 14) R.aheadCar.position.z = -60;
+  R.cab.position.y = tr ? Math.sin(T * 13) * .006 : 0;
+  R.wheel.rotation.z = tr ? Math.sin(T * .9) * .12 : 0;
+  R.owner.userData.head.rotation.z = R.wheel.rotation.z * .5;
+  const txt = tr ? `${R.carName || '내 차'}\n${FLOORS[tr.to].icon} ${FLOORS[tr.to].name}까지 ${Math.ceil(tr.len - tr.t)}초` : '🏎️ 내비게이션';
+  if (R.screenKey !== txt){ R.screenKey = txt; R.screenText = txt; redrawTex(R.screenTex); }
 }
 
 // ---------------- 대도시 ----------------
@@ -6800,7 +6945,7 @@ const _ptr = new THREE.Vector2();
 function pickAt(cx, cy){
   _ptr.set(cx / window.innerWidth * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(_ptr, camera);
-  const list = W.mode === 'prep' ? W.prep.hits : W.mode === 'market' ? W.market.hits : W.mode === 'cafe' ? W.cafe.hits : W.mode === 'vip' ? W.vip.hits : W.mode === 'town' ? W.town.hits : W.mode === 'city' ? W.city.hits : W.mode === 'bus' ? W.bus.hits : [...W.seatHits, ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
+  const list = W.mode === 'prep' ? W.prep.hits : W.mode === 'market' ? W.market.hits : W.mode === 'cafe' ? W.cafe.hits : W.mode === 'vip' ? W.vip.hits : W.mode === 'town' ? W.town.hits : W.mode === 'city' ? W.city.hits : W.mode === 'bus' ? W.bus.hits : W.mode === 'car' ? W.car.hits : [...W.seatHits, ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
   const hits = raycaster.intersectObjects(list, false);
   return hits.length ? hits[0].object.userData : null;
 }
@@ -7007,6 +7152,8 @@ function loop(ts){
     syncCity(fdt);
   } else if (W.mode === 'bus'){
     syncBus(fdt);
+  } else if (W.mode === 'car'){
+    syncCarRide(fdt);
   } else if (W.mode === 'prep'){
     syncPrep(dt);
   } else if (W.mode === 'cafe'){
@@ -7033,7 +7180,7 @@ function loop(ts){
   W.sun.intensity = lerp(W.sun.intensity, Lt.sunI, lk);
 
   // 해 그림자는 지금 보는 곳을 따라가요
-  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : W.mode === 'vip' ? W.vip.origin : W.mode === 'town' ? W.town.owner.position : W.mode === 'city' ? W.city.owner.position : W.mode === 'bus' ? W.bus.origin : _origin;
+  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : W.mode === 'vip' ? W.vip.origin : W.mode === 'town' ? W.town.owner.position : W.mode === 'city' ? W.city.owner.position : W.mode === 'bus' ? W.bus.origin : W.mode === 'car' ? W.car.origin : _origin;
   W.sun.position.set(sunAt.x - 5, 14, sunAt.z + 8);
   W.sun.target.position.set(sunAt.x, 0, sunAt.z);
   W.sun.target.updateMatrixWorld();
