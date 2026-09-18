@@ -4278,12 +4278,13 @@ function storeFront(root, hits, kind, s, x, z, w, h, opts = {}){
 
 // ---------------- 이동 (버스 · 내 차) ----------------
 const BUS_SECS = 10;
+// tier: 0 가장 싼 차 ~ 4 가장 비싼 차 · kmh: 최고 속도 · 실내: 시트 색 · 보닛 줄무늬 · 공기구멍 · 원목 · 무드등 · 큰 화면
 const CARS = [
-  {id: 'car5', name: '스포츠 쿠페',   secs: 5, price: 100000, color: 0x2f6ad8},
-  {id: 'car4', name: '로드스터',      secs: 4, price: 200000, color: 0xf2d230},
-  {id: 'car3', name: '그랜드 투어러', secs: 3, price: 300000, color: 0x3a3a44},
-  {id: 'car2', name: '슈퍼카',        secs: 2, price: 450000, color: 0xe0405a},
-  {id: 'car1', name: '하이퍼카',      secs: 1, price: 700000, color: 0xf28a1e},
+  {id: 'car5', name: '스포츠 쿠페',   secs: 5, price: 100000, color: 0x2f6ad8, tier: 0, kmh: 200, seat: 0x55585f},
+  {id: 'car4', name: '로드스터',      secs: 4, price: 200000, color: 0xf2d230, tier: 1, kmh: 340, seat: 0x1a1a1a, stripe: 0x111111},
+  {id: 'car3', name: '그랜드 투어러', secs: 3, price: 300000, color: 0x3a3a44, tier: 2, kmh: 475, seat: 0xb08a5a, wood: true},
+  {id: 'car2', name: '슈퍼카',        secs: 2, price: 450000, color: 0xe0405a, tier: 3, kmh: 610, seat: 0x8e1c24, stripe: 0x111111, vents: true, neon: 0xff3a3a},
+  {id: 'car1', name: '하이퍼카',      secs: 1, price: 700000, color: 0xf28a1e, tier: 4, kmh: 750, seat: 0xf4f0e8, stripe: 0xf2b632, vents: true, neon: 0x3ad8ff, wood: true, big: true},
 ];
 function carSecs(){ const own = CARS.filter(c => G.cars[c.id]); return own.length ? Math.min(...own.map(c => c.secs)) : 0; }
 function tripSecs(){ return carSecs() || BUS_SECS; }
@@ -4314,7 +4315,7 @@ function updateTrip(dt){
 }
 function renderTripBanner(){
   const el = $('tripBanner'), tr = G && inPhase('open') ? G.trip : null;
-  el.hidden = !tr;
+  el.hidden = !tr || W.mode === 'bus' || W.mode === 'car';
   if (!tr) return;
   const txt = `${tr.by}(으)로 ${FLOORS[tr.to].icon} ${FLOORS[tr.to].name}에 가는 중... ${Math.ceil(tr.len - tr.t)}초` + (W.mode === 'car' ? ` · 🎮 W 가속 S 브레이크 A/D 핸들 · ${Math.round(W.car.speed)}km/h` : '');
   const t = el.querySelector('.tb-text');
@@ -4547,7 +4548,7 @@ function buildCarRide(){
   // 사람 크기에 맞춘 차 안을 절반으로 줄여 길 위의 다른 차들과 크기를 맞춰요
   const cab = R.cab = new THREE.Group(); cab.position.set(X, 0, 0); cab.scale.setScalar(CAR_CAB_SCALE); root.add(cab);
   R.paint = new THREE.MeshStandardMaterial({color: 0xe0405a, roughness: .15, metalness: .6});
-  const leather = std(0x2a1a14, {roughness: .5}), dark = std(0x16161a, {roughness: .4}), trim = std(0xc9a14a, {metalness: .7, roughness: .3});
+  const leather = R.leather = new THREE.MeshStandardMaterial({color: 0x2a1a14, roughness: .5}), dark = std(0x16161a, {roughness: .4}), trim = std(0xc9a14a, {metalness: .7, roughness: .3});
   cab.add(mesh(new THREE.BoxGeometry(3.6, .3, 4.4), dark, 0, .55, .4));
   // 보닛 (앞유리 너머)
   const hood = mesh(new THREE.BoxGeometry(3.4, .35, 2.8), R.paint, 0, 1.15, -2.9);
@@ -4561,7 +4562,7 @@ function buildCarRide(){
     x.fillStyle = '#05070c'; x.fillRect(0, 0, w, h);
     x.strokeStyle = '#2a8aff'; x.lineWidth = 6;
     x.beginPath(); x.arc(w / 2, h - 10, 90, Math.PI, 0); x.stroke();
-    const r = clamp((R.speed || 0) / 320, 0, 1), a = Math.PI + r * Math.PI;
+    const r = clamp((R.speed || 0) / 800, 0, 1), a = Math.PI + r * Math.PI;
     x.strokeStyle = '#ff5a3a'; x.lineWidth = 5;
     x.beginPath(); x.moveTo(w / 2, h - 10); x.lineTo(w / 2 + Math.cos(a) * 80, h - 10 + Math.sin(a) * 80); x.stroke();
     x.fillStyle = '#fff'; x.textAlign = 'center'; x.font = '30px Jua, sans-serif';
@@ -4573,11 +4574,26 @@ function buildCarRide(){
     const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#101a30'); g.addColorStop(1, '#05070c');
     x.fillStyle = g; x.fillRect(0, 0, w, h);
     x.fillStyle = '#9fc4ff'; x.textAlign = 'center'; x.textBaseline = 'middle';
-    x.font = '40px Jua, "Malgun Gothic", sans-serif';
-    (R.screenText || '🏎️ 내비게이션').split('\n').forEach((ln, i) => x.fillText(ln, w / 2, 80 + i * 70));
+    x.font = '36px Jua, "Malgun Gothic", sans-serif';
+    (R.screenText || '🏎️ 내비게이션').split('\n').forEach((ln, i) => x.fillText(ln, w / 2, 56 + i * 72));
   });
-  const screen = mesh(new THREE.PlaneGeometry(.9, .45), new THREE.MeshBasicMaterial({map: R.screenTex}), .25, 1.72, -.72, false);
+  const screen = R.smallScreen = mesh(new THREE.PlaneGeometry(.9, .45), new THREE.MeshBasicMaterial({map: R.screenTex}), .25, 1.72, -.72, false);
   screen.rotation.x = -.3; cab.add(screen);
+  // 차마다 달라지는 장식
+  const deco = R.deco = {};
+  deco.stripes = new THREE.Group();
+  R.stripeMat = new THREE.MeshStandardMaterial({color: 0xffffff, metalness: .5, roughness: .3});
+  for (const sx of [-.35, .35]){ const st = mesh(new THREE.BoxGeometry(.28, .02, 2.8), R.stripeMat, sx, 1.34, -2.9, false); st.rotation.x = .08; deco.stripes.add(st); }
+  deco.vents = new THREE.Group();
+  for (const sx of [-.95, .95]) for (let k = 0; k < 3; k++) deco.vents.add(mesh(new THREE.BoxGeometry(.55, .05, .1), std(0x0a0a0a), sx, 1.36 - k * .02, -2.3 - k * .22, false));
+  deco.wood = mesh(new THREE.BoxGeometry(3.5, .1, .1), std(0x7a4a24, {roughness: .4}), 0, 1.5, -.66, false);
+  R.neonMat = new THREE.MeshBasicMaterial({color: 0x3ad8ff});
+  deco.neon = new THREE.Group();
+  deco.neon.add(mesh(new THREE.BoxGeometry(3.5, .03, .04), R.neonMat, 0, 1.08, -.62, false));
+  for (const sx of [-1.7, 1.7]) deco.neon.add(mesh(new THREE.BoxGeometry(.03, .03, 3), R.neonMat, sx, 1.52, .6, false));
+  deco.big = mesh(new THREE.PlaneGeometry(1.7, .55), new THREE.MeshBasicMaterial({map: R.screenTex}), .5, 1.76, -.74, false);
+  deco.big.rotation.x = -.3;
+  for (const k in deco) cab.add(deco[k]);
   // 운전대
   // 운전대: 1인칭 시야 안에 들어오도록 높이 달아요
   R.wheel = new THREE.Group(); R.wheel.position.set(-.8, 2.3, -.2); R.wheel.rotation.x = -.75;
@@ -4637,7 +4653,13 @@ function prepCarRide(){
   const R = W.car, car = bestCar();
   if (!car) return;
   R.paint.color.set(car.color);
-  R.top = 120 + (5 - car.secs) * 70;   // 최고 속도 (km/h): 비싼 차일수록 빨라요
+  R.top = car.kmh;   // 최고 속도 (km/h): 가장 싼 차 200 ~ 가장 비싼 차 750
+  R.leather.color.set(car.seat);
+  R.deco.stripes.visible = !!car.stripe; if (car.stripe) R.stripeMat.color.set(car.stripe);
+  R.deco.vents.visible = !!car.vents;
+  R.deco.wood.visible = !!car.wood;
+  R.deco.neon.visible = !!car.neon; if (car.neon) R.neonMat.color.set(car.neon);
+  R.deco.big.visible = !!car.big; R.smallScreen.visible = !car.big;
   R.speed = R.top * .6;
   R.carName = car.name;
   R.px = 0; R.cab.position.x = CAR_X; R.steer = 0; R.hitT = 0;
@@ -4688,7 +4710,7 @@ function syncCarRide(dt){
   R.owner.userData.head.rotation.z = R.wheel.rotation.z * .2;
   const gk = Math.round(R.speed / 5);
   if (R.gaugeKey !== gk){ R.gaugeKey = gk; redrawTex(R.gaugeTex); }
-  const txt = tr ? `${R.carName || '내 차'}\n${FLOORS[tr.to].icon} ${FLOORS[tr.to].name}까지 ${Math.ceil(tr.len - tr.t)}초` : '🏎️ 내비게이션';
+  const txt = tr ? `${R.carName || '내 차'} · ${Math.round(R.speed / 10) * 10}km/h\n${FLOORS[tr.to].icon} ${FLOORS[tr.to].name}까지 ${Math.ceil(tr.len - tr.t)}초\n🎮 W 가속 · S 브레이크 · A/D 핸들` : '🏎️ 내비게이션';
   if (R.screenKey !== txt){ R.screenKey = txt; R.screenText = txt; redrawTex(R.screenTex); }
 }
 
@@ -4812,7 +4834,7 @@ function cityBodyHtml(sel){
     return card(`data-cact="wine" data-cid="${id}"`, it.icon, it.name, `${fmt(it.price)} · VIP ${fmt(WINE_PRICE[id] * 2)}/잔 · 보유 ${G.pantry[id]}`, G.money < it.price, i + 1);
   }).join('');
   if (sel === 'tv') return `<button class="pstep town-act ${C.tv || G.money < TV_PRICE ? 'off' : ''}" data-cact="tv"><span class="key">1</span><span class="ic">📺</span>TV 광고 찍기 ${fmt(TV_PRICE)}<small>${C.tv ? '✅ 오늘 방송 중 · 손님 1.5배' : '오늘 손님 1.5배 · 평판 +0.2 · 하루 1번'}</small></button>`;
-  if (sel === 'cars') return CARS.map((c, i) => card(`data-cact="car" data-cid="${c.id}"`, '🏎️', c.name, G.cars[c.id] ? `✅ 보유 · ${c.secs}초` : `${fmt(c.price)} · ${c.secs}초`, G.cars[c.id] || G.money < c.price, i + 1)).join('')
+  if (sel === 'cars') return CARS.map((c, i) => card(`data-cact="car" data-cid="${c.id}"`, '🏎️', c.name, G.cars[c.id] ? `✅ 보유 · ${c.kmh}km/h` : `${fmt(c.price)} · ${c.secs}초 · ${c.kmh}km/h`, G.cars[c.id] || G.money < c.price, i + 1)).join('')
     + `<div class="town-bank">지금 이동 시간 <b>${tripSecs()}초</b><small>${carSecs() ? '가장 빠른 내 차로 다녀요' : '차가 없으면 버스로 10초'}</small></div>`;
   if (sel === 'arms') return ARMS.map((a, i) => card(`data-cact="arm" data-cid="${a.id}"`, a.icon, a.name, G.arms[a.id] ? '✅ 보유' : `${fmt(a.price)} · 진상 -0.5%p`, G.arms[a.id] || G.money < a.price, i + 1)).join('')
     + `<div class="town-bank">진상 방문 확률 <b>-${(jinsangCut() * 100).toFixed(1)}%p</b><small>합법 호신용품만 팔아요</small></div>`;
@@ -4851,15 +4873,27 @@ function cityKeyAct(n){
   else toast('🚶 가게 앞 발판에 서면 숫자키로 이용할 수 있어요');
 }
 
-function makeSportsCar(color, scale = 1){
+function makeSportsCar(color, scale = 1, tier = -1){
   const car = new THREE.Group();
-  car.add(mesh(new THREE.BoxGeometry(2.8, .45, 1.3), std(color, {roughness: .15, metalness: .6}), 0, .45, 0));
-  const cab = mesh(new THREE.BoxGeometry(1.3, .4, 1.1), std(0x151a22, {roughness: .1}), -.15, .85, 0);
-  car.add(cab);
-  car.add(mesh(new THREE.BoxGeometry(.2, .1, 1.2), std(0x111111), -1.35, .8, 0));
-  for (const wx of [-.9, .9]) for (const wz of [-.62, .62]){
+  const t = Math.max(0, tier), len = 2.8 + t * .2, h = .45 - t * .03, cabH = .4 - t * .05;
+  const paint = std(color, {roughness: .15, metalness: .6});
+  car.add(mesh(new THREE.BoxGeometry(len, h, 1.3 + t * .04), paint, 0, .2 + h / 2 + .03, 0));
+  car.add(mesh(new THREE.BoxGeometry(1.3 - t * .05, cabH, 1.1), std(0x151a22, {roughness: .1}), -.15 - t * .08, .25 + h + cabH / 2, 0));
+  car.add(mesh(new THREE.BoxGeometry(.2, .1, 1.2), std(0x111111), -len / 2 + .05, .25 + h, 0));
+  if (tier >= 0){
+    const cfg = CARS.find(c => c.tier === tier);
+    if (cfg.stripe) for (const sz of [-.18, .18]) car.add(mesh(new THREE.BoxGeometry(len + .01, .02, .14), std(cfg.stripe, {metalness: .5, roughness: .3}), 0, .25 + h, sz));
+    if (tier >= 2) car.add(mesh(new THREE.BoxGeometry(.3, .06, 1.2), std(0x111111), len / 2 - .15, .25 + h + .02, 0));   // 앞 공기구멍
+    if (tier >= 3){   // 뒤 날개
+      for (const sz of [-.45, .45]) car.add(mesh(new THREE.BoxGeometry(.08, .35, .08), std(0x111111), -len / 2 + .2, .25 + h + .17, sz));
+      car.add(mesh(new THREE.BoxGeometry(.45, .06, 1.4), tier >= 4 ? std(0x111111, {metalness: .7, roughness: .2}) : paint, -len / 2 + .2, .25 + h + .36, 0));
+    }
+  }
+  const rim = tier >= 4 ? std(0xf2b632, {metalness: .8, roughness: .2}) : std(0x151515);
+  for (const wx of [-len / 2 + .5, len / 2 - .5]) for (const wz of [-.62, .62]){
     const wh = mesh(geo('carWheel', () => new THREE.CylinderGeometry(.26, .26, .2, 12)), std(0x151515), wx, .26, wz);
     wh.rotation.x = Math.PI / 2; car.add(wh);
+    if (tier >= 0){ const hub = mesh(geo('carHub', () => new THREE.CylinderGeometry(.13, .13, .22, 10)), rim, wx, .26, wz, false); hub.rotation.x = Math.PI / 2; car.add(hub); }
   }
   car.scale.setScalar(scale);
   return car;
@@ -4912,9 +4946,13 @@ function buildCity(){
       sh.g.add(mesh(new THREE.PlaneGeometry(6, 3), new THREE.MeshBasicMaterial({map: Z.tvTex}), 0, 8.2, 2.76, false));
       sh.g.add(mesh(new THREE.CylinderGeometry(.08, .12, 5, 8), std(0xcccccc, {metalness: .6}), 2.5, tall + 2.5, 0));
     } else if (s.id === 'cars'){
-      Z.showCar = makeSportsCar(0xe0405a, .9);
-      Z.showCar.position.set(-.8, .45, 3.4);
-      sh.g.add(Z.showCar);
+      Z.showCars = CARS.map(c => {
+        const m = makeSportsCar(c.color, .9, c.tier);
+        m.position.set(-.8, .45, 3.4); m.visible = false;
+        sh.g.add(m);
+        return m;
+      });
+      Z.showCar = Z.showCars[0];
       sh.g.add(mesh(new THREE.CylinderGeometry(1.7, 1.7, .2, 24), std(0xdddddd, {metalness: .5, roughness: .2}), -.8, .3, 3.4));
     } else if (s.id === 'arms'){
       sh.g.add(mesh(new THREE.BoxGeometry(6.8, .12, .12), new THREE.MeshBasicMaterial({color: 0xff3a3a}), 0, 4.5, 2.6, false));
@@ -4990,7 +5028,9 @@ function syncCity(dt){
     if (c.g.position.x > X + 46) c.g.position.x = X - 46;
     if (c.g.position.x < X - 46) c.g.position.x = X + 46;
   });
-  Z.showCar.rotation.y += dt * .6;
+  // 전시장: 3초마다 다음 차로 바뀌어요
+  const si = Math.floor(T / 3) % Z.showCars.length;
+  Z.showCars.forEach((m, k) => { m.visible = k === si; m.rotation.y += dt * .6; });
   walkOwner(Z, dt, {
     live: canCity(),
     walkable: (x, z) => x >= CITY_MIN_X && x <= CITY_MAX_X && z >= CITY_MIN_Z && z <= CITY_MAX_Z,
