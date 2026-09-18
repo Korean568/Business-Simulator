@@ -3378,7 +3378,8 @@ function updateJinsang(c, i, dt, kind){
   if (c.phase === 'threat' || c.phase === 'robbing'){
     // 경비원: 쉬고 있으면 달려와 멱살을 잡고, 대처시간 동안 붙잡은 뒤 끌고 나가요
     if (G.staff.guard && !c.guardT && !c.policeT && guardFree()){
-      c.guardT = guardTime(); c.guardMax = c.guardT; c.guardWalk = GUARD_WALK; c.v++;
+      const taser = G.arms && G.arms.guardTaser ? .5 : 1;   // 테이저건이 있으면 2배 빨리 제압
+      c.guardT = guardTime() * taser; c.guardMax = c.guardT; c.guardWalk = GUARD_WALK * taser; c.v++;
       toast(`💂 경비원이 ${FLOORS[venue.floor].name}로 출동! 멱살을 ${c.guardT}초 잡고 끌고 나가요`);
     }
     if (c.guardT > 0 && c.guardWalk > 0){
@@ -3397,7 +3398,11 @@ function updateJinsang(c, i, dt, kind){
         G.stats.jinsangHandled++;
         sfx.coin();
         if (here) floatWorld(x, 4.3, SEAT_Z, '💂 제압!', '#9fe39f');
-        toast('💂 경비원이 진상 멱살을 잡고 끌고 나가요!');
+        if (G.arms && G.arms.guardCuffs){
+          G.money += GUARD_BOUNTY; G.stats.bounty = (G.stats.bounty || 0) + GUARD_BOUNTY;
+          if (here) floatWorld(x, 5, SEAT_Z, `⛓️ 포상금 +${fmt(GUARD_BOUNTY)}`, '#f2b632');
+          toast(`💂 경비원이 수갑을 채워 경찰에 넘겼어요! 포상금 +${fmt(GUARD_BOUNTY)}`);
+        } else toast('💂 경비원이 진상 멱살을 잡고 끌고 나가요!');
       }
       return;
     }
@@ -4995,10 +5000,14 @@ const ARMS = [
   {id: 'spray', name: '고급 호신 스프레이', icon: '🧴', price: 30000},
   {id: 'taser', name: '전기 충격기',       icon: '⚡', price: 60000},
   {id: 'baton', name: '삼단봉',            icon: '🦯', price: 90000},
+  // 경비원 전용 (진상 확률 대신 경비원을 강하게 해요)
+  {id: 'guardTaser', name: '경비원 전용 테이저건', icon: '⚡', price: 150000, guard: true, info: '경비원이 2배 빨리 제압'},
+  {id: 'guardCuffs', name: '경비원 전용 수갑',     icon: '⛓️', price: 100000, guard: true, info: '제압하면 포상금 +3만원'},
 ];
+const GUARD_BOUNTY = 30000;
 const ARM_CUT = .005;
 function crowdRate(){ return G && G.city && G.city.tv ? TV_RATE : 1; }
-function jinsangCut(){ return ARMS.filter(a => G.arms[a.id]).length * ARM_CUT; }
+function jinsangCut(){ return ARMS.filter(a => !a.guard && G.arms[a.id]).length * ARM_CUT; }
 const CITY_MIN_X = CITY_X - 27, CITY_MAX_X = CITY_X + 33, CITY_MIN_Z = -5.2, CITY_MAX_Z = 4;
 function canCity(){ return outOK() && G.floor === 5 && G.running && !G.paused && $('overlay').hidden; }
 function cityShopNear(pos){
@@ -5095,7 +5104,7 @@ function cityBodyHtml(sel){
   if (sel === 'tv') return `<button class="pstep town-act ${C.tv || G.money < TV_PRICE ? 'off' : ''}" data-cact="tv"><span class="key">1</span><span class="ic">📺</span>TV 광고 찍기 ${fmt(TV_PRICE)}<small>${C.tv ? '✅ 오늘 방송 중 · 손님 1.5배' : '오늘 손님 1.5배 · 평판 +0.2 · 하루 1번'}</small></button>`;
   if (sel === 'cars') return CARS.map((c, i) => card(`data-cact="car" data-cid="${c.id}"`, '🏎️', c.name, G.cars[c.id] ? `✅ 보유 · ${c.kmh}km/h` : `${fmt(c.price)} · ${c.secs}초 · ${c.kmh}km/h`, G.cars[c.id] || G.money < c.price, i + 1)).join('')
     + `<div class="town-bank">지금 이동 시간 <b>${tripSecs()}초</b><small>${carSecs() ? '가장 빠른 내 차로 다녀요' : '차가 없으면 버스로 15초'}</small></div>`;
-  if (sel === 'arms') return ARMS.map((a, i) => card(`data-cact="arm" data-cid="${a.id}"`, a.icon, a.name, G.arms[a.id] ? '✅ 보유' : `${fmt(a.price)} · 진상 -0.5%p`, G.arms[a.id] || G.money < a.price, i + 1)).join('')
+  if (sel === 'arms') return ARMS.map((a, i) => card(`data-cact="arm" data-cid="${a.id}"`, a.icon, a.name, G.arms[a.id] ? '✅ 보유' : `${fmt(a.price)} · ${a.guard ? a.info : '진상 -0.5%p'}`, G.arms[a.id] || G.money < a.price, i + 1)).join('')
     + `<div class="town-bank">진상 방문 확률 <b>-${(jinsangCut() * 100).toFixed(1)}%p</b><small>합법 호신용품만 팔아요</small></div>`;
   return `<button class="pstep town-act" data-cact="home"><span class="key">1</span><span class="ic">${carSecs() ? '🏎️' : '🚌'}</span>시내로 돌아가기<small>${tripBy()} · ${tripSecs()}초</small></button>`;
 }
@@ -7142,7 +7151,7 @@ function endDay(){
   G.money -= rent + wages;
   const cafeIncome = s.cafeSales + s.cafeTips;
   const vipIncome = s.vipSales + s.vipTips;
-  const net = s.sales + s.tips + cafeIncome + vipIncome - s.purchase - s.townSpend - rent - wages - s.jinsangLostMoney;
+  const net = s.sales + s.tips + cafeIncome + vipIncome + (s.bounty || 0) - s.purchase - s.townSpend - rent - wages - s.jinsangLostMoney;
   // 파산 직전이면 은행 예금을 먼저 찾아 써요
   if (G.money < 0 && G.savings){ G.money += G.savings; G.savings = 0; }
   G.totalProfit += net; G.totalServed += s.served; G.totalPerfect += s.perfect;
@@ -7172,6 +7181,7 @@ function endDay(){
         ${s.cafeServed || cafeIncome ? `<tr><td>☕ 카페 매출·팁 (${s.cafeServed}명)</td><td class="plus">+${fmt(cafeIncome)}</td></tr>` : ''}
         ${s.vipServed || vipIncome ? `<tr><td>👑 VIP 매출·팁 (${s.vipServed}명)</td><td class="plus">+${fmt(vipIncome)}</td></tr>` : ''}
         <tr><td>🛒 새벽 재료 구입비</td><td class="minus">-${fmt(s.purchase)}</td></tr>
+        ${s.bounty ? `<tr><td>⛓️ 진상 포상금</td><td class="plus">+${fmt(s.bounty)}</td></tr>` : ''}
         ${s.townSpend ? `<tr><td>🏙️ 시내 지출 (편의점·광고)</td><td class="minus">-${fmt(s.townSpend)}</td></tr>` : ''}
         <tr><td>🏠 임대료</td><td class="minus">-${fmt(rent)}</td></tr>
         ${wages ? `<tr><td>👷 직원 일당</td><td class="minus">-${fmt(wages)}</td></tr>` : ''}
