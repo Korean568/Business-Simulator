@@ -4575,9 +4575,12 @@ function buildCarRide(){
   const screen = mesh(new THREE.PlaneGeometry(.9, .45), new THREE.MeshBasicMaterial({map: R.screenTex}), .25, 1.72, -.72, false);
   screen.rotation.x = -.3; cab.add(screen);
   // 운전대
-  R.wheel = new THREE.Group(); R.wheel.position.set(-.8, 1.62, -.35); R.wheel.rotation.x = -.5;
-  R.wheel.add(mesh(new THREE.TorusGeometry(.34, .05, 8, 24), leather, 0, 0, 0, false));
-  R.wheel.add(mesh(new THREE.BoxGeometry(.6, .06, .05), dark, 0, 0, 0, false));
+  // 운전대: 1인칭 시야 안에 들어오도록 높이 달아요
+  R.wheel = new THREE.Group(); R.wheel.position.set(-.8, 2.3, -.2); R.wheel.rotation.x = -.75;
+  R.wheel.add(mesh(new THREE.TorusGeometry(.42, .06, 10, 28), leather, 0, 0, 0, false));
+  R.wheel.add(mesh(new THREE.BoxGeometry(.8, .07, .06), dark, 0, 0, 0, false));
+  R.wheel.add(mesh(new THREE.BoxGeometry(.07, .4, .06), dark, 0, -.2, 0, false));
+  cab.add(mesh(new THREE.CylinderGeometry(.06, .08, .8, 10), dark, -.8, 1.95, -.52, false).rotateX(.8));   // 운전대 기둥
   R.wheel.add(mesh(new THREE.CylinderGeometry(.09, .09, .06, 12), trim, 0, 0, .02, false).rotateX(Math.PI / 2));
   cab.add(R.wheel);
   // 좌석
@@ -4620,7 +4623,7 @@ function buildCarRide(){
   o.position.set(-.8, -.05, 1); o.rotation.y = Math.PI;
   const P = o.userData;
   P.legL.rotation.x = P.legR.rotation.x = -1.4;
-  P.armL.rotation.x = P.armR.rotation.x = -1.25;
+  P.armL.rotation.x = P.armR.rotation.x = -1.4;
   P.armL.rotation.z = .35; P.armR.rotation.z = -.35;
   P.head.visible = false;   // 1인칭: 사장님 눈에서 봐요
   cab.add(o);
