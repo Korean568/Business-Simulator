@@ -125,6 +125,15 @@ button{font-family:inherit;cursor:pointer}
 #joyKnob{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3dc,#c99320);box-shadow:0 4px 10px rgba(0,0,0,.5);pointer-events:none}
 @media (max-width:700px){#joystick{width:110px;height:110px;bottom:200px}}
 
+.fb-btn.city{border-color:#8a6ad8}
+.mall-grid{flex-wrap:wrap;max-height:210px;overflow-y:auto;max-width:900px}
+#tripBanner{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:30;width:min(520px,calc(100% - 32px));background:rgba(20,16,40,.92);color:#fff3dc;border:3px solid #8a6ad8;border-radius:18px;padding:14px 18px 16px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+#tripBanner .tb-text{font-size:20px;margin-bottom:8px}
+#tripBanner .tb-road{position:relative;height:34px;background:#3a3d44;border-radius:8px;border-top:3px dashed #f2e6a0}
+#tripBanner .tb-car{position:absolute;top:0;font-size:28px;transition:left .1s linear;transform:scaleX(-1)}
+#tripBanner .tb-bar{height:8px;background:rgba(255,255,255,.15);border-radius:5px;overflow:hidden;margin-top:8px}
+#tripBanner .tb-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8a6ad8,#f2b632)}
+
 /* ---------- VIP 아침 준비 ---------- */
 .roast-gauge{position:relative;display:flex;height:18px;width:260px;border-radius:9px;overflow:hidden;border:2px solid #000}
 .roast-gauge i{font-style:normal;font-size:11px;color:#fff;text-align:center;line-height:14px;text-shadow:0 1px 0 #000;white-space:nowrap;overflow:hidden}
@@ -508,13 +517,16 @@ button{font-family:inherit;cursor:pointer}
   <div id="marketHint">🚶 방향키·WASD로 걷거나 바닥 클릭<br>🛒 상품을 클릭하면 사요 (가판대 앞에선 1~3 키)</div>
 </div>
 <div id="floorBar" hidden>
-  <div class="fb-title">🛗 층 이동 <small>Shift+1·2·3·4</small></div>
+  <div class="fb-title">🛗 층 이동 <small>Shift+1~5</small></div>
   <button class="fb-btn" data-floor="3"><b>3F</b><span class="fb-name">👑 VIP존</span><small id="fb3"></small></button>
   <button class="fb-btn" data-floor="2"><b>2F</b><span class="fb-name">☕ 카페</span><small id="fb2"></small></button>
   <button class="fb-btn" data-floor="1"><b>1F</b><span class="fb-name">🍲 국밥집</span><small id="fb1"></small></button>
   <button class="fb-btn town" data-floor="4"><b>🏙️</b><span class="fb-name">시내 외출</span><small id="fb4"></small></button>
+  <button class="fb-btn city" data-floor="5"><b>🌆</b><span class="fb-name">대도시로 이동</span><small id="fb5"></small></button>
 </div>
 <div class="controls town-controls" id="townControls" hidden></div>
+<div class="controls town-controls" id="cityControls" hidden></div>
+<div id="tripBanner" hidden><div class="tb-text"></div><div class="tb-road"><span class="tb-car">🚌</span></div><div class="tb-bar"><i></i></div></div>
 <div id="joystick" hidden><div id="joyKnob"></div></div>
 <div id="staffBanner" hidden></div>
 <div id="jinsangPanel" hidden>
@@ -579,6 +591,8 @@ const MARKET_ITEMS = {
   // VIP 라운지 재료 (창고 보관)
   redwine: {name:'레드 와인',   unit:'병',   icon:'🍷', price:20000,  kind:'pantry', yield:5,  serve:'잔',   color:'#7a1428', desc:'VIP 라운지 포도주 5잔 · 창고 보관'},
   whitewine:{name:'화이트 와인', unit:'병',   icon:'🥂', price:18000,  kind:'pantry', yield:5,  serve:'잔',   color:'#e8d98a', desc:'VIP 라운지 포도주 5잔 · 창고 보관'},
+  grandred: {name:'그랑 크뤼 레드',   unit:'병', icon:'🍷', price:40000, kind:'pantry', yield:5, serve:'잔', color:'#4a0a1a', premium:true, desc:'대도시 그랑 와인샵 · VIP에게 두 배 값'},
+  grandwhite:{name:'그랑 크뤼 화이트', unit:'병', icon:'🥂', price:36000, kind:'pantry', yield:5, serve:'잔', color:'#f4e4a0', premium:true, desc:'대도시 그랑 와인샵 · VIP에게 두 배 값'},
   cracker: {name:'크래커',     unit:'상자', icon:'🍘', price:3000,   kind:'pantry', yield:5,  serve:'접시', color:'#e3c28a', desc:'치즈 플래터 5접시분 · 창고 보관'},
   fruit:   {name:'과일 모둠',   unit:'바구니', icon:'🍇', price:8000, kind:'pantry', yield:4,  serve:'접시', color:'#8e44ad', desc:'과일 플래터 4접시분 · 창고 보관'},
   jerky:   {name:'육포',       unit:'봉지', icon:'🍗', price:6000,   kind:'pantry', yield:5,  serve:'접시', color:'#7a3b1e', desc:'육포·견과 5접시분 · 창고 보관'},
@@ -606,7 +620,7 @@ const MOVE_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'K
 const DRINK_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'drink');
 const FOOD_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'food');
 const CAFE_LEN = 60, CAFE_SEATS = 3, CAFE_X = -120;
-const VIP_X = 240, TOWN_X = 360;
+const VIP_X = 240, TOWN_X = 360, CITY_X = 480;
 const DEFAULT_RECIPES = [
   {id:'greentea', name:'녹차',     type:'drink', ings:['tea'],                                     price:4000},
   {id:'coffee',   name:'커피',     type:'drink', ings:['coffee'],                                  price:4500},
@@ -714,6 +728,7 @@ const CAMS = {
   cafe:  {look: new THREE.Vector3(CAFE_X, 1.8, 0.4), base: new THREE.Vector3(CAFE_X, 12.3, 14.05), pos: new THREE.Vector3()},
   vip:   {look: new THREE.Vector3(VIP_X, 1.8, 0.4),  base: new THREE.Vector3(VIP_X, 12.3, 14.05),  pos: new THREE.Vector3()},
   town:  {look: new THREE.Vector3(TOWN_X, 2.2, -2.5), base: new THREE.Vector3(TOWN_X, 11.5, 14.5), pos: new THREE.Vector3()},
+  city:  {look: new THREE.Vector3(CITY_X, 2.6, -3),   base: new THREE.Vector3(CITY_X, 12,   15),   pos: new THREE.Vector3()},
 };
 const curLook = CAMS.lunch.look.clone();
 const SEAT_X = [-6, -2, 2, 6], SEAT_Z = -2.15, COUNTER_TOP = 1.32;
@@ -722,6 +737,7 @@ const W = {
   mode: 'lunch', seatHits: [], binHits: [], burnerViews: [], trayViews: [], bins: [],
   seatViews: [null, null, null, null], leaving: [], particles: [], tweens: [], coins: [],
   shake: 0, hover: null,
+  keys: new Set(), joy: {x: 0, y: 0},   // 시내·대도시에서 걷는 키 · 조이스틱
 };
 const LIGHTS = {
   lunch: {bg: new THREE.Color(0x2a1a10), hemi: new THREE.Color(0xfff1dc), hemiI: .75, sun: new THREE.Color(0xffe2b8), sunI: .85},
@@ -730,6 +746,7 @@ const LIGHTS = {
   cafe:  {bg: new THREE.Color(0x3a2a1e), hemi: new THREE.Color(0xfff2dc), hemiI: .85, sun: new THREE.Color(0xffe6c0), sunI: .8},
   vip:   {bg: new THREE.Color(0x1a0c14), hemi: new THREE.Color(0xffe8d0), hemiI: .7,  sun: new THREE.Color(0xffe0b0), sunI: .7},
   town:  {bg: new THREE.Color(0x8cc0e8), hemi: new THREE.Color(0xffffff), hemiI: .85, sun: new THREE.Color(0xfff2d8), sunI: .95},
+  city:  {bg: new THREE.Color(0x4a4a78), hemi: new THREE.Color(0xe8e4ff), hemiI: .85, sun: new THREE.Color(0xffd8b0), sunI: .8},
 };
 
 const matCache = {};
@@ -831,6 +848,7 @@ function init3D(){
   buildCafe();
   buildVip();
   buildTown();
+  buildCity();
   buildStaffModels();
   onResize();
   window.addEventListener('resize', onResize);
@@ -1561,9 +1579,12 @@ function setWorldMode(mode){
   $('lunchControls').hidden = !(mode === 'lunch' && !(open && G.staff.gukbap));
   $('vipControls').hidden = !(mode === 'vip' && open && !G.staff.vip);
   $('townControls').hidden = mode !== 'town';
-  $('joystick').hidden = mode !== 'town';
-  if (W.town){ W.town.keys.clear(); W.town.joy.x = W.town.joy.y = 0; W.town.target = null; }
-  $('townControls').dataset.key = '';
+  $('cityControls').hidden = mode !== 'city';
+  $('joystick').hidden = !(mode === 'town' || mode === 'city');
+  W.keys.clear(); W.joy.x = W.joy.y = 0;
+  if (W.town) W.town.target = null;
+  if (W.city) W.city.target = null;
+  $('townControls').dataset.key = $('cityControls').dataset.key = '';
   $('vipPrepControls').hidden = !(mode === 'vip' && !!G && G.phase === 'vipPrep');
   if (W.vip.prepLabels) Object.values(W.vip.prepLabels).forEach(l => { l.hidden = true; });
   W.vip.glassLabel.hidden = W.vip.boardLabel.hidden = true;
@@ -1704,6 +1725,7 @@ function startGame(){
     cellar: {redwine: [], whitewine: []},
     tools: {bat: 0, gun: 0, phone: 0},
     staff: {gukbap: false, cafe: false, vip: false, guard: false},
+    cars: {}, arms: {},
     savings: 0,
   };
   $('hudName').textContent = '🍲 ' + name;
@@ -1768,6 +1790,7 @@ function buildDay(){
     vip: null, lunchOn: false, lunchLen: DAY_LEN, floor: 1,
     vipPrep: {check: null, checked: {redwine: false, whitewine: false}, warned: false},
     town: {sel: null, flyers: 0, ad: false, snack: false},
+    city: {sel: null, tv: false}, trip: null,
     roasting: null, roastBack: null,
     running: false, paused: false,
   });
@@ -1966,13 +1989,13 @@ function makeProduct(id){
       }
       break;
     }
-    case 'redwine': case 'whitewine': {
+    case 'redwine': case 'whitewine': case 'grandred': case 'grandwhite': {
       const col = MARKET_ITEMS[id].color;
-      const bottle = std(id === 'redwine' ? 0x1f3a24 : 0x9fb86a, {roughness: .2});
+      const bottle = std(id === 'grandred' || id === 'grandwhite' ? 0x14141a : id === 'redwine' ? 0x1f3a24 : 0x9fb86a, {roughness: .2});
       for (let k = 0; k < 3; k++){
         const b = new THREE.Group();
         b.add(mesh(geo('wineB', () => new THREE.CylinderGeometry(.12, .12, .48, 14)), bottle, 0, .24, 0));
-        b.add(mesh(geo('wineL', () => new THREE.CylinderGeometry(.125, .125, .16, 14)), std(0xf3ead8), 0, .24, 0));
+        b.add(mesh(geo('wineL', () => new THREE.CylinderGeometry(.125, .125, .16, 14)), std(MARKET_ITEMS[id].premium ? 0xf2b632 : 0xf3ead8, MARKET_ITEMS[id].premium ? {metalness: .6, roughness: .3} : {}), 0, .24, 0));
         b.add(mesh(geo('wineN', () => new THREE.CylinderGeometry(.04, .11, .2, 12)), bottle, 0, .58, 0));
         b.add(mesh(geo('wineC', () => new THREE.CylinderGeometry(.045, .045, .08, 10)), std(col), 0, .72, 0));
         b.position.set(-.34 + k * .34, 0, k === 1 ? -.12 : .08);
@@ -2299,8 +2322,8 @@ function marketKey(e){
     else toast('🏪 시장 끝 출구로 가면 가게로 돌아가요');
   }
 }
-window.addEventListener('keyup', e => { if (W.market) W.market.keys.delete(e.code); if (W.town) W.town.keys.delete(e.code); });
-window.addEventListener('blur', () => { if (W.market) W.market.keys.clear(); if (W.town){ W.town.keys.clear(); W.town.joy.x = W.town.joy.y = 0; } });
+window.addEventListener('keyup', e => { if (W.market) W.market.keys.delete(e.code); W.keys.delete(e.code); });
+window.addEventListener('blur', () => { if (W.market) W.market.keys.clear(); W.keys.clear(); W.joy.x = W.joy.y = 0; });
 
 // 가상 조이스틱 (마우스·터치로 드래그)
 (() => {
@@ -2312,13 +2335,13 @@ window.addEventListener('blur', () => { if (W.market) W.market.keys.clear(); if 
     let y = (e.clientY - (r.top + r.height / 2)) / (r.height / 2 - 16);
     const l = Math.hypot(x, y);
     if (l > 1){ x /= l; y /= l; }
-    W.town.joy.x = x; W.town.joy.y = y;
+    W.joy.x = x; W.joy.y = y;
   };
   const end = e => {
     if (e.pointerId !== id) return;
-    id = null; W.town.joy.x = W.town.joy.y = 0;
+    id = null; W.joy.x = W.joy.y = 0;
   };
-  pad.addEventListener('pointerdown', e => { id = e.pointerId; pad.setPointerCapture(id); W.town.target = null; setJoy(e); e.preventDefault(); });
+  pad.addEventListener('pointerdown', e => { id = e.pointerId; pad.setPointerCapture(id); W.town.target = null; W.city.target = null; setJoy(e); e.preventDefault(); });
   pad.addEventListener('pointermove', e => { if (e.pointerId === id) setJoy(e); });
   pad.addEventListener('pointerup', end);
   pad.addEventListener('pointercancel', end);
@@ -2731,7 +2754,7 @@ function updateCafe(dt){
   }
   if (C.time > 0){
     C.spawnT -= dt;
-    if (C.spawnT <= 0) C.spawnT = cafeSpawn() ? rand(3.5, 6.5) : 1;
+    if (C.spawnT <= 0) C.spawnT = cafeSpawn() ? rand(3.5, 6.5) / crowdRate() : 1;
   }
   C.seats.forEach((c, i) => {
     if (c && c.jinsang){ updateJinsang(c, i, dt, 'cafe'); return; }
@@ -3295,10 +3318,10 @@ function maybeSpawnJinsang(free, kind){
   let go;
   if (v.cafe){
     if (G.cafe.jinsangCount >= 1) return false;
-    go = (G.cafe.jinsangPlanned && elapsed > 10) || Math.random() < .08;
+    go = (G.cafe.jinsangPlanned && elapsed > 10) || Math.random() < .08 - jinsangCut();
   } else {
     if (G.jinsangToday >= 2) return false;
-    go = (G.jinsangToday === 0 && elapsed > 12) || Math.random() < .12;
+    go = (G.jinsangToday === 0 && elapsed > 12) || Math.random() < .12 - jinsangCut();
   }
   if (!go) return false;
   const i = pick(free);
@@ -3309,7 +3332,9 @@ function maybeSpawnJinsang(free, kind){
     W.shake = .25;
     toast(`🚨 진상 손님 등장! ${JINSANG_WAIT}초 안에 대처하지 않으면 돈이나 재료를 뺏겨요`);
   } else {
-    toast(G.floor === 4 && inPhase('open')
+    toast(G.floor === 5 || G.trip
+      ? `🚨 ${FLOORS[v.floor].name}에 진상 손님! Shift+${v.floor}로 돌아가세요 (${tripSecs()}초 걸려요)`
+      : G.floor === 4 && inPhase('open')
       ? `🚨 ${FLOORS[v.floor].name}에 진상 손님! 🚓 시내 경찰서에 신고하거나 Shift+${v.floor}로 돌아가세요`
       : `🚨 ${FLOORS[v.floor].name}에 진상 손님! Shift+${v.floor}로 가서 대처하세요`);
   }
@@ -3601,6 +3626,7 @@ const FLOORS = {
   2: {name: '2층 카페',   icon: '☕', mode: 'cafe'},
   3: {name: '3층 VIP존',  icon: '👑', mode: 'vip'},
   4: {name: '시내',       icon: '🏙️', mode: 'town'},
+  5: {name: '대도시',     icon: '🌆', mode: 'city'},
 };
 const VIP_SEATS = 3, VIP_LEN = 60, VIP_SEAT_X = [-4.5, 0, 4.5];
 
@@ -3798,9 +3824,9 @@ function canVipPrep(){ return inPhase('vipPrep') && $('overlay').hidden; }
 // 창고 와인 숙성: 전날 남은 잔은 숙성 시간(초)을 가지고, 오래된 잔부터 나가요
 function cellarBonus(age){ return Math.floor(age) * AGE_TIP; }
 function cellarTrim(id){ const c = G.cellar[id]; if (c) while (c.length > G.pantry[id]) c.pop(); }
-function tickCellar(dt){ LOUNGE_WINES.forEach(id => { const c = G.cellar[id]; for (let k = 0; k < c.length; k++) c[k] += dt; }); }
+function tickCellar(dt){ AGING_WINES.forEach(id => { const c = G.cellar[id]; for (let k = 0; k < c.length; k++) c[k] += dt; }); }
 function storeLeftoverWine(){
-  LOUNGE_WINES.forEach(id => {
+  AGING_WINES.forEach(id => {
     const c = G.cellar[id];
     cellarTrim(id);
     while (c.length < G.pantry[id]) c.push(0);
@@ -3818,9 +3844,9 @@ function showVipIntro(){
   $('hudName').textContent = '👑 ' + vipTitle();
   setWorldMode('vip'); W.snapCam = true;
   redrawTex(W.vip.signTex);
-  const drinks = LOUNGE_WINES.map(id => {
+  const drinks = LOUNGE_WINES.filter(id => !MARKET_ITEMS[id].premium || G.pantry[id] > 0).map(id => {
     const it = MARKET_ITEMS[id];
-    return `<div class="vi-row"><span>${it.icon} ${it.name} <small>${fmt(WINE_PRICE[id] * 2)}</small></span><span>창고 ${G.pantry[id]}잔${G.cellar[id].length ? ` (숙성 ${G.cellar[id].length}잔)` : ''}</span></div>`;
+    return `<div class="vi-row"><span>${it.icon} ${it.name} <small>${fmt(WINE_PRICE[id] * 2)}</small></span><span>창고 ${G.pantry[id]}잔${G.cellar[id] && G.cellar[id].length ? ` (숙성 ${G.cellar[id].length}잔)` : ''}</span></div>`;
   }).join('');
   const plats = PLATTERS.map(p => `<div class="vi-row"><span>${p.icon} ${p.name} <small>${fmt(p.price * 2)}</small></span><span class="${platterMakeable(p) ? 'ok' : 'no'}">${platterMakeable(p) ? '주문 가능' : '재료 부족'}</span></div>`).join('');
   showOverlay(`
@@ -3835,7 +3861,7 @@ function showVipIntro(){
         <div class="vi-box"><div class="vi-h">🍷 포도주</div>${drinks}</div>
         <div class="vi-box"><div class="vi-h">🧀 안주</div>${plats}</div>
       </div>
-      <div class="vi-box vi-cellar"><div class="vi-h">🍾 와인 창고</div>${LOUNGE_WINES.map(id => `<div class="vi-row">${cellarInfo(id)}</div>`).join('')}</div>
+      <div class="vi-box vi-cellar"><div class="vi-h">🍾 와인 창고</div>${AGING_WINES.map(id => `<div class="vi-row">${cellarInfo(id)}</div>`).join('')}</div>
       <div class="day-flow"><span>🍾 숙성 확인</span>→<span>🏢 1·2·3층 동시 영업</span></div>
       <button class="big-btn gold" onclick="startVipPrep()">🌅 아침 준비 시작</button>
     </div>`, true);
@@ -3864,7 +3890,7 @@ function startVipPrep(){
 function vipPrepAction(id){
   if (!canVipPrep()) return;
   const P = G.vipPrep;
-  if (!LOUNGE_WINES.includes(id) || P.check) return;
+  if (!AGING_WINES.includes(id) || P.check) return;
   P.check = {id, t: 0};
   sfx.pour();
 }
@@ -3890,7 +3916,7 @@ function updateVipPrep(dt){
 function vipPrepTodo(){
   const P = G.vipPrep;
   if (P.check) return '🍾 숙성 확인 중이에요';
-  const un = LOUNGE_WINES.filter(id => G.cellar[id].length && !P.checked[id]).map(id => MARKET_ITEMS[id].name);
+  const un = AGING_WINES.filter(id => G.cellar[id].length && !P.checked[id]).map(id => MARKET_ITEMS[id].name);
   return un.length ? `남은 준비: 🍾 ${un.join('·')} 숙성 확인 (안 하면 숙성 팁 없음)` : '';
 }
 function finishVipPrep(){
@@ -3904,13 +3930,13 @@ function finishVipPrep(){
 
 function renderVipPrepHUD(){
   const P = G.vipPrep;
-  LOUNGE_WINES.forEach(id => {
+  AGING_WINES.forEach(id => {
     const b = document.querySelector(`[data-vprep="${id}"]`);
     b.classList.toggle('off', !!P.check && P.check.id !== id);
     b.classList.toggle('done', P.checked[id]);
     b.querySelector('.bbar i').style.width = (P.check && P.check.id === id ? P.check.t / CHECK_LEN : P.checked[id] ? 1 : 0) * 100 + '%';
   });
-  const cel = LOUNGE_WINES.map(id => `${MARKET_ITEMS[id].icon} 숙성 ${G.cellar[id].length}잔${P.checked[id] && G.cellar[id].length ? ` 최고 +${fmt(cellarBonus(G.cellar[id][0]))}` : ''}`).join(' · ');
+  const cel = AGING_WINES.map(id => `${MARKET_ITEMS[id].icon} 숙성 ${G.cellar[id].length}잔${P.checked[id] && G.cellar[id].length ? ` 최고 +${fmt(cellarBonus(G.cellar[id][0]))}` : ''}`).join(' · ');
   if ($('vpCellar').textContent !== cel) $('vpCellar').textContent = cel;
   const sum = vipPrepTodo() || '✅ VIP 라운지 준비 완료!';
   if ($('vpSum').textContent !== sum) $('vpSum').textContent = sum;
@@ -3920,7 +3946,7 @@ function renderVipPrepHUD(){
 function syncVipPrep(dt){
   const V = W.vip, P = G && G.vipPrep;
   const live = !!P && canVipPrep() && W.mode === 'vip';
-  LOUNGE_WINES.forEach(id => {
+  AGING_WINES.forEach(id => {
     const rack = V.racks[id], checking = live && P.check && P.check.id === id;
     const hov = live && W.hover && W.hover.kind === 'rack' && W.hover.id === id;
     rack.scale.setScalar(lerp(rack.scale.x, checking ? 1 + Math.sin(T * 14) * .03 : hov ? 1.04 : 1, Math.min(1, dt * 12)));
@@ -3932,7 +3958,7 @@ function syncVipPrep(dt){
     const lk = sub + (checking ? 1 : 0);
     if (el.dataset.key !== lk){
       el.dataset.key = lk;
-      el.innerHTML = `<span class="k">${LOUNGE_WINES.indexOf(id) + 1}</span>${MARKET_ITEMS[id].icon} ${MARKET_ITEMS[id].name} 숙성<small>${sub}</small><div class="bbar"><i></i></div>`;
+      el.innerHTML = `<span class="k">${AGING_WINES.indexOf(id) + 1}</span>${MARKET_ITEMS[id].icon} ${MARKET_ITEMS[id].name} 숙성<small>${sub}</small><div class="bbar"><i></i></div>`;
       el.className = 'plabel prep vipprep' + (!c.length && !checking ? ' idle' : '');
     }
     el.querySelector('.bbar i').style.width = ((checking ? P.check.t / CHECK_LEN : P.checked[id] ? 1 : 0) * 100) + '%';
@@ -3943,7 +3969,7 @@ function syncVipPrep(dt){
 function buildVipPrep(){
   const V = W.vip;
   V.prepLabels = {};
-  for (const k of LOUNGE_WINES){
+  for (const k of AGING_WINES){
     const el = document.createElement('div'); el.className = 'plabel prep'; el.hidden = true;
     $('labels').appendChild(el); V.prepLabels[k] = el;
   }
@@ -3999,9 +4025,12 @@ function startOpen(){
 
 function goFloor(n, silent){
   if (!inPhase('open')) return;
+  if (G.trip){ toast(`${G.trip.by}(으)로 이동 중이에요! 조금만 기다려요`); sfx.err(); return; }
   if (n === 2 && !G.cafe){ toast('💤 오늘 카페는 휴무예요'); sfx.err(); return; }
   if (n === 3 && !G.vip){ toast(vipUnlocked() ? '💤 오늘 VIP 라운지는 휴무예요 (포도주·안주 재료 부족)' : '🔒 VIP존은 국밥집·카페 직원을 모두 고용하면 열려요'); sfx.err(); return; }
   if (G.floor === n) return;
+  // 대도시를 오갈 땐 버스나 내 차로 시간이 걸려요
+  if ((n === 5) !== (G.floor === 5) && G.floor !== 0){ startTrip(n); return; }
   G.floor = n;
   setWorldMode(FLOORS[n].mode);
   W.snapCam = true;
@@ -4067,7 +4096,7 @@ function staffServeVip(dt){
   need.forEach(id => { G.pantry[id]--; });
   let earned = 0, aged = 0;
   if (!c.gotWine){
-    const age = G.cellar[c.wine].length ? G.cellar[c.wine].shift() : 0;
+    const age = G.cellar[c.wine] && G.cellar[c.wine].length ? G.cellar[c.wine].shift() : 0;
     if (G.vipPrep.checked[c.wine]) aged = cellarBonus(age);
     earned += WINE_PRICE[c.wine] * 2;
   }
@@ -4154,6 +4183,448 @@ function syncStaff(dt){
   }
 }
 
+// ---------------- 걸어 다니기 (시내 · 대도시 공용) ----------------
+// Z: W.town / W.city · opt: {live, walkable(x, z, fromZ), near(pos), sel, setSel(id), shops, faceOf(id)}
+function walkOwner(Z, dt, opt){
+  const o = Z.owner, P = o.userData;
+  let moving = false, speed = 7;
+  if (opt.live){
+    const k = W.keys, joy = W.joy;
+    _mv.set((k.has('ArrowRight') || k.has('KeyD') ? 1 : 0) - (k.has('ArrowLeft') || k.has('KeyA') ? 1 : 0), 0,
+            (k.has('ArrowDown') || k.has('KeyS') ? 1 : 0) - (k.has('ArrowUp') || k.has('KeyW') ? 1 : 0));
+    const jl = Math.hypot(joy.x, joy.y);
+    if (_mv.lengthSq() === 0 && jl > .15){ _mv.set(joy.x, 0, joy.y); speed = 7 * Math.min(1, jl); }
+    let dist = Infinity;
+    if (_mv.lengthSq() > 0){ Z.target = null; Z.path = []; }
+    else if (Z.target){
+      _mv.subVectors(Z.target, o.position); _mv.y = 0;
+      dist = _mv.length();
+      if (dist < .12){
+        _mv.set(0, 0, 0);
+        Z.target = Z.path && Z.path.length ? Z.path.shift() : null;
+      }
+    }
+    if (_mv.lengthSq() > 0){
+      _mv.normalize();
+      const st = Math.min(speed * dt, dist);
+      const ox = o.position.x, oz = o.position.z;
+      const nx = ox + _mv.x * st, nz = oz + _mv.z * st;
+      if (opt.walkable(nx, oz, oz)) o.position.x = nx;
+      if (opt.walkable(o.position.x, nz, oz)) o.position.z = nz;
+      moving = o.position.x !== ox || o.position.z !== oz;
+      let dA = Math.atan2(_mv.x, _mv.z) - o.rotation.y;
+      dA = Math.atan2(Math.sin(dA), Math.cos(dA));
+      o.rotation.y += dA * Math.min(1, dt * 12);
+    }
+    const near = opt.near(o.position);
+    if (opt.sel !== near){
+      opt.setSel(near);
+      if (near){ sfx.bell(); const sh = opt.shops.find(t => t.id === near); toast(`${sh.icon} ${sh.name} — ${sh.desc}`); }
+    }
+    // 가게 앞에 멈추면 가게 쪽을 봐요
+    if (!moving && near){
+      let dA = opt.faceOf(near) - o.rotation.y;
+      dA = Math.atan2(Math.sin(dA), Math.cos(dA));
+      o.rotation.y += dA * Math.min(1, dt * 6);
+    }
+  }
+  if (moving) Z.walkT += dt * (speed / 7);
+  const sw = moving ? Math.sin(Z.walkT * 11) * .6 : 0;
+  P.legL.rotation.x = lerp(P.legL.rotation.x, sw, Math.min(1, dt * 15));
+  P.legR.rotation.x = -P.legL.rotation.x;
+  P.armL.rotation.x = -P.legL.rotation.x * .6;
+  o.position.y = .2 + (moving ? Math.abs(Math.sin(Z.walkT * 11)) * .1 : 0);
+  Z.ownerAct = Math.max(0, Z.ownerAct - dt);
+  P.armR.rotation.x = Z.ownerAct > 0 ? -1.6 - Math.sin(Z.ownerAct * 12) * .3 : 0;
+  $('joyKnob').style.transform = `translate(${W.joy.x * 38}px, ${W.joy.y * 38}px)`;
+}
+// 가게 앞 발판: 서 있으면 밝게, 아니면 은은하게
+function pulseMats(Z, sel, hoverKind, dt){
+  for (const id in Z.shops){
+    const hov = W.hover && W.hover.kind === hoverKind && W.hover.id === id;
+    const s = Z.shops[id].g, on = sel === id;
+    s.scale.setScalar(lerp(s.scale.x, hov ? 1.02 : 1, Math.min(1, dt * 10)));
+    const m = Z.shops[id].mat.material;
+    m.opacity = on ? .75 : .3 + Math.sin(T * 3) * .08;
+    m.emissiveIntensity = on ? .8 : .25;
+  }
+}
+function storeFront(root, hits, kind, s, x, z, w, h, opts = {}){
+  const b = new THREE.Group(); b.position.set(x, 0, z);
+  b.add(mesh(new THREE.BoxGeometry(w, h, 5), opts.mat || std(s.color, {roughness: .8}), 0, h / 2, 0));
+  const glass = new THREE.MeshStandardMaterial({color: 0xbfe0ff, emissive: 0x6a8aa0, emissiveIntensity: .45, roughness: .1});
+  b.add(mesh(new THREE.BoxGeometry(w - 2, 2.4, .1), glass, -.5, 1.6, 2.52, false));
+  b.add(mesh(new THREE.BoxGeometry(1.2, 2.6, .12), std(0x2a2a30), w / 2 - 1.1, 1.3, 2.53, false));
+  const tex = canvasTex(512, 128, (c, cw, ch) => {
+    c.fillStyle = s.sign; c.fillRect(0, 0, cw, ch);
+    c.strokeStyle = '#fff3dc'; c.lineWidth = 8; c.strokeRect(6, 6, cw - 12, ch - 12);
+    c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = '62px Jua, "Malgun Gothic", sans-serif';
+    c.fillText(`${s.icon} ${s.name}`, cw / 2, ch / 2 + 4);
+  });
+  b.add(mesh(new THREE.PlaneGeometry(w - 1.2, 1.4), new THREE.MeshStandardMaterial({map: tex, emissive: 0x444444, emissiveIntensity: .5}), 0, 3.6, 2.56, false));
+  const mat = mesh(new THREE.BoxGeometry(w - 2, .04, 4.2), new THREE.MeshStandardMaterial({color: s.color, emissive: s.color, emissiveIntensity: .25, transparent: true, opacity: .45}), x, .22, z + 5.6, false);
+  root.add(mat);
+  const hit = hitBox(w + .2, Math.min(h, 8), 5.4, 0, Math.min(h, 8) / 2, .3, {kind, id: s.id}); b.add(hit); hits.push(hit);
+  root.add(b);
+  return {g: b, tex, mat};
+}
+
+// ---------------- 이동 (버스 · 내 차) ----------------
+const BUS_SECS = 10;
+const CARS = [
+  {id: 'car5', name: '스포츠 쿠페',   secs: 5, price: 100000, color: 0x2f6ad8},
+  {id: 'car4', name: '로드스터',      secs: 4, price: 200000, color: 0xf2d230},
+  {id: 'car3', name: '그랜드 투어러', secs: 3, price: 300000, color: 0x3a3a44},
+  {id: 'car2', name: '슈퍼카',        secs: 2, price: 450000, color: 0xe0405a},
+  {id: 'car1', name: '하이퍼카',      secs: 1, price: 700000, color: 0xf28a1e},
+];
+function carSecs(){ const own = CARS.filter(c => G.cars[c.id]); return own.length ? Math.min(...own.map(c => c.secs)) : 0; }
+function tripSecs(){ return carSecs() || BUS_SECS; }
+function tripBy(){ return carSecs() ? '🏎️ 내 차' : '🚌 버스'; }
+// 대도시를 오갈 때만 이동 시간이 걸려요 (가게 층 · 시내는 바로 옆이라 즉시)
+function startTrip(to){
+  if (G.trip) return;
+  const len = tripSecs(), by = tripBy();
+  G.trip = {to, t: 0, len, by, from: G.floor};
+  G.floor = 0;
+  W.keys.clear(); W.joy.x = W.joy.y = 0;
+  setWorldMode(FLOORS[to].mode); W.snapCam = true;
+  sfx.whoosh();
+  toast(`${by}(으)로 ${FLOORS[to].name}에 가요 · ${len}초`);
+}
+function updateTrip(dt){
+  const tr = G.trip;
+  if (!tr) return;
+  tr.t += dt;
+  if (tr.t < tr.len) return;
+  G.trip = null;
+  G.floor = tr.to;
+  setWorldMode(FLOORS[tr.to].mode);
+  sfx.bell();
+  toast(`${FLOORS[tr.to].icon} ${FLOORS[tr.to].name} 도착!`);
+}
+function renderTripBanner(){
+  const el = $('tripBanner'), tr = G && inPhase('open') ? G.trip : null;
+  el.hidden = !tr;
+  if (!tr) return;
+  const txt = `${tr.by}(으)로 ${FLOORS[tr.to].icon} ${FLOORS[tr.to].name}에 가는 중... ${Math.ceil(tr.len - tr.t)}초`;
+  const t = el.querySelector('.tb-text');
+  if (t.textContent !== txt) t.textContent = txt;
+  const r = clamp(tr.t / tr.len, 0, 1);
+  el.querySelector('.tb-bar i').style.width = r * 100 + '%';
+  el.querySelector('.tb-car').textContent = tr.by.startsWith('🚌') ? '🚌' : '🏎️';
+  el.querySelector('.tb-car').style.left = `calc(${r * 100}% - 18px)`;
+}
+
+// ---------------- 대도시 ----------------
+const CITY_SHOPS = [
+  {id: 'mall', name: '메가 대형마트',   icon: '🛒', x: -20, color: 0xe0a030, sign: '#d98a1e', desc: '없는 게 없어요! 영업 중에도 모든 재료·손질된 국밥 재료·도구를 시장 가격에 사요'},
+  {id: 'wine', name: '그랑 와인샵',     icon: '🍾', x: -10, color: 0x5a1428, sign: '#6a1428', desc: '고급 와인은 VIP에게 두 배 값에 팔려요'},
+  {id: 'tv',   name: 'BSB 방송국',      icon: '📺', x: 0,   color: 0x2c3e6b, sign: '#2c3e6b', desc: 'TV 광고를 내면 오늘 손님이 1.5배로 늘어요'},
+  {id: 'cars', name: '프레스티지 모터스', icon: '🏎️', x: 10,  color: 0x222228, sign: '#1a1a1f', desc: '비싼 차일수록 대도시를 빨리 오가요 (버스는 10초)'},
+  {id: 'arms', name: '실버 호신용품',   icon: '🛡️', x: 20,  color: 0x3a3a44, sign: '#8a1a1a', desc: '합법 호신용품 · 하나 살 때마다 진상 방문 확률 -0.5%p'},
+  {id: 'bus',  name: '대도시 정류장',   icon: '🚏', x: 30,  color: 0x2f6ad8, sign: '#2f6ad8', desc: '버스나 내 차를 타고 시내로 돌아가요'},
+];
+const PREMIUM_WINES = ['grandred', 'grandwhite'];
+const MALL_STOCKS = [
+  {id: 'pork',  name: '손질 고기',  icon: '🥩', n: 4, price: 12000},
+  {id: 'kong',  name: '다듬은 콩나물', icon: '🌱', n: 5, price: 3000},
+  {id: 'broth', name: '맑은 육수',  icon: '🍲', n: 8, price: 8000},
+  {id: 'spicy', name: '매운 육수',  icon: '🌶️', n: 5, price: 19000},
+];
+const MALL_GOODS = Object.keys(MARKET_ITEMS).filter(id => ['pantry', 'tool'].includes(MARKET_ITEMS[id].kind) && !PREMIUM_WINES.includes(id));
+const TV_PRICE = 50000, TV_RATE = 1.5;
+const ARMS = [
+  {id: 'spray', name: '고급 호신 스프레이', icon: '🧴', price: 30000},
+  {id: 'taser', name: '전기 충격기',       icon: '⚡', price: 60000},
+  {id: 'baton', name: '삼단봉',            icon: '🦯', price: 90000},
+];
+const ARM_CUT = .005;
+function crowdRate(){ return G && G.city && G.city.tv ? TV_RATE : 1; }
+function jinsangCut(){ return ARMS.filter(a => G.arms[a.id]).length * ARM_CUT; }
+const CITY_MIN_X = CITY_X - 27, CITY_MAX_X = CITY_X + 33, CITY_MIN_Z = -5.2, CITY_MAX_Z = 4;
+function canCity(){ return inPhase('open') && G.floor === 5 && G.running && !G.paused && $('overlay').hidden; }
+function cityShopNear(pos){
+  if (pos.z > -.6) return null;
+  const s = CITY_SHOPS.find(t => Math.abs(pos.x - (CITY_X + t.x)) < 3.6);
+  return s ? s.id : null;
+}
+function cityShopAt(id){ const s = CITY_SHOPS.find(t => t.id === id); return new THREE.Vector3(CITY_X + s.x, 5, -4); }
+function citySelect(id){
+  if (!canCity()) return;
+  const s = CITY_SHOPS.find(t => t.id === id);
+  if (!s || G.city.sel === id) return;
+  W.city.target = new THREE.Vector3(CITY_X + s.x, 0, -3.4); W.city.path = [];
+  sfx.click();
+}
+function cityWalkTo(p){
+  W.city.target = new THREE.Vector3(clamp(p.x, CITY_MIN_X, CITY_MAX_X), 0, clamp(p.z, CITY_MIN_Z, CITY_MAX_Z)); W.city.path = [];
+}
+function cityPay(cost, what){
+  if (G.money < cost){ toast(`💸 돈이 부족해요! (${fmt(cost)} 필요)`); sfx.err(); return false; }
+  G.money -= cost;
+  G.stats.townSpend += cost;
+  const at = cityShopAt(G.city.sel);
+  floatWorld(at.x, at.y, at.z, `${what}  -${fmt(cost)}`, '#ffd27a');
+  W.city.ownerAct = .6;
+  return true;
+}
+function cityAct(act, id){
+  if (!canCity()) return;
+  const C = G.city;
+  if (act === 'good'){
+    const it = MARKET_ITEMS[id];
+    if (!it || !MALL_GOODS.includes(id)) return;
+    if (it.kind === 'tool' && G.tools[id]){ toast(`${it.icon} ${it.name}은(는) 이미 갖고 있어요`); sfx.err(); return; }
+    if (!cityPay(it.price, `${it.icon} ${it.name}`)) return;
+    if (it.kind === 'tool') G.tools[id] = 1;
+    else if (it.roast) G.beans++;
+    else G.pantry[id] += it.yield;
+    sfx.coin();
+  } else if (act === 'stock'){
+    const st = MALL_STOCKS.find(x => x.id === id);
+    if (!st || !cityPay(st.price, `${st.icon} ${st.name} +${st.n}인분`)) return;
+    G.stock[id] += st.n;
+    sfx.coin();
+  } else if (act === 'wine'){
+    const it = MARKET_ITEMS[id];
+    if (!PREMIUM_WINES.includes(id) || !cityPay(it.price, `${it.icon} ${it.name} +${it.yield}잔`)) return;
+    G.pantry[id] += it.yield;
+    if (G.vip && !G.vip.done) buildVipButtons();
+    sfx.pour();
+  } else if (act === 'tv'){
+    if (C.tv){ toast('📺 오늘 TV 광고는 이미 나가고 있어요'); sfx.err(); return; }
+    if (!cityPay(TV_PRICE, '📺 TV 광고')) return;
+    C.tv = true;
+    addRep(.2);
+    redrawTex(W.city.tvTex);
+    sfx.fanfare();
+    toast('📺 TV 광고가 나갔어요! 오늘 모든 층 손님이 1.5배로 몰려와요');
+  } else if (act === 'car'){
+    const car = CARS.find(c => c.id === id);
+    if (!car) return;
+    if (G.cars[id]){ toast(`🏎️ ${car.name}은(는) 이미 있어요`); sfx.err(); return; }
+    if (!cityPay(car.price, `🏎️ ${car.name}`)) return;
+    G.cars[id] = true;
+    sfx.fanfare();
+    toast(`🏎️ ${car.name} 구입! 이제 대도시를 ${carSecs()}초 만에 오가요`);
+  } else if (act === 'arm'){
+    const a = ARMS.find(x => x.id === id);
+    if (!a) return;
+    if (G.arms[id]){ toast(`${a.icon} ${a.name}은(는) 이미 있어요`); sfx.err(); return; }
+    if (!cityPay(a.price, `${a.icon} ${a.name}`)) return;
+    G.arms[id] = true;
+    sfx.coin();
+    toast(`${a.icon} ${a.name} 구입! 진상 방문 확률 -${(jinsangCut() * 100).toFixed(1)}%p`);
+  } else if (act === 'home'){
+    startTrip(4);
+  }
+}
+function cityBodyHtml(sel){
+  const C = G.city;
+  const card = (attr, icon, name, sub, off, key) => `<button class="cbtn slim ${off ? 'soldout' : ''}" ${attr}><span class="ic">${icon}</span>${name}<small>${sub}</small>${key ? `<span class="key">${key}</span>` : ''}</button>`;
+  if (sel === 'mall'){
+    const stocks = MALL_STOCKS.map((st, i) => card(`data-cact="stock" data-cid="${st.id}"`, st.icon, `${st.name} ${st.n}인분`, `${fmt(st.price)} · 냉장 ${G.stock[st.id]}`, G.money < st.price, i + 1));
+    const goods = MALL_GOODS.map((id, i) => {
+      const it = MARKET_ITEMS[id], owned = it.kind === 'tool' ? (G.tools[id] ? '보유' : '') : it.roast ? `생원두 ${G.beans}` : `보유 ${G.pantry[id]}`;
+      return card(`data-cact="good" data-cid="${id}"`, it.icon, it.name, `${fmt(it.price)}${owned ? ' · ' + owned : ''}`, G.money < it.price || (it.kind === 'tool' && G.tools[id]), i + 5 <= 9 ? i + 5 : '');
+    });
+    return `<div class="crow mall-grid">${stocks.join('')}${goods.join('')}</div>`;
+  }
+  if (sel === 'wine') return PREMIUM_WINES.map((id, i) => {
+    const it = MARKET_ITEMS[id];
+    return card(`data-cact="wine" data-cid="${id}"`, it.icon, it.name, `${fmt(it.price)} · VIP ${fmt(WINE_PRICE[id] * 2)}/잔 · 보유 ${G.pantry[id]}`, G.money < it.price, i + 1);
+  }).join('');
+  if (sel === 'tv') return `<button class="pstep town-act ${C.tv || G.money < TV_PRICE ? 'off' : ''}" data-cact="tv"><span class="key">1</span><span class="ic">📺</span>TV 광고 찍기 ${fmt(TV_PRICE)}<small>${C.tv ? '✅ 오늘 방송 중 · 손님 1.5배' : '오늘 손님 1.5배 · 평판 +0.2 · 하루 1번'}</small></button>`;
+  if (sel === 'cars') return CARS.map((c, i) => card(`data-cact="car" data-cid="${c.id}"`, '🏎️', c.name, G.cars[c.id] ? `✅ 보유 · ${c.secs}초` : `${fmt(c.price)} · ${c.secs}초`, G.cars[c.id] || G.money < c.price, i + 1)).join('')
+    + `<div class="town-bank">지금 이동 시간 <b>${tripSecs()}초</b><small>${carSecs() ? '가장 빠른 내 차로 다녀요' : '차가 없으면 버스로 10초'}</small></div>`;
+  if (sel === 'arms') return ARMS.map((a, i) => card(`data-cact="arm" data-cid="${a.id}"`, a.icon, a.name, G.arms[a.id] ? '✅ 보유' : `${fmt(a.price)} · 진상 -0.5%p`, G.arms[a.id] || G.money < a.price, i + 1)).join('')
+    + `<div class="town-bank">진상 방문 확률 <b>-${(jinsangCut() * 100).toFixed(1)}%p</b><small>합법 호신용품만 팔아요</small></div>`;
+  return `<button class="pstep town-act" data-cact="home"><span class="key">1</span><span class="ic">${carSecs() ? '🏎️' : '🚌'}</span>시내로 돌아가기<small>${tripBy()} · ${tripSecs()}초</small></button>`;
+}
+function renderCityHUD(){
+  const el = $('cityControls');
+  const C = G.city, sel = C.sel;
+  const need = ownerNeeded();
+  const jz = townJinsangs().filter(j => !(j.c.policeT > 0));
+  const key = [sel || '-', G.money, C.tv, JSON.stringify(G.cars), JSON.stringify(G.arms), G.beans, need.join(), jz.map(j => j.kind).join(),
+    sel === 'mall' ? Object.values(G.stock).join() + Object.values(G.pantry).join() + JSON.stringify(G.tools) : '', sel === 'wine' ? PREMIUM_WINES.map(id => G.pantry[id]).join() : ''].join('|');
+  if (el.dataset.key === key) return;
+  el.dataset.key = key;
+  const warn = (jz.length ? `<div class="town-warn jz">🚨 ${jz.map(j => FLOORS[j.floor].name).join(' · ')}에 진상 손님! Shift+${jz[0].floor}로 돌아가세요 (${tripSecs()}초)</div>` : '')
+    + (need.length ? `<div class="town-warn">⚠️ ${need.join(' · ')}은(는) 사장님이 없으면 손님이 기다려요!</div>` : '');
+  const tabs = CITY_SHOPS.map(s => `<button class="cbtn slim ${s.id === sel ? 'on' : ''}" data-cshop="${s.id}"><span class="ic">${s.icon}</span>${s.name}<small>${s.id === sel ? '📍 여기' : '눌러서 걸어가기'}</small></button>`).join('');
+  if (!sel){
+    el.innerHTML = `<div class="cgroup"><div class="ctitle">🌆 대도시 — 🚶 WASD·방향키·조이스틱으로 걸어서 가게 앞 발판에 서세요</div><div class="crow town-tabs">${tabs}</div></div>${warn}`;
+    return;
+  }
+  const shop = CITY_SHOPS.find(s => s.id === sel);
+  el.innerHTML = `<div class="cgroup town-body"><div class="ctitle">${shop.icon} ${shop.name} — ${shop.desc} (숫자키)</div><div class="crow">${cityBodyHtml(sel)}</div></div>${warn}`;
+}
+function cityKeyAct(n){
+  const sel = G.city.sel;
+  if (sel === 'mall'){
+    if (n < MALL_STOCKS.length) cityAct('stock', MALL_STOCKS[n].id);
+    else if (MALL_GOODS[n - MALL_STOCKS.length]) cityAct('good', MALL_GOODS[n - MALL_STOCKS.length]);
+  }
+  else if (sel === 'wine'){ if (PREMIUM_WINES[n]) cityAct('wine', PREMIUM_WINES[n]); }
+  else if (sel === 'tv'){ if (n === 0) cityAct('tv'); }
+  else if (sel === 'cars'){ if (CARS[n]) cityAct('car', CARS[n].id); }
+  else if (sel === 'arms'){ if (ARMS[n]) cityAct('arm', ARMS[n].id); }
+  else if (sel === 'bus'){ if (n === 0) cityAct('home'); }
+  else toast('🚶 가게 앞 발판에 서면 숫자키로 이용할 수 있어요');
+}
+
+function makeSportsCar(color, scale = 1){
+  const car = new THREE.Group();
+  car.add(mesh(new THREE.BoxGeometry(2.8, .45, 1.3), std(color, {roughness: .15, metalness: .6}), 0, .45, 0));
+  const cab = mesh(new THREE.BoxGeometry(1.3, .4, 1.1), std(0x151a22, {roughness: .1}), -.15, .85, 0);
+  car.add(cab);
+  car.add(mesh(new THREE.BoxGeometry(.2, .1, 1.2), std(0x111111), -1.35, .8, 0));
+  for (const wx of [-.9, .9]) for (const wz of [-.62, .62]){
+    const wh = mesh(geo('carWheel', () => new THREE.CylinderGeometry(.26, .26, .2, 12)), std(0x151515), wx, .26, wz);
+    wh.rotation.x = Math.PI / 2; car.add(wh);
+  }
+  car.scale.setScalar(scale);
+  return car;
+}
+function buildCity(){
+  const X = CITY_X;
+  const Z = W.city = {origin: new THREE.Vector3(X, 0, 0), hits: [], walkers: [], cars: [], shops: {}, target: null, path: [], walkT: 0, ownerAct: 0};
+  const root = Z.root = new THREE.Group(); scene.add(root);
+  const tile = canvasTex(128, 128, (x, w, h) => {
+    x.fillStyle = '#b8b4c8'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#a8a4ba'; x.fillRect(0, 0, w / 2, h / 2); x.fillRect(w / 2, h / 2, w / 2, h / 2);
+  });
+  tile.wrapS = tile.wrapT = THREE.RepeatWrapping; tile.repeat.set(40, 8);
+  root.add(mesh(new THREE.BoxGeometry(90, .2, 16), std(0xffffff, {map: tile, roughness: .7}), X, .1, -2, false));
+  const road = mesh(new THREE.PlaneGeometry(90, 10), std(0x2e3038, {roughness: .95}), X, 0, 11, false);
+  road.rotation.x = -Math.PI / 2; root.add(road);
+  for (let k = -12; k <= 12; k++) root.add(mesh(geo('laneMark', () => new THREE.BoxGeometry(1.6, .02, .18)), std(0xf2e6a0), X + k * 3.4, .02, 11, false));
+  root.add(mesh(new THREE.BoxGeometry(90, .25, .3), std(0x8a8a8a), X, .12, 6));
+  // 고층 빌딩 숲
+  const winTex = canvasTex(128, 256, (x, w, h) => {
+    x.fillStyle = '#2a3048'; x.fillRect(0, 0, w, h);
+    for (let r = 0; r < 12; r++) for (let c = 0; c < 4; c++){
+      x.fillStyle = prand(r * 11 + c * 3 + 7) > .4 ? '#ffe9a8' : '#3a4460';
+      x.fillRect(10 + c * 30, 8 + r * 20, 18, 12);
+    }
+  });
+  const glassTower = std(0xffffff, {map: winTex, roughness: .3, metalness: .2});
+  for (let k = 0; k < 16; k++){
+    const h = 22 + prand(k + 900) * 20, w = 5 + prand(k + 910) * 4;
+    root.add(mesh(new THREE.BoxGeometry(w, h, 5), glassTower, X - 42 + k * 5.8, h / 2, -22 - prand(k + 920) * 4, false));
+  }
+  // 가게 건물 (위로 높은 빌딩)
+  CITY_SHOPS.forEach(s => {
+    if (s.id === 'bus') return;
+    const tall = 12 + (s.x + 20) % 7;
+    const sh = storeFront(root, Z.hits, 'cshop', s, X + s.x, -9.5, 8.4, tall, s.id === 'tv' || s.id === 'mall' ? {mat: glassTower} : {});
+    Z.shops[s.id] = sh;
+    if (s.id === 'tv'){
+      Z.tvTex = canvasTex(512, 256, (x, w, h) => {
+        const on = G && G.city && G.city.tv;
+        const g = x.createLinearGradient(0, 0, w, h);
+        g.addColorStop(0, on ? '#c62d1f' : '#1a2a5a'); g.addColorStop(1, on ? '#f2b632' : '#2c3e6b');
+        x.fillStyle = g; x.fillRect(0, 0, w, h);
+        x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle';
+        x.font = '54px Jua, "Malgun Gothic", sans-serif';
+        x.fillText(on ? `📺 ${G.name} 절찬 영업 중!` : '📺 BSB LIVE', w / 2, h / 2 - (on ? 20 : 0));
+        if (on){ x.font = '34px Jua, "Malgun Gothic", sans-serif'; x.fillText('지금 가면 줄 서요!', w / 2, h / 2 + 45); }
+      });
+      sh.g.add(mesh(new THREE.BoxGeometry(6.4, 3.4, .3), std(0x111111), 0, 8.2, 2.6));
+      sh.g.add(mesh(new THREE.PlaneGeometry(6, 3), new THREE.MeshBasicMaterial({map: Z.tvTex}), 0, 8.2, 2.76, false));
+      sh.g.add(mesh(new THREE.CylinderGeometry(.08, .12, 5, 8), std(0xcccccc, {metalness: .6}), 2.5, tall + 2.5, 0));
+    } else if (s.id === 'cars'){
+      Z.showCar = makeSportsCar(0xe0405a, .9);
+      Z.showCar.position.set(-.8, .45, 3.4);
+      sh.g.add(Z.showCar);
+      sh.g.add(mesh(new THREE.CylinderGeometry(1.7, 1.7, .2, 24), std(0xdddddd, {metalness: .5, roughness: .2}), -.8, .3, 3.4));
+    } else if (s.id === 'arms'){
+      sh.g.add(mesh(new THREE.BoxGeometry(6.8, .12, .12), new THREE.MeshBasicMaterial({color: 0xff3a3a}), 0, 4.5, 2.6, false));
+    } else if (s.id === 'wine'){
+      for (let k = 0; k < 5; k++) sh.g.add(mesh(geo('rackBottle', () => new THREE.CylinderGeometry(.11, .11, .4, 10)), std(k % 2 ? 0x5a1a24 : 0xc9b860, {roughness: .25}), -2.6 + k * .9, 1.2, 2.2, false).rotateX(Math.PI / 2));
+    }
+  });
+  // 정류장
+  {
+    const s = CITY_SHOPS.find(t => t.id === 'bus');
+    const bs = new THREE.Group(); bs.position.set(X + s.x, .2, -6.4);
+    bs.add(mesh(new THREE.BoxGeometry(4.4, .12, 1.8), std(0x2f6ad8), 0, 2.9, 0));
+    for (const px of [-2, 2]) bs.add(mesh(geo('bsPole', () => new THREE.CylinderGeometry(.06, .06, 2.9, 6)), std(0x888888), px, 1.45, .7));
+    bs.add(mesh(new THREE.BoxGeometry(4.2, 2, .06), std(0xbfe0ff, {transparent: true, opacity: .4}), 0, 1.6, -.8));
+    bs.add(mesh(new THREE.BoxGeometry(3, .12, .5), std(0x8a5a36), 0, .55, -.4));
+    const tex = canvasTex(512, 128, (c, cw, ch) => {
+      c.fillStyle = s.sign; c.fillRect(0, 0, cw, ch);
+      c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.font = '60px Jua, "Malgun Gothic", sans-serif';
+      c.fillText('🚏 시내 방면', cw / 2, ch / 2 + 4);
+    });
+    bs.add(mesh(new THREE.PlaneGeometry(3.4, .8), new THREE.MeshStandardMaterial({map: tex, emissive: 0x333333}), 0, 3.4, .92, false));
+    root.add(bs);
+    const mat = mesh(new THREE.BoxGeometry(5, .04, 4.2), new THREE.MeshStandardMaterial({color: s.color, emissive: s.color, emissiveIntensity: .25, transparent: true, opacity: .45}), X + s.x, .22, -3.1, false);
+    root.add(mat);
+    const hit = hitBox(4.8, 3.6, 2.4, 0, 1.6, 0, {kind: 'cshop', id: 'bus'}); bs.add(hit); Z.hits.push(hit);
+    Z.shops.bus = {g: bs, tex, mat};
+  }
+  // 가로등 · 화분
+  for (let k = -5; k <= 6; k++){
+    const lx = X + k * 10 + 5;
+    root.add(mesh(geo('lampPole', () => new THREE.CylinderGeometry(.08, .1, 4.4, 8)), std(0x2a2a30), lx, 2.2, 5.2));
+    root.add(mesh(geo('lampHead', () => new THREE.SphereGeometry(.28, 12, 8)), new THREE.MeshBasicMaterial({color: 0xfff2c8}), lx, 4.5, 5.2, false));
+    const pl = new THREE.Group(); pl.position.set(lx, .2, -1.2);
+    pl.add(mesh(new THREE.BoxGeometry(1, .7, 1), std(0x555a66), 0, .35, 0));
+    pl.add(mesh(geo('leafBall', () => new THREE.SphereGeometry(.55, 12, 10)), std(0x4f8f4a, {roughness: .9}), 0, 1.05, 0));
+    root.add(pl);
+  }
+  // 사람 · 차
+  ['worker', 'youtuber', 'student', 'hangover', 'grandpa', 'worker', 'grandma', 'student'].forEach((id, k) => {
+    const g = makeCustomer({id});
+    const dir = k % 2 ? 1 : -1;
+    g.position.set(X - 36 + k * 9, .2, k % 2 ? 1.6 : 3.2);
+    g.rotation.y = dir * Math.PI / 2;
+    root.add(g);
+    Z.walkers.push({g, dir, speed: 2 + prand(k + 950) * 1.4, t: k});
+  });
+  [0xe0405a, 0x222228, 0xf2d230, 0x2f6ad8, 0xeeeeee, 0xf28a1e].forEach((c, k) => {
+    const car = makeSportsCar(c);
+    const dir = k % 2 ? 1 : -1;
+    car.position.set(X - 44 + k * 15, 0, dir > 0 ? 13.3 : 8.7);
+    car.rotation.y = dir > 0 ? 0 : Math.PI;
+    root.add(car);
+    Z.cars.push({g: car, dir, speed: 9 + k * 2});
+  });
+  Z.owner = makeCustomer({id: 'owner'});
+  Z.owner.position.set(X + 30, .2, 0);
+  root.add(Z.owner);
+}
+function syncCity(dt){
+  const Z = W.city, X = CITY_X;
+  Z.walkers.forEach(w => {
+    w.t += dt;
+    const P = w.g.userData;
+    w.g.position.x += w.dir * w.speed * dt;
+    if (w.g.position.x > X + 44) w.g.position.x = X - 44;
+    if (w.g.position.x < X - 44) w.g.position.x = X + 44;
+    w.g.position.y = .2 + Math.abs(Math.sin(w.t * 8)) * .08;
+    P.legL.rotation.x = Math.sin(w.t * 8) * .6; P.legR.rotation.x = -P.legL.rotation.x;
+  });
+  Z.cars.forEach(c => {
+    c.g.position.x += c.dir * c.speed * dt;
+    if (c.g.position.x > X + 46) c.g.position.x = X - 46;
+    if (c.g.position.x < X - 46) c.g.position.x = X + 46;
+  });
+  Z.showCar.rotation.y += dt * .6;
+  walkOwner(Z, dt, {
+    live: canCity(),
+    walkable: (x, z) => x >= CITY_MIN_X && x <= CITY_MAX_X && z >= CITY_MIN_Z && z <= CITY_MAX_Z,
+    near: cityShopNear, sel: G && G.city ? G.city.sel : null, setSel: id => { G.city.sel = id; },
+    shops: CITY_SHOPS, faceOf: () => Math.PI,
+  });
+  pulseMats(Z, G && G.city ? G.city.sel : null, 'cshop', dt);
+}
+
 // ---------------- 시내 (사장님 외출) ----------------
 // 영업 중 Shift+4로 가게를 잠시 비우고 시내에 다녀올 수 있어요. 그동안에도 모든 층 영업은 계속 돌아가요.
 const TOWN_SHOPS = [
@@ -4161,6 +4632,7 @@ const TOWN_SHOPS = [
   {id: 'ad',   name: '시내 광고판', icon: '📢', x: 0,  color: 0x6a4ab0, sign: '#6a4ab0', desc: '광고를 내거나 전단지를 돌려 평판을 올려요'},
   {id: 'bank', name: '든든 은행',   icon: '🏦', x: 8,  color: 0x2c4a7a, sign: '#2c4a7a', desc: '돈을 맡기면 내일 아침 이자 5%를 붙여 돌려줘요'},
   {id: 'police', name: '시내 경찰서', icon: '🚓', x: 16, color: 0x1f3a6a, sign: '#1f3a6a', desc: '외출 중 가게에 진상이 오면 여기서 직접 신고해요'},
+  {id: 'bus',   name: '시내 정류장', icon: '🚏', x: 11, far: true, color: 0x2f6ad8, sign: '#2f6ad8', desc: '버스나 내 차를 타고 🌆 대도시로 가요'},
   {id: 'snack', name: '붕어빵 노점', icon: '🐟', x: -9, far: true, color: 0xd9531e, sign: '#d9531e', desc: '길 건너 노점 · 직원 간식을 사 가면 오늘 직원들이 더 빨리 일해요'},
 ];
 const TOWN_ITEMS = ['milk', 'tea', 'bread', 'cheese', 'redwine', 'whitewine', 'cracker', 'fruit'];
@@ -4242,6 +4714,7 @@ function townAct(act){
   if (!canTown()) return;
   const T_ = G.town;
   if (act === 'report'){ reportPolice(); return; }
+  if (act === 'bus'){ goFloor(5); return; }
   if (act === 'ad'){
     if (T_.ad){ toast('📢 오늘 광고는 이미 걸었어요'); sfx.err(); return; }
     if (G.money < AD_PRICE){ toast(`💸 돈이 부족해요! (${fmt(AD_PRICE)} 필요)`); sfx.err(); return; }
@@ -4340,7 +4813,7 @@ function renderTownHUD(){
   const T_ = G.town, sel = T_.sel;
   const need = ownerNeeded();
   const jzKey = townJinsangs().map(j => `${j.kind}${j.c.policeT > 0 ? 'p' : ''}${j.c.phase}${sel === 'police' ? Math.ceil(j.c.t) : ''}`).join(',');
-  const key = [sel || '-', jzKey, G.money, T_.ad, T_.snack, T_.flyers, G.savings, need.join(), TOWN_ITEMS.map(id => G.pantry[id]).join()].join('|');
+  const key = [sel || '-', jzKey, tripSecs(), G.money, T_.ad, T_.snack, T_.flyers, G.savings, need.join(), TOWN_ITEMS.map(id => G.pantry[id]).join()].join('|');
   if (el.dataset.key === key) return;
   el.dataset.key = key;
   const tabs = TOWN_SHOPS.map(s => `<button class="cbtn slim ${s.id === sel ? 'on' : ''}" data-tshop="${s.id}"><span class="ic">${s.icon}</span>${s.name}<small>${s.id === sel ? '📍 여기' : s.far ? '🚸 길 건너' : '눌러서 걸어가기'}</small></button>`).join('');
@@ -4360,6 +4833,8 @@ function renderTownHUD(){
   } else if (sel === 'ad'){
     body = `<button class="pstep town-act ${T_.ad || G.money < AD_PRICE ? 'off' : ''}" data-tact="ad"><span class="key">1</span><span class="ic">📢</span>광고 내기 ${fmt(AD_PRICE)}<small>${T_.ad ? '✅ 오늘 광고 중' : `평판 +${AD_REP} · 하루 1번`}</small></button>
       <button class="pstep town-act ${T_.flyers >= FLYER_MAX ? 'off' : ''}" data-tact="flyer"><span class="key">2</span><span class="ic">📄</span>전단지 돌리기 (${T_.flyers}/${FLYER_MAX})<small>무료 · 한 장에 평판 +${FLYER_REP}</small></button>`;
+  } else if (sel === 'bus'){
+    body = `<button class="pstep town-act" data-tact="bus"><span class="key">1</span><span class="ic">${carSecs() ? '🏎️' : '🚌'}</span>🌆 대도시로 이동<small>${tripBy()} · ${tripSecs()}초 · 가는 동안에도 영업은 계속돼요</small></button>`;
   } else if (sel === 'police'){
     const jz = townJinsangs();
     const info = jz.length ? jz.map(j => `🚨 ${FLOORS[j.floor].name}: ${j.c.policeT > 0 ? '🚓 경찰 출동 중' : j.c.phase === 'robbing' ? '💸 지금 털고 있어요!' : `${Math.ceil(j.c.t)}초 뒤 털어요`}`).join(' · ') : '✅ 지금 가게는 조용해요';
@@ -4380,7 +4855,7 @@ function renderTownHUD(){
 // ---- 시내 3D ----
 function buildTown(){
   const X = TOWN_X;
-  const Tn = W.town = {origin: new THREE.Vector3(X, 0, 0), hits: [], walkers: [], cars: [], ownerAct: 0, shops: {}, keys: new Set(), joy: {x: 0, y: 0}, target: null, walkT: 0};
+  const Tn = W.town = {origin: new THREE.Vector3(X, 0, 0), hits: [], walkers: [], cars: [], ownerAct: 0, shops: {}, target: null, path: [], walkT: 0};
   const root = Tn.root = new THREE.Group(); scene.add(root);
   // 도로 · 인도
   const road = mesh(new THREE.PlaneGeometry(70, 12), std(0x3a3d44, {roughness: .95}), X, 0, 4.5, false);
@@ -4462,6 +4937,10 @@ function buildTown(){
     sign.add(mesh(new THREE.CylinderGeometry(.35, .35, .06, 16), std(0x2f6ad8), 0, 2.7, 0).rotateX(Math.PI / 2));
     bs.add(sign);
     root.add(bs);
+    const mat = mesh(new THREE.BoxGeometry(4.6, .04, 2.4), new THREE.MeshStandardMaterial({color: 0x2f6ad8, emissive: 0x2f6ad8, emissiveIntensity: .25, transparent: true, opacity: .45}), X + 11, .22, 10.6, false);
+    root.add(mat);
+    const hit = hitBox(4, 3.2, 2, 0, 1.5, 0, {kind: 'tshop', id: 'bus'}); bs.add(hit); Tn.hits.push(hit);
+    Tn.shops.bus = {g: bs, mat};
   }
   // 건물 (가게)
   TOWN_SHOPS.forEach(s => {
@@ -4629,71 +5108,16 @@ function syncTown(dt){
     if (c.g.position.x < X - 36) c.g.position.x = X + 36;
   });
   // 사장님: WASD·방향키·조이스틱으로 직접 걷고, 건물이나 바닥을 클릭하면 그곳까지 걸어가요
-  const o = Tn.owner, P = o.userData, live = canTown();
-  let moving = false, speed = 7;
-  if (live){
-    const k = Tn.keys;
-    _mv.set((k.has('ArrowRight') || k.has('KeyD') ? 1 : 0) - (k.has('ArrowLeft') || k.has('KeyA') ? 1 : 0), 0,
-            (k.has('ArrowDown') || k.has('KeyS') ? 1 : 0) - (k.has('ArrowUp') || k.has('KeyW') ? 1 : 0));
-    const jl = Math.hypot(Tn.joy.x, Tn.joy.y);
-    if (_mv.lengthSq() === 0 && jl > .15){ _mv.set(Tn.joy.x, 0, Tn.joy.y); speed = 7 * Math.min(1, jl); }
-    let dist = Infinity;
-    if (_mv.lengthSq() > 0){ Tn.target = null; Tn.path = []; }
-    else if (Tn.target){
-      _mv.subVectors(Tn.target, o.position); _mv.y = 0;
-      dist = _mv.length();
-      if (dist < .12){
-        _mv.set(0, 0, 0);
-        Tn.target = Tn.path && Tn.path.length ? Tn.path.shift() : null;
-      }
-    }
-    if (_mv.lengthSq() > 0){
-      _mv.normalize();
-      const st = Math.min(speed * dt, dist);
-      const ox = o.position.x, oz = o.position.z;
-      const nx = ox + _mv.x * st, nz = oz + _mv.z * st;
-      if (townWalkable(nx, oz, oz)) o.position.x = nx;
-      if (townWalkable(o.position.x, nz, oz)) o.position.z = nz;
-      moving = o.position.x !== ox || o.position.z !== oz;
-      let dA = Math.atan2(_mv.x, _mv.z) - o.rotation.y;
-      dA = Math.atan2(Math.sin(dA), Math.cos(dA));
-      o.rotation.y += dA * Math.min(1, dt * 12);
-    }
-    const near = townShopNear(o.position);
-    if (G.town.sel !== near){
-      G.town.sel = near;
-      if (near){ sfx.bell(); const sh = TOWN_SHOPS.find(t => t.id === near); toast(`${sh.icon} ${sh.name} — ${sh.desc}`); }
-    }
-    // 가게 앞에 멈추면 가게 쪽을 봐요
-    if (!moving && near){
-      let dA = (TOWN_SHOPS.find(t => t.id === near).far ? 0 : Math.PI) - o.rotation.y;
-      dA = Math.atan2(Math.sin(dA), Math.cos(dA));
-      o.rotation.y += dA * Math.min(1, dt * 6);
-    }
-  }
-  if (moving) Tn.walkT += dt * (speed / 7);
-  const sw = moving ? Math.sin(Tn.walkT * 11) * .6 : 0;
-  P.legL.rotation.x = lerp(P.legL.rotation.x, sw, Math.min(1, dt * 15));
-  P.legR.rotation.x = -P.legL.rotation.x;
-  P.armL.rotation.x = -P.legL.rotation.x * .6;
-  o.position.y = .2 + (moving ? Math.abs(Math.sin(Tn.walkT * 11)) * .1 : 0);
-  // 조이스틱 손잡이
-  const knob = $('joyKnob');
-  knob.style.transform = `translate(${Tn.joy.x * 38}px, ${Tn.joy.y * 38}px)`;
-  Tn.ownerAct = Math.max(0, Tn.ownerAct - dt);
+  walkOwner(Tn, dt, {
+    live: canTown(), walkable: townWalkable, near: townShopNear,
+    sel: G && G.town ? G.town.sel : null, setSel: id => { G.town.sel = id; },
+    shops: TOWN_SHOPS, faceOf: id => TOWN_SHOPS.find(t => t.id === id).far ? 0 : Math.PI,
+  });
   // 경찰서 경광등: 가게에 진상이 있거나 막 신고했으면 번쩍여요
   Tn.sirenT = Math.max(0, (Tn.sirenT || 0) - dt);
   const alarm = Tn.sirenT > 0 || (!!G && inPhase('open') && townJinsangs().length > 0);
   Tn.beacons.forEach((m, k) => { m.visible = !alarm || Math.sin(T * 14 + k * Math.PI) > 0; });
-  P.armR.rotation.x = Tn.ownerAct > 0 ? -1.6 - Math.sin(Tn.ownerAct * 12) * .3 : 0;
-  for (const id in Tn.shops){
-    const hov = W.hover && W.hover.kind === 'tshop' && W.hover.id === id;
-    const s = Tn.shops[id].g, on = G && G.town && G.town.sel === id;
-    s.scale.setScalar(lerp(s.scale.x, hov ? 1.02 : 1, Math.min(1, dt * 10)));
-    const m = Tn.shops[id].mat.material;
-    m.opacity = on ? .75 : .3 + Math.sin(T * 3) * .08;
-    m.emissiveIntensity = on ? .8 : .25;
-  }
+  pulseMats(Tn, G && G.town ? G.town.sel : null, 'tshop', dt);
 }
 
 // ---- 사장님 현황판 (층 버튼 · 직원 안내) ----
@@ -4713,6 +5137,10 @@ function floorStatus(n){
     const w = waiting(G.cafe.seats);
     return {text: jz ? '🚨 진상 등장!' : `${G.staff.cafe ? '🧑‍🍳 직원' : '🙋 사장'} · ${G.cafe.time > 0 ? secs(G.cafe.time) : '마감'} · 대기 ${w}`, cls: jz ? 'alert' : (!G.staff.cafe && w && G.floor !== 2 ? 'need' : '')};
   }
+  if (n === 5){
+    if (G.trip) return {text: G.trip.to === 5 ? `${G.trip.by.slice(0, 2)} 가는 중 ${Math.ceil(G.trip.len - G.trip.t)}초` : '이동 중', cls: 'need'};
+    return {text: G.floor === 5 ? '📍 대도시' : `${tripBy()} ${tripSecs()}초`, cls: ''};
+  }
   if (n === 4){
     const need = ownerNeeded();
     return {text: G.floor === 4 ? '🚶 외출 중' : need.length ? `⚠️ 사장 필요 ${need.length}곳` : '🚶 외출 가능', cls: G.floor !== 4 && need.length ? 'locked' : ''};
@@ -4727,7 +5155,7 @@ function renderFloorBar(){
   const show = inPhase('open') && $('overlay').hidden;
   bar.hidden = !show;
   if (!show) return;
-  for (const n of [1, 2, 3, 4]){
+  for (const n of [1, 2, 3, 4, 5]){
     const st = floorStatus(n);
     const el = $('fb' + n);
     if (el.textContent !== st.text) el.textContent = st.text;
@@ -4758,10 +5186,11 @@ function renderStaffBanner(){
 
 // ---- 3층 VIP 라운지 (포도주 + 안주, 소파에서 쉬다 가요) ----
 const VIP_Z = -2.5, VIP_TABLE_Z = -0.7;
-const LOUNGE_WINES = ['redwine', 'whitewine'];
+const LOUNGE_WINES = ['redwine', 'whitewine', 'grandred', 'grandwhite'];
+const AGING_WINES = ['redwine', 'whitewine'];   // 창고 숙성은 일반 와인만
 const LOUNGE_SNACKS = ['cheese', 'cracker', 'fruit', 'jerky', 'nuts', 'ham', 'salami'];
 const LOUNGE_SNACK_KEYS = ['KeyQ', 'KeyW', 'KeyE', 'KeyR', 'KeyT', 'KeyY', 'KeyU'];
-const WINE_PRICE = {redwine: 12000, whitewine: 11000};
+const WINE_PRICE = {redwine: 12000, whitewine: 11000, grandred: 24000, grandwhite: 22000};
 const PLATTERS = [
   {id: 'cheesePlate', name: '치즈 플래터',   icon: '🧀', ings: ['cheese', 'cracker'], price: 10000},
   {id: 'fruitPlate',  name: '과일 플래터',   icon: '🍇', ings: ['fruit'],             price: 9000},
@@ -4824,7 +5253,7 @@ function updateVip(dt){
   }
   if (V.time > 0){
     V.spawnT -= dt;
-    if (V.spawnT <= 0) V.spawnT = vipSpawn() ? rand(7, 10) : 1.5;
+    if (V.spawnT <= 0) V.spawnT = vipSpawn() ? rand(7, 10) / crowdRate() : 1.5;
   }
   V.seats.forEach((c, i) => {
     if (!c) return;
@@ -4988,7 +5417,7 @@ function vipPointer(e){
 function vipKey(e){
   const c = e.code;
   let n;
-  const m = /^(?:Digit|Numpad)([12])$/.exec(c);
+  const m = /^(?:Digit|Numpad)([1-4])$/.exec(c);
   if (m){ vipAdd(LOUNGE_WINES[+m[1] - 1]); return; }
   if ((n = LOUNGE_SNACK_KEYS.indexOf(c)) >= 0){ vipAdd(LOUNGE_SNACKS[n]); return; }
   if ((n = SEAT_KEYS.indexOf(c)) >= 0){ if (n < VIP_SEATS) vipServe(n); return; }
@@ -5129,7 +5558,7 @@ function buildVip(){
     const hit = hitBox(.95, 1.1, 1.0, 0, .5, 0, {kind: 'ving', id}); g.add(hit); V.hits.push(hit);
     root.add(g); V.ings[id] = {g, obj, bounce: 0};
   };
-  LOUNGE_WINES.forEach((id, k) => placeIng(id, X - 6.3 + k * 1.05, .75));
+  LOUNGE_WINES.forEach((id, k) => placeIng(id, X - 6.5 + k * .95, .7));
   LOUNGE_SNACKS.forEach((id, k) => placeIng(id, X - 1.8 + k * 1.02, .62));
   // 와인잔 · 안주 도마
   V.glass = new THREE.Group(); V.glass.position.set(X - 3.6, top, TABLE_Z + .55); root.add(V.glass);
@@ -5603,7 +6032,7 @@ function update(dt){
   }
   if (G.time > 0){
     G.spawnT -= dt;
-    if (G.spawnT <= 0) G.spawnT = spawnCustomer() ? nextInterval() : 0.8;
+    if (G.spawnT <= 0) G.spawnT = spawnCustomer() ? nextInterval() / crowdRate() : 0.8;
   }
   G.seats.forEach((c, i) => {
     if (c && c.jinsang){ updateJinsang(c, i, dt, 'lunch'); return; }
@@ -5936,7 +6365,7 @@ function renderHUD(){
     const t1 = G.lunchOn ? G.time : 0, t2 = G.cafe && !G.cafe.done ? G.cafe.time : 0, t3 = G.vip && !G.vip.done ? G.vip.time : 0;
     const t = f === 1 ? t1 : f === 2 ? t2 : f === 3 ? t3 : Math.max(t1, t2, t3);
     const tm = Math.ceil(t);
-    $('hudTime').textContent = `${FLOORS[f].icon} ${f === 4 ? '시내' : f + 'F'} ` + (t > 0 ? `${Math.floor(tm / 60)}:${String(tm % 60).padStart(2, '0')}` : '마감');
+    $('hudTime').textContent = (G.trip ? '🚌 이동 중' : `${FLOORS[f].icon} ${f >= 4 ? FLOORS[f].name : f + 'F'}`) + ' ' + (t > 0 ? `${Math.floor(tm / 60)}:${String(tm % 60).padStart(2, '0')}` : '마감');
     $('hudTime').classList.toggle('low', t > 0 && t <= 10);
   } else if (G.phase === 'cafe' || G.phase === 'cafeIntro'){
     const ct = G.cafe ? G.cafe.time : CAFE_LEN, tm = Math.ceil(ct);
@@ -5970,6 +6399,8 @@ function renderHUD(){
   }
   if (G.phase === 'open' && G.vip) renderVipButtons();
   if (G.phase === 'open' && G.floor === 4) renderTownHUD();
+  if (G.phase === 'open' && G.floor === 5) renderCityHUD();
+  renderTripBanner();
   if (G.phase === 'vipPrep') renderVipPrepHUD();
   if (G.phase === 'cafeRoast') renderRoastHUD();
   if (G.phase === 'lunch' || G.phase === 'open'){
@@ -6012,6 +6443,7 @@ function goalBar(){
 
 function endDay(){
   G.running = false;
+  G.trip = null;
   G.phase = 'result';
   const s = G.stats, rent = rentToday();
   const wages = wagesToday();
@@ -6023,7 +6455,7 @@ function endDay(){
   if (G.money < 0 && G.savings){ G.money += G.savings; G.savings = 0; }
   G.totalProfit += net; G.totalServed += s.served; G.totalPerfect += s.perfect;
   storeLeftoverWine();
-  const aging = LOUNGE_WINES.filter(id => G.cellar[id].length).map(id => `${MARKET_ITEMS[id].icon}${MARKET_ITEMS[id].name} ${G.cellar[id].length}잔`).join(' · ');
+  const aging = AGING_WINES.filter(id => G.cellar[id].length).map(id => `${MARKET_ITEMS[id].icon}${MARKET_ITEMS[id].name} ${G.cellar[id].length}잔`).join(' · ');
   const p = G.prep, r = G.raw, st = G.stock;
   const waste = {
     '🥩 고기': st.pork + p.cut + r.pork * 4 - p.porkPart,
@@ -6154,8 +6586,8 @@ function togglePause(){
       closeFn = 'closeOpen()';
     } else if (cafe){ waiting = waitingIn(G.cafe.seats); timeLeft = G.cafe.time; closeFn = 'closeCafe()'; }
     else { waiting = waitingIn(G.seats); timeLeft = G.time; closeFn = 'closeEarly()'; }
-    const keys = (open ? 'Shift+1·2·3 층 이동 · Shift+4 시내 · ' : '')
-      + (open && G.floor === 3 ? '1·2 포도주 · Q W E R T Y U 안주 재료 · Z X C 서빙 · Backspace 잔 비우기 · Delete 도마 비우기' : cafe ? '1~8 음료 재료 · Q W E R T 샌드위치 재료 · Z X C 서빙 · Backspace 컵 비우기 · Delete 접시 비우기' : 'Q W E 국밥 · A S D F 가마솥 · 1~4 토핑 · Z X C V 서빙 · Tab 조립대 전환 · Backspace 버리기')
+    const keys = (open ? 'Shift+1·2·3 층 이동 · Shift+4 시내 · Shift+5 대도시 · ' : '')
+      + (open && G.floor === 3 ? '1~4 포도주 · Q W E R T Y U 안주 재료 · Z X C 서빙 · Backspace 잔 비우기 · Delete 도마 비우기' : cafe ? '1~8 음료 재료 · Q W E R T 샌드위치 재료 · Z X C 서빙 · Backspace 컵 비우기 · Delete 접시 비우기' : 'Q W E 국밥 · A S D F 가마솥 · 1~4 토핑 · Z X C V 서빙 · Tab 조립대 전환 · Backspace 버리기')
       + ' · 진상: B 방망이 · G 총 · H 112';
     showOverlay(`
       <div class="card">
@@ -6213,7 +6645,7 @@ const _ptr = new THREE.Vector2();
 function pickAt(cx, cy){
   _ptr.set(cx / window.innerWidth * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(_ptr, camera);
-  const list = W.mode === 'prep' ? W.prep.hits : W.mode === 'market' ? W.market.hits : W.mode === 'cafe' ? W.cafe.hits : W.mode === 'vip' ? W.vip.hits : W.mode === 'town' ? W.town.hits : [...W.seatHits, ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
+  const list = W.mode === 'prep' ? W.prep.hits : W.mode === 'market' ? W.market.hits : W.mode === 'cafe' ? W.cafe.hits : W.mode === 'vip' ? W.vip.hits : W.mode === 'town' ? W.town.hits : W.mode === 'city' ? W.city.hits : [...W.seatHits, ...W.binHits, ...W.burnerViews.map(v => v.hit), ...W.trayViews.map(v => v.hit)];
   const hits = raycaster.intersectObjects(list, false);
   return hits.length ? hits[0].object.userData : null;
 }
@@ -6236,6 +6668,18 @@ document.addEventListener('pointerdown', e => {
   if (canMarket()){ marketPointer(e); return; }
   if (canCafe()){ cafePointer(e); return; }
   if (canVip()){ vipPointer(e); return; }
+  if (canCity()){
+    let el;
+    if (t.closest('#joystick')) return;
+    if (t === renderer.domElement){
+      const u = pickAt(e.clientX, e.clientY);
+      if (u && u.kind === 'cshop') citySelect(u.id);
+      else { const gp = groundAt(e.clientX, e.clientY); if (gp) cityWalkTo(gp); }
+    }
+    else if ((el = t.closest('[data-cshop]'))) citySelect(el.dataset.cshop);
+    else if ((el = t.closest('[data-cact]'))) cityAct(el.dataset.cact, el.dataset.cid);
+    return;
+  }
   if (canTown()){
     let el;
     if (t.closest('#joystick')) return;
@@ -6286,7 +6730,7 @@ document.addEventListener('pointerdown', e => {
   else if (t.closest('#trashBtn')) trashTray();
 });
 document.addEventListener('pointermove', e => {
-  if (!(canAct() || canPrep() || canMarket() || canCafe() || canVip() || canVipPrep() || canRoast() || canTown()) || e.target !== renderer.domElement){ W.hover = null; renderer.domElement.style.cursor = ''; return; }
+  if (!(canAct() || canPrep() || canMarket() || canCafe() || canVip() || canVipPrep() || canRoast() || canTown() || canCity()) || e.target !== renderer.domElement){ W.hover = null; renderer.domElement.style.cursor = ''; return; }
   W.hover = pickAt(e.clientX, e.clientY);
   renderer.domElement.style.cursor = W.hover ? 'pointer' : '';
 });
@@ -6297,14 +6741,14 @@ $('muteBtn').addEventListener('click', () => { muted = !muted; $('muteBtn').text
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   const c = e.code;
-  if (inPhase('open') && e.shiftKey && /^Digit[1-4]$/.test(c)){
+  if (inPhase('open') && e.shiftKey && /^Digit[1-5]$/.test(c)){
     if (G.running && !G.paused && !e.repeat) goFloor(+c.slice(5));
     return;
   }
   if (canMarket()){ marketKey(e); return; }
   if (canVipPrep()){
     const m = /^(?:Digit|Numpad)([12])$/.exec(c);
-    if (m && !e.repeat) vipPrepAction(LOUNGE_WINES[+m[1] - 1]);
+    if (m && !e.repeat) vipPrepAction(AGING_WINES[+m[1] - 1]);
     else if ((c === 'Enter' || c === 'NumpadEnter') && !e.repeat){ e.preventDefault(); finishVipPrep(); }
     return;
   }
@@ -6324,8 +6768,14 @@ window.addEventListener('keydown', e => {
   if (jz && hereKind()){ if (!e.repeat) jinsangAction(jz); return; }
   if (canCafe()){ cafeKey(e); return; }
   if (canVip()){ vipKey(e); return; }
+  if (canCity()){
+    if (MOVE_KEYS.includes(c)){ W.keys.add(c); e.preventDefault(); return; }
+    const m = /^(?:Digit|Numpad)([1-9])$/.exec(c);
+    if (m && !e.repeat) cityKeyAct(+m[1] - 1);
+    return;
+  }
   if (canTown()){
-    if (MOVE_KEYS.includes(c)){ W.town.keys.add(c); e.preventDefault(); return; }
+    if (MOVE_KEYS.includes(c)){ W.keys.add(c); e.preventDefault(); return; }
     const m = /^(?:Digit|Numpad)([1-9])$/.exec(c);
     if (m && !e.repeat){
       const n = +m[1] - 1, sel = G.town.sel;
@@ -6333,6 +6783,7 @@ window.addEventListener('keydown', e => {
       else if (sel === 'ad'){ if (n < 2) townAct(['ad', 'flyer'][n]); }
       else if (sel === 'snack'){ if (n === 0) townAct('snack'); }
       else if (sel === 'police'){ if (n === 0) reportPolice(); }
+      else if (sel === 'bus'){ if (n === 0) goFloor(5); }
       else if (sel === 'bank'){ if (n < 2) townAct(['deposit', 'withdraw'][n]); }
       else toast('🚶 가게 문 앞에 서면 숫자키로 이용할 수 있어요');
     }
@@ -6369,7 +6820,7 @@ function loop(ts){
   if (lunchTick()) tickBurners(dt);
   if (cafeTick()) updateCafe(dt);
   if (vipTick()) updateVip(dt);
-  if (inPhase('open') && G.running && !G.paused){ staffWork(dt); checkOpenEnd(); }
+  if (inPhase('open') && G.running && !G.paused){ staffWork(dt); updateTrip(dt); checkOpenEnd(); }
   if (inPhase('prep')) updatePrep(dt);
   if (canVipPrep()) updateVipPrep(dt);
   if (canRoast()) updateRoast(dt);
@@ -6397,6 +6848,8 @@ function loop(ts){
     syncVip(fdt);
   } else if (W.mode === 'town'){
     syncTown(fdt);
+  } else if (W.mode === 'city'){
+    syncCity(fdt);
   } else if (W.mode === 'prep'){
     syncPrep(dt);
   } else if (W.mode === 'cafe'){
@@ -6423,7 +6876,7 @@ function loop(ts){
   W.sun.intensity = lerp(W.sun.intensity, Lt.sunI, lk);
 
   // 해 그림자는 지금 보는 곳을 따라가요
-  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : W.mode === 'vip' ? W.vip.origin : W.mode === 'town' ? W.town.owner.position : _origin;
+  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : W.mode === 'vip' ? W.vip.origin : W.mode === 'town' ? W.town.owner.position : W.mode === 'city' ? W.city.owner.position : _origin;
   W.sun.position.set(sunAt.x - 5, 14, sunAt.z + 8);
   W.sun.target.position.set(sunAt.x, 0, sunAt.z);
   W.sun.target.updateMatrixWorld();
@@ -6433,17 +6886,17 @@ function loop(ts){
     const pp = W.market.player.position, ck = W.camK || 1;
     _camTarget.set(pp.x, 1.2 + 7.3 * ck, pp.z - 2 + 12.5 * ck);
     _lookTarget.set(pp.x, 1.2, pp.z - 2);
-  } else if (W.mode === 'town'){
-    const op = W.town.owner.position, dz = Math.max(0, op.z + 1.5);
-    _camTarget.copy(CAMS.town.pos); _camTarget.x = op.x; _camTarget.z += dz;
-    _lookTarget.copy(CAMS.town.look); _lookTarget.x = op.x; _lookTarget.z += dz;
+  } else if (W.mode === 'town' || W.mode === 'city'){
+    const Z = W[W.mode], op = Z.owner.position, dz = Math.max(0, op.z + 1.5);
+    _camTarget.copy(CAMS[W.mode].pos); _camTarget.x = op.x; _camTarget.z += dz;
+    _lookTarget.copy(CAMS[W.mode].look); _lookTarget.x = op.x; _lookTarget.z += dz;
   } else {
     _camTarget.copy(CAMS[W.mode].pos);
     _lookTarget.copy(CAMS[W.mode].look);
   }
   if (overlayOpen){ _camTarget.x += Math.sin(T * .25) * 2.2; _camTarget.y += Math.sin(T * .17) * .4; }
   if (W.snapCam || !Number.isFinite(camera.position.x + curLook.x)){ camera.position.copy(_camTarget); curLook.copy(_lookTarget); W.snapCam = false; }
-  const follow = W.mode === 'market' ? 6 : W.mode === 'town' ? 4 : 2.5;
+  const follow = W.mode === 'market' ? 6 : W.mode === 'town' || W.mode === 'city' ? 4 : 2.5;
   camera.position.lerp(_camTarget, Math.min(1, dt * follow));
   curLook.lerp(_lookTarget, Math.min(1, dt * follow));
   if (W.shake > 0){ W.shake = Math.max(0, W.shake - dt); camera.position.x += (Math.random() - .5) * W.shake * .6; camera.position.y += (Math.random() - .5) * W.shake * .6; }
