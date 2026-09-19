@@ -138,11 +138,21 @@ button{font-family:inherit;cursor:pointer}
 .fb-btn.home{border-color:#e0a030}
 .home-note{font-size:15px;color:#8a6e55;margin:6px 0}
 .vp-log{text-align:left;font-size:16px;background:#fff0c2;border-radius:10px;padding:8px 12px;margin:8px 0;max-height:200px;overflow:auto}
+#horrorTouch{position:fixed;right:18px;bottom:24px;z-index:17;display:flex;flex-direction:column;gap:10px}
+#horrorTouch button{width:72px;height:72px;border-radius:50%;border:2px solid rgba(255,243,220,.5);background:rgba(20,10,10,.55);color:#fff3dc;font-size:26px;line-height:1;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#horrorTouch button small{font-size:11px;margin-top:2px}
+#horrorTouch button.on{background:rgba(200,60,40,.7);border-color:#ffd27a}
 #scareFace{position:fixed;left:50%;top:50%;width:min(95vw,95vh);height:min(95vw,95vh);transform:translate(-50%,-50%);z-index:61;pointer-events:none;opacity:0}
 #scareFlash{position:fixed;inset:0;z-index:60;pointer-events:none;background:radial-gradient(rgba(255,0,0,.1),rgba(120,0,0,.85));opacity:0}
 #scareFlash.on{animation:scare .12s steps(2) infinite}
 @keyframes scare{50%{opacity:1}}
-#horrorHud{position:fixed;left:50%;top:60px;transform:translateX(-50%);z-index:16;color:#e8e0d0;text-align:center;text-shadow:0 2px 3px #000;pointer-events:none;width:min(560px,calc(100% - 24px))}
+body.horror-mode #hud{display:none}
+body.horror-cut #horrorHud,body.horror-cut #horrorTouch,body.horror-cut #joystick{display:none!important}
+#cutSub{position:fixed;left:50%;bottom:9%;transform:translateX(-50%);z-index:62;width:min(760px,calc(100% - 32px));padding:14px 20px;background:rgba(0,0,0,.72);color:#f4ecdc;font-size:22px;line-height:1.45;text-align:center;border-radius:10px;pointer-events:none}
+#cutSub b{margin-right:10px}#cutSub b.me{color:#8ad0ff}#cutSub b.dev{color:#ff5a4a}
+#cutBlack{position:fixed;inset:0;z-index:61;pointer-events:none;opacity:0;background:#000}
+@media (max-width:700px){#cutSub{font-size:16px;bottom:6%}}
+#horrorHud{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:16;color:#e8e0d0;text-align:center;text-shadow:0 2px 3px #000;pointer-events:none;width:min(560px,calc(100% - 24px))}
 #horrorHud .hh-top{font-size:18px}
 #horrorHud .hh-bars{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px}
 #horrorHud .hh-bar{width:120px;height:8px;background:rgba(255,255,255,.15);border-radius:5px;overflow:hidden}
@@ -202,7 +212,10 @@ button{font-family:inherit;cursor:pointer}
 #marketUI > *{pointer-events:auto}
 #marketMemo{position:absolute;top:66px;right:14px;width:260px;background:#fff6b8;color:var(--ink);border-radius:3px;padding:14px 14px 12px;box-shadow:0 8px 18px rgba(0,0,0,.4);transform:rotate(1.2deg);font-size:15px}
 #marketMemo:before{content:'';position:absolute;top:-10px;left:50%;margin-left:-42px;width:84px;height:22px;background:rgba(255,255,255,.55);transform:rotate(-3deg)}
-#marketMemo h4{margin:0 0 2px;font-weight:normal;font-size:19px;color:var(--wood3)}
+#marketMemo h4{margin:0 0 2px;font-weight:normal;font-size:19px;color:var(--wood3);cursor:pointer}
+#marketMemo .mm-fold:after{content:'▾ 접기';font-size:12px;color:#8a6e55}
+#marketMemo.mini .mm-fold:after{content:'▸ 펼치기'}
+#marketMemo.mini ul,#marketMemo.mini .mm-est,#marketMemo.mini .mm-pantry{display:none}
 .mm-est{font-size:13px;color:#8a6e55;margin-bottom:6px}
 #marketMemo ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 #marketMemo li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed #d9c77a;padding:3px 0}
@@ -360,6 +373,10 @@ button{font-family:inherit;cursor:pointer}
   .sp-row{grid-template-columns:32px 1fr 128px}
   .sp-price{display:none}
   .sp-name small{display:none}
+}
+@media (max-width:700px){
+  #marketMemo{width:178px;top:196px;right:8px;padding:10px 10px 8px}
+  #marketMemo h4{font-size:15px}
 }
 .start-btn{background:var(--red);color:#fff;border:none;font-size:22px;padding:12px 22px;border-radius:14px;box-shadow:0 6px 0 var(--red2);position:relative}
 .start-btn:hover{filter:brightness(1.1)}
@@ -658,6 +675,8 @@ const MOVE_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'K
 const DRINK_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'drink');
 const FOOD_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'food');
 const CAFE_LEN = 60, CAFE_SEATS = 3, CAFE_X = -120;
+// 폰 · 태블릿 (터치 화면): 조이스틱 · 터치 버튼을 보여줘요
+const IS_TOUCH = (window.matchMedia && matchMedia('(pointer: coarse)').matches) || navigator.maxTouchPoints > 0;
 const VIP_X = 240, TOWN_X = 360, CITY_X = 480, BUS_X = 600, CAR_X = 720, HOME_X = 960, HORROR_X = 1200;
 const DEFAULT_RECIPES = [
   {id:'greentea', name:'녹차',     type:'drink', ings:['tea'],                                     price:4000},
@@ -769,6 +788,8 @@ const sfx = {
     tone(60, 1.2, 'sine', .35, 30);   // 쿵 울리는 저음
     noiseBurst(.4, .35, .9);
   },
+  knifeDraw: () => { noiseBurst(.55, .1); tone(2600, .7, 'sawtooth', .04, 5400); tone(4200, 1.1, 'sine', .035, 3900, .1); },
+  stab: () => { noiseBurst(.22, .55); tone(95, .45, 'sine', .45, 35); tone(320, .16, 'square', .12, 70); noiseBurst(.3, .2, .12); },
   scream:() => { tone(900, 0.9, 'sawtooth', 0.09, 120); tone(1400, 0.7, 'square', 0.05, 200, 0.05); tone(300, 1.0, 'sawtooth', 0.06, 60); },
   heart: () => { tone(58, 0.12, 'sine', 0.22, 40); tone(52, 0.12, 'sine', 0.16, 36, 0.18); },
   step:  (v = .03) => tone(90 + Math.random() * 40, 0.06, 'triangle', v, 50),
@@ -1654,7 +1675,9 @@ function setWorldMode(mode){
   $('townControls').hidden = mode !== 'town';
   $('cityControls').hidden = mode !== 'city';
   const hh = $('horrorHud'); if (hh) hh.hidden = mode !== 'horror';
-  $('joystick').hidden = !(mode === 'town' || mode === 'city' || mode === 'car');
+  $('joystick').hidden = !(mode === 'town' || mode === 'city' || mode === 'car' || (IS_TOUCH && (mode === 'market' || mode === 'horror')));
+  const ht = $('horrorTouch'); if (ht) ht.hidden = !(IS_TOUCH && mode === 'horror');
+  document.body.classList.toggle('horror-mode', mode === 'horror');   // 공포게임 중엔 가게 상단 정보를 숨겨요
   W.keys.clear(); W.joy.x = W.joy.y = 0;
   if (W.town) W.town.target = null;
   if (W.city) W.city.target = null;
@@ -2315,6 +2338,8 @@ function addOwned(id, n){
 function enterMarket(){
   const M = W.market;
   G.phase = 'market';
+  M.memoMini = innerWidth < 700;   // 폰에서는 메모를 접어 두고 시작해요 (제목을 누르면 펼쳐져요)
+  $('marketMemo').classList.toggle('mini', M.memoMini);
   hideOverlay();
   setWorldMode('market');
   M.player.position.set(MARKET_X, 0, 12);
@@ -2390,6 +2415,7 @@ function groundAt(cx, cy){
 function marketPointer(e){
   const t = e.target, M = W.market;
   let el;
+  if (t.closest('#marketMemo h4')){ M.memoMini = !M.memoMini; $('marketMemo').classList.toggle('mini', M.memoMini); return; }   // 메모 접기 · 펼치기
   if ((el = t.closest('[data-mbuy]'))){ if (!el.disabled) marketBuy(el.dataset.mbuy, +el.dataset.d); return; }
   if (t.closest('#leaveMarketBtn')){ leaveMarket(); return; }
   if (t.closest('#gateLabel')){ if (M.atGate) leaveMarket(); else walkTo(new THREE.Vector3(MARKET_X, 0, -30.5), {leave: true}); return; }
@@ -2446,7 +2472,7 @@ window.addEventListener('blur', () => { if (W.market) W.market.keys.clear(); W.k
     if (e.pointerId !== id) return;
     id = null; W.joy.x = W.joy.y = 0;
   };
-  pad.addEventListener('pointerdown', e => { id = e.pointerId; pad.setPointerCapture(id); W.town.target = null; W.city.target = null; setJoy(e); e.preventDefault(); });
+  pad.addEventListener('pointerdown', e => { id = e.pointerId; pad.setPointerCapture(id); W.town.target = null; W.city.target = null; if (W.market) W.market.target = null; setJoy(e); e.preventDefault(); });
   pad.addEventListener('pointermove', e => { if (e.pointerId === id) setJoy(e); });
   pad.addEventListener('pointerup', end);
   pad.addEventListener('pointercancel', end);
@@ -2463,6 +2489,7 @@ function syncMarket(dt){
     const k = M.keys;
     _mv.set((k.has('ArrowRight') || k.has('KeyD') ? 1 : 0) - (k.has('ArrowLeft') || k.has('KeyA') ? 1 : 0), 0,
             (k.has('ArrowDown') || k.has('KeyS') ? 1 : 0) - (k.has('ArrowUp') || k.has('KeyW') ? 1 : 0));
+    if (_mv.lengthSq() === 0 && Math.hypot(W.joy.x, W.joy.y) > .15) _mv.set(W.joy.x, 0, W.joy.y);   // 조이스틱
     if (_mv.lengthSq() > 0){ M.target = null; M.pendingBuy = null; M.pendingLeave = false; }
     else if (M.target){
       _mv.subVectors(M.target, P.position); _mv.y = 0;
@@ -2572,7 +2599,7 @@ function syncMarket(dt){
     M.memoKey = mk;
     const pantry = Object.entries(G.pantry).filter(([, n]) => n > 0).map(([id, n]) => `${MARKET_ITEMS[id].icon}${n}`).join(' ');
     const tools = Object.entries(G.tools).filter(([, n]) => n).map(([id]) => MARKET_ITEMS[id].icon).join(' ');
-    $('marketMemo').innerHTML = `<h4>📝 오늘 장보기 메모</h4><div class="mm-est">예상 손님 ${est.lo}~${est.hi}명 · 남은 식당 재료는 밤에 폐기</div>
+    $('marketMemo').innerHTML = `<h4>📝 오늘 장보기 메모 <small class="mm-fold"></small></h4><div class="mm-est">예상 손님 ${est.lo}~${est.hi}명 · 남은 식당 재료는 밤에 폐기</div>
       <ul>${Object.entries(list).map(([id, n]) => {
         const it = MARKET_ITEMS[id], have = G.raw[id], ok = have >= n;
         return `<li class="${ok ? 'done' : ''}"><span>${ok ? '✅' : '⬜'} ${it.icon} ${it.name}</span><b>${have}/${n}${it.unit}</b></li>`;
@@ -5111,11 +5138,35 @@ function buildHorror(){
   // 괴물 모델
   H.monsterModels = [0, 1].map(() => { const g = makeHorrorMonster(); g.visible = false; root.add(g); return g; });
   buildOtherworld(H, root);
+  buildDevRoom(H, root);
   // 점프 스케어 화면
   const flash = document.createElement('div'); flash.id = 'scareFlash'; document.body.appendChild(flash);
   const face = document.createElement('canvas'); face.id = 'scareFace'; face.width = face.height = 512; drawScareFace(face); document.body.appendChild(face);
   const hud = document.createElement('div'); hud.id = 'horrorHud'; hud.hidden = true;
-  hud.innerHTML = '<div class="hh-top"></div><div class="hh-bars"><span>🏃</span><div class="hh-bar st"><i></i></div><span class="hh-bat">🔦</span><div class="hh-bar bt"><i></i></div></div><div class="hh-state"></div><div class="hh-hint">화면을 클릭하면 마우스로 둘러봐요 · WASD 이동 · Shift 달리기 · C 웅크리기 · ←→ 돌기</div><button class="sub-btn hh-quit" onclick="horrorQuit()">🏳️ 포기하고 돌아가기 (Q)</button>';
+  hud.innerHTML = `<div class="hh-top"></div><div class="hh-bars"><span>🏃</span><div class="hh-bar st"><i></i></div><span class="hh-bat">🔦</span><div class="hh-bar bt"><i></i></div></div><div class="hh-state"></div><div class="hh-hint">${IS_TOUCH ? '왼쪽 조이스틱으로 이동 · 화면을 끌어서 둘러봐요' : '화면을 클릭하면 마우스로 둘러봐요 · WASD 이동 · Shift 달리기 · C 웅크리기 · ←→ 돌기'}</div><button class="sub-btn hh-quit" onclick="horrorQuit()">🏳️ 포기하고 돌아가기 (Q)</button>`;
+  // 터치 버튼: 달리기(누르는 동안) · 웅크리기(켜고 끄기) · 손전등
+  const tb = document.createElement('div'); tb.id = 'horrorTouch'; tb.hidden = true;
+  tb.innerHTML = '<button data-ht="run">🏃<small>달리기</small></button><button data-ht="crouch">🧎<small>웅크리기</small></button><button data-ht="light">🔦<small>손전등</small></button>';
+  document.body.appendChild(tb);
+  tb.addEventListener('pointerdown', e => {
+    const b = e.target.closest('[data-ht]'); if (!b || !canHorror()) return;
+    e.preventDefault();
+    if (b.dataset.ht === 'run'){ H.keys.add('ShiftLeft'); b.classList.add('on'); }
+    else if (b.dataset.ht === 'crouch'){ H.crouchLock = !H.crouchLock; b.classList.toggle('on', H.crouchLock); }
+    else if (H.P && H.P.battery){ H.lightOn = !H.lightOn; sfx.click(); }
+  });
+  const runUp = () => { H.keys.delete('ShiftLeft'); tb.querySelector('[data-ht="run"]').classList.remove('on'); };
+  tb.addEventListener('pointerup', runUp); tb.addEventListener('pointercancel', runUp); tb.addEventListener('pointerleave', runUp);
+  // 화면을 손가락으로 끌어서 둘러보기
+  let lookId = null, lx = 0, ly = 0;
+  renderer.domElement.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse' || !inPhase('horror')) return; lookId = e.pointerId; lx = e.clientX; ly = e.clientY; });
+  renderer.domElement.addEventListener('pointermove', e => {
+    if (e.pointerId !== lookId || !inPhase('horror') || H.cut) return;
+    H.yaw -= (e.clientX - lx) * .006; H.pitch = clamp(H.pitch - (e.clientY - ly) * .006, -1.2, 1.2);
+    lx = e.clientX; ly = e.clientY;
+  });
+  const lookEnd = e => { if (e.pointerId === lookId) lookId = null; };
+  renderer.domElement.addEventListener('pointerup', lookEnd); renderer.domElement.addEventListener('pointercancel', lookEnd);
   document.body.appendChild(hud);
 }
 
@@ -5382,8 +5433,8 @@ function horrorBuildStage(stage){
   const sp = horrorRoomPos([0, 0]);
   H.pos.set(sp.x, 0, sp.z + HB * .5);
   H.yaw = -Math.PI / 2; H.pitch = 0;
-  H.stamina = 100; H.crouch = 0; H.battery = 100; H.lightOn = true; H.scare = 0; H.done = false;
-  H.other = false; H.maze.visible = true; H.otherG.visible = false;
+  H.stamina = 100; H.crouch = 0; H.crouchLock = false; H.battery = 100; H.lightOn = true; H.scare = 0; H.done = false;
+  H.other = false; H.maze.visible = true; H.otherG.visible = false; H.devRoom.visible = false; H.cut = null;
   scene.fog.near = 1; scene.fog.far = P.fog;
 }
 function horrorRoomPos([rx, rz]){ const H = W.horror; return {x: H.x0 + (rx * (RI + 1) + 1 + RI / 2) * HB, z: H.z0 + (rz * (RI + 1) + 1 + RI / 2) * HB}; }
@@ -5498,19 +5549,192 @@ function syncOther(dt){
   const sEl = hud.querySelector('.hh-state'); if (sEl.textContent !== '...') sEl.textContent = '...';
   hud.querySelector('.hh-hint').hidden = !!document.pointerLockElement;
 }
+// ---- 문 너머의 방 (컷신: 사진 벽 · 타겟 · 개발자) ----
+const DEV_LINES = [
+  {t: .6,   who: '나', text: '여긴 어디지..?'},
+  {t: 3.2,  who: '나', text: '어 뭐야 저기 사진이 있네?'},
+  {t: 6.6,  who: '나', text: '잠깐만 이 사람들은.. 우리 가게에 오시는 분들?!'},
+  {t: 10,   who: '나', text: '그럼 다들 가짜였던 거야??'},
+  {t: 12.8, who: '나', text: '잠깐만.. 내 사진도 있네?'},
+  {t: 16.4, who: '나', text: '잠깐만.. 타, 타겟?!'},
+  {t: 18.6, who: '',   text: '(스르릉... 칼 뽑는 소리)'},
+  {t: 21,   who: '???', text: '오 뭐야 타겟이 제 발로 왔네?! 그럼 나야 이득이지'},
+  {t: 25.2, who: '???', text: '아 그럼 네가 죽기 전에 이름만 알려줄게. 난 돌격소총이라는 이 게임 개발자다.'},
+  {t: 30.2, who: '돌격소총', text: '그럼 이제 죽어라!'},
+  {t: 32,   who: '', text: ''},
+];
+const DEV_END = 35.5, DEV_BLACK = 32;
+const DEV_PHOTOS = [
+  {id: 'worker',   x: -3.9, y: 2.55, tag: '요원 01'},
+  {id: 'grandpa',  x: -2.5, y: 2.55, tag: '요원 02'},
+  {id: 'student',  x: -1.1, y: 2.55, tag: '요원 03'},
+  {id: 'hangover', x: .3,   y: 2.55, tag: '요원 04'},
+  {id: 'grandma',  x: -3.2, y: 1.2,  tag: '요원 05'},
+  {id: 'youtuber', x: -1.8, y: 1.2,  tag: '요원 06'},
+  {id: 'jinsang',  x: -.4,  y: 1.2,  tag: '요원 07'},
+];
+function devPhotoTex(id, target){
+  const L = LOOKS[id], hex = c => '#' + c.toString(16).padStart(6, '0');
+  return canvasTex(256, 320, (x, w, h) => {
+    x.fillStyle = '#f4efe4'; x.fillRect(0, 0, w, h);   // 폴라로이드 테두리
+    x.fillStyle = target ? '#6a7078' : '#7c8590'; x.fillRect(14, 14, w - 28, 232);
+    x.fillStyle = hex(L.shirt); x.beginPath(); x.ellipse(w / 2, 262, 90, 70, 0, Math.PI, 0); x.fill();
+    x.fillStyle = hex(L.skin); x.beginPath(); x.arc(w / 2, 128, 70, 0, Math.PI * 2); x.fill();
+    const hair = {grandpa: '#cfcfcf', grandma: '#b8b8c0', youtuber: '#ff8ac0', hangover: '#3a2a20', jinsang: '#111'}[id] || '#2a1a10';
+    if (id === 'owner'){   // 요리사 모자
+      x.fillStyle = '#fff'; x.fillRect(w / 2 - 58, 36, 116, 34);
+      for (const dx of [-40, 0, 40]){ x.beginPath(); x.arc(w / 2 + dx, 34, 32, 0, Math.PI * 2); x.fill(); }
+    } else { x.fillStyle = hair; x.beginPath(); x.arc(w / 2, 118, 72, Math.PI * 1.05, Math.PI * 1.95); x.fill(); }
+    x.drawImage(faceTex(id === 'owner' ? 'owner' : id, target ? 'scared' : 'happy').image, w / 2 - 70, 58, 140, 140);
+    x.fillStyle = '#222'; x.font = 'bold 26px sans-serif'; x.textAlign = 'center';
+    if (target){
+      x.strokeStyle = '#d01010'; x.lineWidth = 9; x.beginPath(); x.arc(w / 2, 130, 100, 0, Math.PI * 2); x.stroke();
+      x.beginPath(); x.moveTo(w / 2 - 120, 130); x.lineTo(w / 2 + 120, 130); x.moveTo(w / 2, 10); x.lineTo(w / 2, 250); x.lineWidth = 4; x.stroke();
+      x.fillStyle = '#d01010'; x.font = 'bold 40px sans-serif'; x.fillText('타겟 TARGET', w / 2, 298);
+    } else {
+      x.fillText(DEV_PHOTOS.find(p => p.id === id).tag, w / 2, 282);
+      x.fillStyle = '#8a1a1a'; x.font = '18px sans-serif'; x.fillText('손님 역할 · 감시 중', w / 2, 306);
+    }
+  });
+}
+// 네모난 개발자 (노란 머리 · 파란 몸통 · 초록 다리)
+function makeDeveloper(){
+  const g = new THREE.Group(), U = g.userData;
+  const yel = std(0xf5cd30, {roughness: .7}), blue = std(0x0d69ac, {roughness: .7}), green = std(0xa4bd47, {roughness: .7});
+  for (const sx of [-.24, .24]) g.add(mesh(new THREE.BoxGeometry(.46, .95, .46), green, sx, .475, 0));
+  g.add(mesh(new THREE.BoxGeometry(.95, .95, .46), blue, 0, 1.425, 0));
+  const face = canvasTex(128, 128, (x, w, h) => {
+    x.fillStyle = '#f5cd30'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#111'; x.beginPath(); x.ellipse(44, 52, 7, 12, 0, 0, Math.PI * 2); x.ellipse(84, 52, 7, 12, 0, 0, Math.PI * 2); x.fill();
+    x.strokeStyle = '#111'; x.lineWidth = 6; x.lineCap = 'round'; x.beginPath(); x.arc(64, 70, 26, Math.PI * .2, Math.PI * .8); x.stroke();
+  });
+  const head = U.head = new THREE.Group(); head.position.y = 1.9; g.add(head);
+  const hm = [yel, yel, yel, yel, new THREE.MeshStandardMaterial({map: face, roughness: .7}), yel];
+  head.add(mesh(new THREE.BoxGeometry(.58, .58, .58), hm, 0, .29, 0));
+  U.arms = [-1, 1].map(sx => {
+    const sh = new THREE.Group(); sh.position.set(sx * .7, 1.85, 0); g.add(sh);
+    const a = new THREE.BoxGeometry(.44, .95, .44); a.translate(0, -.45, 0);
+    sh.add(mesh(a, yel));
+    return sh;
+  });
+  // 오른손에 든 칼
+  const knife = U.knife = new THREE.Group(); knife.position.set(0, -.9, .05); U.arms[1].add(knife);
+  knife.add(mesh(new THREE.BoxGeometry(.08, .08, .3), std(0x2a1a10), 0, 0, .05));
+  const blade = new THREE.BoxGeometry(.03, .1, .6); blade.translate(0, 0, .5);
+  knife.add(mesh(blade, std(0xe8edf4, {metalness: .6, roughness: .25, emissive: 0x303438})));
+  knife.visible = false;
+  return g;
+}
+function buildDevRoom(H, root){
+  const R = H.devRoom = new THREE.Group(); R.visible = false; root.add(R);
+  const X = H.devX = HORROR_X + 420;
+  const wallM = new THREE.MeshStandardMaterial({color: 0x4a4640, roughness: 1});
+  const fl = mesh(new THREE.PlaneGeometry(11, 11), new THREE.MeshStandardMaterial({map: H.floorTex, roughness: 1}), X, 0, 0, false); fl.rotation.x = -Math.PI / 2; R.add(fl);
+  const ce = mesh(new THREE.PlaneGeometry(11, 11), wallM, X, 3.4, 0, false); ce.rotation.x = Math.PI / 2; R.add(ce);
+  R.add(mesh(new THREE.BoxGeometry(11, 3.4, .2), new THREE.MeshStandardMaterial({map: H.wallTex, roughness: 1}), X, 1.7, -5.1, false));
+  R.add(mesh(new THREE.BoxGeometry(11, 3.4, .2), wallM, X, 1.7, 5.1, false));
+  for (const sx of [-1, 1]) R.add(mesh(new THREE.BoxGeometry(.2, 3.4, 11), wallM, X + sx * 5.5, 1.7, 0, false));
+  R.add(mesh(new THREE.BoxGeometry(1.6, 2.8, .1), std(0x2a1a12), X, 1.4, 4.98, false));   // 들어온 문
+  // 책상 · 모니터 (개발자 자리)
+  R.add(mesh(new THREE.BoxGeometry(2.2, .08, 1), std(0x3a2a1c), X - 4, .9, 2.5));
+  const mon = canvasTex(128, 80, (x, w, h) => { x.fillStyle = '#0a1a0a'; x.fillRect(0, 0, w, h); x.fillStyle = '#3f3'; x.font = '10px monospace'; ['function target(){', '  hunt(owner);', '}', '// 돌격소총'].forEach((s, k) => x.fillText(s, 6, 16 + k * 14)); });
+  const mo = mesh(new THREE.PlaneGeometry(1, .62), new THREE.MeshBasicMaterial({map: mon}), X - 4, 1.35, 2.2, false); R.add(mo);
+  R.add(mesh(new THREE.BoxGeometry(1.08, .7, .06), std(0x111111), X - 4, 1.35, 2.16, false));
+  // 사진 벽: 손님들 + 사장님(타겟) · 빨간 실
+  const pts = [];
+  DEV_PHOTOS.forEach(p => {
+    const ph = mesh(new THREE.PlaneGeometry(.95, 1.19), new THREE.MeshStandardMaterial({map: devPhotoTex(p.id), roughness: .8}), X + p.x, p.y, -4.98, false);
+    ph.rotation.z = (prand(p.x * 7 + p.y) - .5) * .12; R.add(ph); pts.push(new THREE.Vector3(X + p.x, p.y + .5, -4.96));
+  });
+  H.devTarget = {x: X + 2.9, y: 1.85};
+  R.add(mesh(new THREE.PlaneGeometry(1.3, 1.62), new THREE.MeshStandardMaterial({map: devPhotoTex('owner', true), roughness: .8}), X + 2.9, 1.85, -4.97, false));
+  const tgtPin = new THREE.Vector3(X + 2.9, 2.6, -4.95);
+  const segs = [];
+  pts.forEach((p, k) => { segs.push(p, tgtPin); if (k) segs.push(pts[k - 1], p); });
+  R.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(segs), new THREE.LineBasicMaterial({color: 0xc01010})));
+  // 흔들리는 전구 하나 · 사진 벽 조명
+  R.add(mesh(new THREE.SphereGeometry(.1, 8, 6), new THREE.MeshBasicMaterial({color: 0xffe0a0}), X, 3, 0, false));
+  H.devBulb = new THREE.PointLight(0xffd8a0, 1.1, 14); H.devBulb.position.set(X, 2.9, 0); R.add(H.devBulb);
+  const wl = new THREE.PointLight(0xffe0c0, .9, 7); wl.position.set(X, 2.4, -3); R.add(wl);
+  H.dev = makeDeveloper(); H.dev.visible = false; R.add(H.dev);
+  // 자막 · 검은 화면
+  const sub = document.createElement('div'); sub.id = 'cutSub'; sub.hidden = true; document.body.appendChild(sub);
+  const blk = document.createElement('div'); blk.id = 'cutBlack'; document.body.appendChild(blk);
+}
 function horrorWake(){
-  const H = W.horror, fine = Math.min(G.money, 20000);
-  if (H.done) return;
+  const H = W.horror;
+  if (H.done || H.cut) return;
   horrorLeave();
-  G.money -= fine;
+  H.cut = {t: 0, line: -1, step: 0, stab: 0};
+  H.other = false; H.otherG.visible = false; H.maze.visible = false; H.devRoom.visible = true;
+  H.dev.visible = false; H.dev.userData.knife.visible = false;
+  H.pos.set(H.devX, 0, 3.8); H.yaw = 0; H.pitch = 0; H.crouch = 0; H.crouchLock = false;
+  scene.fog.near = 3; scene.fog.far = 30;
+  document.body.classList.add('horror-cut');
+  const blk = $('cutBlack'); blk.style.transition = 'none'; blk.style.background = '#fff4d8'; blk.style.opacity = 1;
+  requestAnimationFrame(() => { blk.style.transition = 'opacity 1.4s'; blk.style.opacity = 0; });
   sfx.bell();
-  showOverlay(`
-    <div class="card horror-card">
-      <div class="ending-ic">🚪</div>
-      <h2>문을 열자 눈이 부셨다...</h2>
-      <div class="day-note">정신을 차려보니 시장 바닥이었어요. 온몸이 아파요.<br>치료비 <b>-${fmt(fine)}</b> · ${H.stage}단계에서 다시 도전할 수 있어요</div>
-      <button class="big-btn" onclick="horrorReturn()">🏪 시장에서 깨어나기</button>
-    </div>`);
+}
+function syncDevCut(dt){
+  const H = W.horror, C = H.cut, X = H.devX, t = C.t += dt;
+  const ease = (a, b) => clamp((t - a) / (b - a), 0, 1), sm = v => v * v * (3 - 2 * v);
+  // 사장님 움직임 (시간표대로)
+  let x = X, z = 3.8, yaw = 0, pitch = 0;
+  if (t < 3.2){ yaw = Math.sin(t / 3.2 * Math.PI * 2) * .75; pitch = .05; }
+  else if (t < 6.4){ z = lerp(3.8, .6, sm(ease(3.6, 6.2))); pitch = .12; }
+  else if (t < 12.6){ z = .6; yaw = lerp(.55, -.1, sm(ease(6.6, 11))); pitch = .2; }
+  else {
+    const w = sm(ease(13.4, 16));
+    x = lerp(X, X + 2.9, w); z = lerp(.6, -3.2, w);
+    yaw = t < 13.4 ? lerp(-.1, Math.atan2(-2.9, 3.8), sm(ease(12.8, 13.4))) : lerp(Math.atan2(-2.9, 3.8), 0, w);
+    pitch = lerp(.2, .1, w);
+    if (t > 16.3){ pitch = lerp(.1, -.28, sm(ease(16.3, 17))); z -= sm(ease(16.3, 17)) * .3; }
+    if (t > 19.4){ const r = sm(ease(19.4, 20.8)); yaw = lerp(0, Math.PI, r); pitch = lerp(-.28, .16, r); }
+    if (t > 30.4){ const l = sm(ease(30.4, 31.6)); pitch = lerp(.16, .45, l); }
+  }
+  const walking = (t > 3.6 && t < 6.2) || (t > 13.4 && t < 16);
+  if (walking){ H.stepT -= dt * 3.2; if (H.stepT <= 0){ H.stepT = 2.2; sfx.step(.03); } }
+  H.pos.x = x; H.pos.z = z; H.yaw = yaw; H.pitch = pitch;
+  H.flash.intensity = .6; H.aura.intensity = .3;
+  H.devBulb.intensity = Math.random() < .04 ? .2 : 1.1;
+  // 효과음 · 개발자
+  const D = H.dev, U = D.userData;
+  if (C.step === 0 && t > 18.6){ C.step = 1; sfx.knifeDraw(); D.visible = true; U.knife.visible = true; }
+  if (D.visible){
+    let dz = .8;
+    if (t > 30.4) dz = lerp(.8, -2.3, sm(ease(30.4, 31.4)));
+    D.position.set(H.devTarget.x, 0, dz); D.rotation.y = Math.PI;
+    U.head.rotation.z = t > 21 && t < 30 ? Math.sin(t * 2) * .08 : 0;
+    U.arms[0].rotation.x = t > 21 && t < 30 ? Math.sin(t * 5) * .15 : 0;
+    U.arms[1].rotation.x = t > 30.4 ? lerp(-1.1, -2.9, sm(ease(30.4, 31.4))) : -1.1;
+  }
+  if (C.step === 1 && t > DEV_BLACK){
+    C.step = 2;
+    const blk = $('cutBlack'); blk.style.transition = 'none'; blk.style.background = '#000'; blk.style.opacity = 1;
+    sfx.stab();
+  }
+  if (C.step === 2 && t > DEV_BLACK + .9){ C.step = 3; sfx.stab(); }
+  if (C.step === 3 && t > DEV_BLACK + 1.9){ C.step = 4; tone(70, 1.8, 'sine', .25, 30); }
+  // 자막 (한 글자씩)
+  let li = -1; DEV_LINES.forEach((L, k) => { if (t >= L.t) li = k; });
+  const sub = $('cutSub');
+  if (li >= 0){
+    const L = DEV_LINES[li], n = Math.floor((t - L.t) * 22);
+    const html = L.text ? `${L.who ? `<b class="${L.who === '나' ? 'me' : 'dev'}">${L.who}</b>` : ''}${esc(L.text.slice(0, n))}` : '';
+    if (sub.innerHTML !== html) sub.innerHTML = html;
+    sub.hidden = !L.text;
+  }
+  if (t > DEV_END) devDeath();
+}
+function devDeath(){
+  const H = W.horror;
+  H.cut = null;
+  $('cutSub').hidden = true;
+  document.body.classList.remove('horror-cut');
+  const blk = $('cutBlack'); blk.style.transition = 'opacity 1s'; blk.style.opacity = 0;
+  H.devRoom.visible = false; H.maze.visible = true;
+  scene.fog.near = 22; scene.fog.far = 45;
+  showEnding('dev');
 }
 
 // ---- 시작 · 끝 ----
@@ -5539,7 +5763,7 @@ function horrorEnterStage(stage){
 function horrorGo(){
   hideOverlay();
   W.horror.done = false;
-  try { renderer.domElement.requestPointerLock(); } catch(e){}
+  if (!IS_TOUCH) try { renderer.domElement.requestPointerLock(); } catch(e){}
 }
 function horrorLeave(){
   const H = W.horror;
@@ -5570,14 +5794,14 @@ function horrorCaught(m){
   sfx.jumpscare();
   $('scareFlash').classList.add('on');
 }
-function horrorQuit(){ if (!inPhase('horror')) return; if (W.horror.other){ horrorWake(); return; } horrorLeave(); horrorReturn(); }
+function horrorQuit(){ if (!inPhase('horror') || W.horror.cut) return; horrorLeave(); horrorReturn(); }
 function horrorReturn(){
   const H = W.horror;
   horrorLeave();
   hideOverlay();
   $('scareFlash').classList.remove('on');
   H.monsters.forEach(m => { m.g.visible = false; });
-  H.other = false; H.otherG.visible = false; H.maze.visible = true;
+  H.other = false; H.otherG.visible = false; H.maze.visible = true; H.devRoom.visible = false; H.cut = null;
   scene.fog.near = 22; scene.fog.far = 45;
   G.phase = 'market';
   setWorldMode('market');
@@ -5599,6 +5823,7 @@ function horrorKey(e, down){
 function syncHorror(dt){
   const H = W.horror, P = H.P, live = canHorror();
   const k = H.keys;
+  if (H.cut){ syncDevCut(dt); return; }   // 문 너머의 방 컷신
   // 점프 스케어 중
   if (H.scare > 0){
     H.scare -= dt;
@@ -5621,12 +5846,13 @@ function syncHorror(dt){
   }
   // 이동
   let speed = 0, noise = 0;
-  H.crouch = lerp(H.crouch, k.has('KeyC') ? 1 : 0, Math.min(1, dt * 10));
+  H.crouch = lerp(H.crouch, k.has('KeyC') || H.crouchLock ? 1 : 0, Math.min(1, dt * 10));
   if (live){
     if (k.has('ArrowLeft')) H.yaw += dt * 2.2;
     if (k.has('ArrowRight')) H.yaw -= dt * 2.2;
-    const f = (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0);
-    const s = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0);
+    let f = (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0);
+    let s = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0);
+    if (!f && !s && Math.hypot(W.joy.x, W.joy.y) > .15){ f = -W.joy.y; s = W.joy.x; }   // 조이스틱
     const running = (k.has('ShiftLeft') || k.has('ShiftRight')) && H.stamina > 1 && H.crouch < .5 && (f || s);
     speed = H.crouch > .5 ? H_CROUCH : running ? H_RUN : H_WALK;
     if (f || s){
@@ -5707,6 +5933,7 @@ function syncHorror(dt){
   hud.querySelector('.st i').style.width = H.stamina + '%';
   hud.querySelector('.bt').hidden = hud.querySelector('.hh-bat').hidden = !P.battery;
   hud.querySelector('.bt i').style.width = H.battery + '%';
+  const lb = document.querySelector('[data-ht="light"]'); if (lb) lb.hidden = !P.battery;
   const state = `${H.crouch > .5 ? '🧎 웅크리기' : speed >= H_RUN ? '🏃 달리기' : speed ? '🚶 걷기' : '🧍 멈춤'} · 소리 ${'▮'.repeat(Math.round(noise / 3))}${'▯'.repeat(3 - Math.round(noise / 3))}${H.monsters.some(m => m.chase) ? ' · ⚠️ 쫓기는 중!' : ''}`;
   const sEl = hud.querySelector('.hh-state'); if (sEl.textContent !== state) sEl.textContent = state;
   hud.querySelector('.hh-hint').hidden = !!document.pointerLockElement;
@@ -5722,6 +5949,12 @@ function horrorCamera(){
   H.flash.position.copy(camera.position);
   H.flash.target.position.copy(camera.position).addScaledVector(dir, 6);
   H.aura.position.copy(camera.position);
+  if (H.cut){   // 문 너머의 방: 어둡고, 놀라면 화면이 흔들려요
+    const t = H.cut.t, sh = t > 16.4 && t < 17.2 ? .03 : t > 18.6 && t < 19.2 ? .02 : t > 30.4 && t < 32 ? .05 : 0;
+    if (sh){ camera.position.x += (Math.random() - .5) * sh; camera.position.y += (Math.random() - .5) * sh; }
+    scene.background.set(0x060505); scene.fog.color.copy(scene.background);
+    W.hemi.color.set(0x9a9aa8); W.hemi.intensity = .3;
+  }
   if (H.other){   // 이상한 곳: 핏빛 하늘과 안개
     scene.background.set(0x2a0506); scene.fog.color.copy(scene.background);
     W.hemi.color.set(0xff6a50); W.hemi.intensity = .55;
@@ -8063,7 +8296,8 @@ function showEnding(reason){
   const d = G.day;
   let grade;
   G.afterWork = false;
-  if (reason === 'tired') grade = {e: '😵', t: '과로로 쓰러졌어요...', d: '퇴근을 너무 미뤄서 피곤함이 100%가 됐어요. 사장님도 쉬어야 해요!'};
+  if (reason === 'dev') grade = {e: '🔪', t: '개발자한테 사망', d: '가게 손님들은 모두 가짜였고, 사장님은 처음부터 타겟이었어요...<br>이 게임의 개발자 <b>돌격소총</b>에게 당했어요.'};
+  else if (reason === 'tired') grade = {e: '😵', t: '과로로 쓰러졌어요...', d: '퇴근을 너무 미뤄서 피곤함이 100%가 됐어요. 사장님도 쉬어야 해요!'};
   else if (reason === 'rep') grade = {e: '🥀', t: '폐업... 손님이 발길을 끊었어요', d: '평판이 바닥났어요. 국밥은 정성입니다!'};
   else if (reason === 'bankrupt') grade = {e: '💸', t: '파산... 임대료를 못 냈어요', d: '재료 구입비와 임대료 관리가 중요해요.'};
   else {
@@ -8189,7 +8423,7 @@ document.addEventListener('pointerdown', e => {
   if (e.button !== 0) return;
   const t = e.target;
   if (inPhase('horror')){   // 공포 미로: 화면을 클릭하면 마우스로 둘러봐요
-    if (canHorror() && t === renderer.domElement && !document.pointerLockElement) renderer.domElement.requestPointerLock();
+    if (canHorror() && t === renderer.domElement && !document.pointerLockElement && e.pointerType === 'mouse') renderer.domElement.requestPointerLock();
     return;
   }
   const fb = t.closest('[data-floor]');
