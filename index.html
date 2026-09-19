@@ -8446,7 +8446,7 @@ function togglePause(){
         <div class="keys-help" style="font-size:16px">${keys}</div>
         <button class="big-btn" onclick="togglePause()">계속하기 ▶</button><br>
         ${timeLeft <= 0 && waiting ? `<button class="sub-btn" onclick="${closeFn}">🙇 남은 손님께 사과하고 마감 (평판이 조금 깎여요)</button><br>` : ''}
-        <button class="sub-btn" onclick="showTitle()">처음으로</button>
+        <button class="sub-btn" onclick="pauseQuit()">🚪 게임 종료</button>
       </div>`);
   } else hideOverlay();
 }
@@ -8464,8 +8464,10 @@ function closeEarly(){
 
 // ================= 오버레이 / 이펙트 =================
 // ---- 게임 종료 (진행은 그날 아침 기준으로 저장돼 있어요) ----
-function quitGame(){
-  if (!$('overlay').hidden) return;
+function pauseQuit(){ hideOverlay(); quitGame(true); }          // 일시정지 메뉴에서 종료
+function backToPause(){ if (!G) return; G.paused = false; G.running = true; togglePause(); }   // 종료 취소 → 일시정지 메뉴로
+function quitGame(fromPause){
+  if (!fromPause && !$('overlay').hidden) return;
   if (G && G.running){ G.running = false; G.paused = true; G.helpPaused = true; }
   const sav = G ? loadProgress() : null;
   showOverlay(`
@@ -8475,7 +8477,7 @@ function quitGame(){
       <div class="day-note">${sav ? `진행은 <b>DAY ${sav.day} 아침</b> 기준으로 저장돼 있어요.<br>다음에 타이틀 화면에서 <b>이어하기</b>를 누르면 여기서부터 다시 해요.<br><small style="color:#8a6e55">오늘 벌어들인 돈은 저장되지 않아요</small>`
                   : '지금까지의 진행은 저장되지 않아요.'}</div>
       <button class="big-btn" onclick="quitToTitle()">🏠 타이틀로 나가기</button><br>
-      <button class="sub-btn" onclick="closeHelp()">↩️ 계속하기</button>
+      <button class="sub-btn" onclick="${fromPause ? 'backToPause()' : 'closeHelp()'}">↩️ 계속하기</button>
     </div>`);
 }
 function quitToTitle(){
