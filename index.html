@@ -138,6 +138,7 @@ button{font-family:inherit;cursor:pointer}
 .fb-btn.home{border-color:#e0a030}
 .home-note{font-size:15px;color:#8a6e55;margin:6px 0}
 .vp-log{text-align:left;font-size:16px;background:#fff0c2;border-radius:10px;padding:8px 12px;margin:8px 0;max-height:200px;overflow:auto}
+#scareFace{position:fixed;left:50%;top:50%;width:min(95vw,95vh);height:min(95vw,95vh);transform:translate(-50%,-50%);z-index:61;pointer-events:none;opacity:0}
 #scareFlash{position:fixed;inset:0;z-index:60;pointer-events:none;background:radial-gradient(rgba(255,0,0,.1),rgba(120,0,0,.85));opacity:0}
 #scareFlash.on{animation:scare .12s steps(2) infinite}
 @keyframes scare{50%{opacity:1}}
@@ -721,6 +722,18 @@ function saveBest(b){ try { localStorage.setItem('gukbap_best', JSON.stringify(b
 
 // ================= 사운드 =================
 let AC = null, muted = false;
+// 거친 잡음 (점프 스케어용)
+function noiseBurst(d, v = .3, delay = 0){
+  if (muted) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    const len = Math.floor(AC.sampleRate * d), buf = AC.createBuffer(1, len, AC.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = AC.createBufferSource(), g = AC.createGain(), t = AC.currentTime + delay;
+    src.buffer = buf; g.gain.setValueAtTime(v, t);
+    src.connect(g).connect(AC.destination); src.start(t);
+  } catch(e){}
+}
 function tone(f, d, type = 'sine', v = 0.08, f2 = null, delay = 0){
   if (muted) return;
   try {
@@ -750,6 +763,12 @@ const sfx = {
   bonk:  () => { tone(160, 0.18, 'square', 0.12, 50); tone(1400, 0.05, 'triangle', 0.05); },
   bang:  () => { tone(90, 0.35, 'sawtooth', 0.16, 30); tone(2400, 0.06, 'square', 0.08, 300); },
   siren: () => { tone(650, 0.35, 'sine', 0.06, 950); tone(950, 0.35, 'sine', 0.06, 650, 0.35); tone(650, 0.35, 'sine', 0.06, 950, 0.7); },
+  jumpscare: () => {
+    noiseBurst(1.4, .45);
+    tone(1200, 1.3, 'sawtooth', .16, 180); tone(1650, 1.1, 'square', .1, 260, .03); tone(520, 1.4, 'sawtooth', .14, 70, .05);
+    tone(60, 1.2, 'sine', .35, 30);   // 쿵 울리는 저음
+    noiseBurst(.4, .35, .9);
+  },
   scream:() => { tone(900, 0.9, 'sawtooth', 0.09, 120); tone(1400, 0.7, 'square', 0.05, 200, 0.05); tone(300, 1.0, 'sawtooth', 0.06, 60); },
   heart: () => { tone(58, 0.12, 'sine', 0.22, 40); tone(52, 0.12, 'sine', 0.16, 36, 0.18); },
   step:  (v = .03) => tone(90 + Math.random() * 40, 0.06, 'triangle', v, 50),
@@ -5052,7 +5071,7 @@ const HORROR_STAGES = [
 ];
 const HB = 2.4, HWALL = 3.2;   // 미로 한 칸 크기 · 벽 높이
 const SIGIL_AT = {x: -9.85, z: -8};   // 시장 문양 위치 (MARKET_X 기준)
-const H_WALK = 3.2, H_RUN = 5.8, H_CROUCH = 1.6;
+const H_WALK = 3.2, H_RUN = 5.8, H_CROUCH = 1.6, SCARE_LEN = 1.9;
 
 function drawSigil(x, w, h, color, glow){
   const cx = w / 2, cy = h / 2, R = w * .45;
@@ -5090,24 +5109,126 @@ function buildHorror(){
   H.aura = new THREE.PointLight(0x8a90b0, .35, 4.5);
   root.add(H.aura);
   // 괴물 모델
-  H.monsterModels = [0, 1].map(() => {
-    const g = new THREE.Group();
-    const skin = std(0x0a0a0c, {roughness: 1});
-    g.add(mesh(new THREE.CylinderGeometry(.3, .5, 2.4, 10), skin, 0, 1.2, 0));
-    g.add(mesh(new THREE.SphereGeometry(.42, 14, 10), skin, 0, 2.75, 0));
-    const eye = new THREE.MeshBasicMaterial({color: 0xff2020});
-    for (const sx of [-.15, .15]) g.add(mesh(new THREE.SphereGeometry(.07, 8, 6), eye, sx, 2.8, .36, false));
-    const mouth = mesh(new THREE.BoxGeometry(.3, .06, .05), new THREE.MeshBasicMaterial({color: 0x550000}), 0, 2.55, .38, false); g.add(mouth);
-    for (const sx of [-1, 1]){ const arm = mesh(new THREE.CylinderGeometry(.07, .05, 2.1, 6), skin, sx * .45, 1.4, .15); arm.rotation.z = sx * .15; arm.rotation.x = -.25; g.add(arm); }
-    const red = new THREE.PointLight(0xff2020, .5, 3.5); red.position.set(0, 2.8, .6); g.add(red);
-    g.visible = false; root.add(g);
-    return g;
-  });
+  H.monsterModels = [0, 1].map(() => { const g = makeHorrorMonster(); g.visible = false; root.add(g); return g; });
   // 점프 스케어 화면
   const flash = document.createElement('div'); flash.id = 'scareFlash'; document.body.appendChild(flash);
+  const face = document.createElement('canvas'); face.id = 'scareFace'; face.width = face.height = 512; drawScareFace(face); document.body.appendChild(face);
   const hud = document.createElement('div'); hud.id = 'horrorHud'; hud.hidden = true;
   hud.innerHTML = '<div class="hh-top"></div><div class="hh-bars"><span>🏃</span><div class="hh-bar st"><i></i></div><span class="hh-bat">🔦</span><div class="hh-bar bt"><i></i></div></div><div class="hh-state"></div><div class="hh-hint">화면을 클릭하면 마우스로 둘러봐요 · WASD 이동 · Shift 달리기 · C 웅크리기 · ←→ 돌기</div><button class="sub-btn hh-quit" onclick="horrorQuit()">🏳️ 포기하고 돌아가기 (Q)</button>';
   document.body.appendChild(hud);
+}
+
+// 창백하고 마른 인간형 괴물: 꺾이는 긴 팔다리 · 갈비뼈 · 이빨 가득한 입 · 텅 빈 눈구멍
+function makeHorrorMonster(){
+  const g = new THREE.Group(), U = g.userData;
+  // 얼룩덜룩 썩은 듯한 잿빛 피부
+  const skinTex = canvasTex(128, 128, (x, w, h) => {
+    x.fillStyle = '#6a655a'; x.fillRect(0, 0, w, h);
+    for (let k = 0; k < 60; k++){ x.fillStyle = `rgba(${prand(k + 2000) > .5 ? '30,24,20' : '120,110,95'},${.15 + prand(k + 2010) * .35})`; x.beginPath(); x.arc(prand(k + 2020) * w, prand(k + 2030) * h, 2 + prand(k + 2040) * 10, 0, Math.PI * 2); x.fill(); }
+    x.strokeStyle = 'rgba(70,10,15,.45)'; x.lineWidth = 1.5;
+    for (let k = 0; k < 10; k++){ x.beginPath(); x.moveTo(prand(k + 2050) * w, 0); x.bezierCurveTo(prand(k + 2051) * w, h * .3, prand(k + 2052) * w, h * .6, prand(k + 2053) * w, h); x.stroke(); }
+  });
+  const skin = new THREE.MeshStandardMaterial({map: skinTex, roughness: 1}), dark = std(0x1e1a18, {roughness: .9}), bone = std(0xc8bea4, {roughness: .6});
+  const hole = new THREE.MeshBasicMaterial({color: 0x050303}), pupil = new THREE.MeshBasicMaterial({color: 0xff1a10});
+  const limb = (r1, r2, len) => { const q = new THREE.CylinderGeometry(r1, r2, len, 8); q.translate(0, -len / 2, 0); return q; };
+  // 다리 (허벅지 → 무릎 → 정강이)
+  U.legs = [-1, 1].map(sx => {
+    const hip = new THREE.Group(); hip.position.set(sx * .17, 1.45, 0); g.add(hip);
+    hip.add(mesh(limb(.1, .07, .75), skin));
+    const knee = new THREE.Group(); knee.position.y = -.75; hip.add(knee);
+    knee.add(mesh(new THREE.SphereGeometry(.08, 8, 6), skin));
+    knee.add(mesh(limb(.07, .045, .72), skin));
+    knee.add(mesh(new THREE.BoxGeometry(.12, .05, .3), skin, 0, -.72, .08));
+    return {hip, knee};
+  });
+  // 몸통 (구부정하게 숙여요)
+  const torso = U.torso = new THREE.Group(); torso.position.y = 1.45; g.add(torso);
+  torso.add(mesh(new THREE.BoxGeometry(.4, .22, .22), skin, 0, .05, 0));
+  torso.add(mesh(new THREE.CylinderGeometry(.14, .12, .5, 8), skin, 0, .4, 0));   // 홀쭉한 배
+  torso.add(mesh(new THREE.CylinderGeometry(.3, .2, .75, 10), skin, 0, .95, 0));   // 가슴
+  for (let k = 0; k < 5; k++){ const rib = mesh(new THREE.TorusGeometry(.27 - k * .015, .018, 5, 16, Math.PI), dark, 0, .75 + k * .1, .05, false); rib.rotation.y = -Math.PI / 2; rib.rotation.z = Math.PI / 2; torso.add(rib); }
+  for (let k = 0; k < 6; k++) torso.add(mesh(new THREE.SphereGeometry(.04, 6, 4), bone, 0, .45 + k * .15, -.17, false));   // 등뼈
+  // 목 · 머리
+  torso.add(mesh(new THREE.CylinderGeometry(.07, .09, .35, 8), skin, 0, 1.45, .05));
+  const head = U.head = new THREE.Group(); head.position.set(0, 1.62, .08); torso.add(head);
+  const skull = mesh(new THREE.SphereGeometry(.3, 16, 12), skin, 0, .12, 0); skull.scale.set(.82, 1.3, .95); head.add(skull);
+  for (const sx of [-.11, .11]){
+    const sock = mesh(new THREE.SphereGeometry(.085, 10, 8), hole, sx, .2, .23, false); sock.scale.set(1, 1.3, .6); head.add(sock);
+    head.add(mesh(new THREE.SphereGeometry(.022, 6, 4), pupil, sx, .19, .29, false));
+  }
+  head.add(mesh(new THREE.BoxGeometry(.05, .1, .04), hole, 0, .05, .28, false));   // 코 구멍
+  // 위 이빨 · 입 속 · 아래턱
+  head.add(mesh(new THREE.BoxGeometry(.26, .14, .05), new THREE.MeshBasicMaterial({color: 0x2a0303}), 0, -.1, .22, false));
+  for (let k = 0; k < 7; k++){ const tt = mesh(geo('mTooth', () => new THREE.ConeGeometry(.018, .09, 4)), bone, -.12 + k * .04, -.07, .26, false); tt.rotation.x = Math.PI; head.add(tt); }
+  const jaw = U.jaw = new THREE.Group(); jaw.position.set(0, -.1, .02); head.add(jaw);
+  jaw.add(mesh(new THREE.BoxGeometry(.24, .06, .26), skin, 0, -.08, .12));
+  for (let k = 0; k < 7; k++) jaw.add(mesh(geo('mTooth', () => new THREE.ConeGeometry(.018, .09, 4)), bone, -.12 + k * .04, -.02, .24, false));
+  // 팔 (위팔 → 팔꿈치 → 아래팔 → 긴 손톱)
+  U.arms = [-1, 1].map(sx => {
+    const sh = new THREE.Group(); sh.position.set(sx * .34, 1.28, 0); torso.add(sh);
+    sh.add(mesh(new THREE.SphereGeometry(.08, 8, 6), skin));
+    sh.add(mesh(limb(.075, .05, .85), skin));
+    const el = new THREE.Group(); el.position.y = -.85; sh.add(el);
+    el.add(mesh(limb(.05, .035, .8), skin));
+    const hand = new THREE.Group(); hand.position.y = -.82; el.add(hand);
+    hand.add(mesh(new THREE.BoxGeometry(.1, .12, .05), skin, 0, -.05, 0));
+    for (let k = 0; k < 4; k++){ const claw = mesh(geo('mClaw', () => new THREE.ConeGeometry(.012, .32, 4)), dark, -.045 + k * .03, -.26, 0, false); claw.rotation.x = Math.PI; hand.add(claw); }
+    return {sh, el};
+  });
+  const red = new THREE.PointLight(0xff2010, .35, 2.5); red.position.set(0, 3.1, .5); g.add(red);
+  U.twitch = 0; U.twitchT = 0;
+  g.scale.setScalar(.88);
+  return g;
+}
+// 괴물 움직임: 걸을 땐 다리를 휘청이고, 쫓을 땐 몸을 숙이고 팔을 앞으로 뻗은 채 달려요. 가끔 목이 꺾여요
+function animateHorrorMonster(g, moving, chase, dt){
+  const U = g.userData, sp = chase ? 10 : 4.5, t = T * sp;
+  const swing = moving ? Math.sin(t) : 0;
+  U.legs.forEach((L, k) => {
+    const s = k ? -swing : swing;
+    L.hip.rotation.x = s * (chase ? .8 : .45) - (chase ? .25 : 0);
+    L.knee.rotation.x = Math.max(0, -s) * (chase ? 1.3 : .7) + (chase ? .35 : .08);
+  });
+  U.torso.rotation.x = lerp(U.torso.rotation.x, chase ? .95 : .6, Math.min(1, dt * 4));   // 잔뜩 구부정하게
+  U.torso.rotation.y = moving ? Math.sin(t) * .12 : 0;
+  U.arms.forEach((A, k) => {
+    const s = k ? -swing : swing;
+    A.sh.rotation.x = chase ? -1.35 + s * .35 : .15 + s * .35;
+    A.sh.rotation.z = (k ? -1 : 1) * (chase ? .25 : .08);
+    A.el.rotation.x = chase ? -.5 + Math.sin(t * 1.7 + k) * .3 : -.25;
+  });
+  // 경련하듯 목 꺾기
+  U.twitchT -= dt;
+  if (U.twitchT <= 0){ U.twitchT = .4 + Math.random() * (chase ? .8 : 2.5); U.twitch = (Math.random() - .5) * (chase ? 1.4 : .9); }
+  U.head.rotation.z = lerp(U.head.rotation.z, U.twitch, Math.min(1, dt * 18));
+  U.head.rotation.x = -(U.torso.rotation.x) * .8 + Math.sin(T * 13) * (chase ? .06 : .02);
+  U.jaw.rotation.x = chase ? .35 + Math.abs(Math.sin(T * 7)) * .25 : .08;
+}
+// 점프 스케어용 얼굴 그림 (한 번 그려 둬요)
+function drawScareFace(c){
+  const x = c.getContext('2d'), w = c.width, h = c.height;
+  x.fillStyle = '#000'; x.fillRect(0, 0, w, h);
+  const g = x.createRadialGradient(w / 2, h * .45, w * .05, w / 2, h * .5, w * .55);
+  g.addColorStop(0, '#d8d2c0'); g.addColorStop(.6, '#8a8474'); g.addColorStop(1, '#000');
+  x.fillStyle = g; x.beginPath(); x.ellipse(w / 2, h * .5, w * .36, h * .5, 0, 0, Math.PI * 2); x.fill();
+  // 금 간 피부 · 핏줄
+  x.strokeStyle = 'rgba(60,10,10,.6)'; x.lineWidth = 3;
+  for (let k = 0; k < 14; k++){ x.beginPath(); let px = w * (.2 + prand(k + 1900) * .6), py = h * (.1 + prand(k + 1910) * .8); x.moveTo(px, py); for (let s = 0; s < 5; s++){ px += (prand(k * 7 + s) - .5) * 60; py += (prand(k * 5 + s + 3) - .5) * 60; x.lineTo(px, py); } x.stroke(); }
+  // 텅 빈 눈구멍 · 붉은 눈동자
+  for (const sx of [-1, 1]){
+    x.fillStyle = '#000'; x.beginPath(); x.ellipse(w / 2 + sx * w * .14, h * .36, w * .1, h * .12, sx * .2, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#ff1a10'; x.shadowColor = '#ff0000'; x.shadowBlur = 30;
+    x.beginPath(); x.arc(w / 2 + sx * w * .14, h * .37, w * .018, 0, Math.PI * 2); x.fill(); x.shadowBlur = 0;
+    x.fillStyle = 'rgba(120,0,0,.8)'; x.fillRect(w / 2 + sx * w * .14 - 3, h * .45, 6, h * (.1 + prand(sx + 5) * .15));   // 피눈물
+  }
+  // 찢어진 큰 입과 이빨
+  x.fillStyle = '#120000'; x.beginPath(); x.ellipse(w / 2, h * .72, w * .2, h * .17, 0, 0, Math.PI * 2); x.fill();
+  x.fillStyle = '#efe6cc';
+  for (let k = 0; k < 11; k++){
+    const tx = w * .32 + k * w * .034;
+    x.beginPath(); x.moveTo(tx, h * .58); x.lineTo(tx + w * .017, h * (.66 + prand(k + 1950) * .04)); x.lineTo(tx + w * .034, h * .58); x.fill();
+    x.beginPath(); x.moveTo(tx, h * .86); x.lineTo(tx + w * .017, h * (.78 - prand(k + 1960) * .04)); x.lineTo(tx + w * .034, h * .86); x.fill();
+  }
 }
 
 // ---- 단계 만들기 ----
@@ -5278,8 +5399,8 @@ function horrorClear(){
 function horrorCaught(m){
   const H = W.horror;
   if (H.scare > 0 || H.done) return;
-  H.scare = 1.3; H.scareBy = m;
-  sfx.scream();
+  H.scare = SCARE_LEN; H.scareBy = m;
+  sfx.jumpscare();
   $('scareFlash').classList.add('on');
 }
 function horrorCaughtCard(){
@@ -5326,11 +5447,21 @@ function syncHorror(dt){
   // 점프 스케어 중
   if (H.scare > 0){
     H.scare -= dt;
-    const m = H.scareBy.g;
-    m.position.set(H.pos.x - Math.sin(H.yaw) * .9, 0, H.pos.z - Math.cos(H.yaw) * .9);
-    m.lookAt(H.pos.x, 0, H.pos.z);
-    m.scale.setScalar(1 + (1.3 - H.scare) * .4);
-    if (H.scare <= 0){ m.scale.setScalar(1); horrorCaughtCard(); }
+    const m = H.scareBy.g, U = m.userData, e = SCARE_LEN - H.scare;
+    const lunge = Math.min(1, e / .3), dist = lerp(2.4, .42, lunge * lunge);
+    const eye = 1.6 - H.crouch * .7;
+    m.position.set(H.pos.x - Math.sin(H.yaw) * dist, eye - 3.05 * 1.15 + .1, H.pos.z - Math.cos(H.yaw) * dist);
+    m.lookAt(H.pos.x, m.position.y, H.pos.z);
+    m.scale.setScalar(1.15);
+    U.torso.rotation.x = .1; U.head.rotation.x = -.1 + (Math.random() - .5) * .3; U.head.rotation.z = (Math.random() - .5) * .5;
+    U.jaw.rotation.x = .9 + Math.random() * .15;
+    U.arms.forEach((A, k) => { A.sh.rotation.x = -1.9; A.sh.rotation.z = (k ? -1 : 1) * .6; A.el.rotation.x = -.3; });
+    // 달려든 뒤엔 얼굴 그림 · 붉은 화면 · 검은 화면이 번갈아 번쩍여요
+    const face = $('scareFace'), fr = Math.floor(e / .07) % 3;
+    face.style.opacity = e > .3 ? (fr === 0 ? 1 : fr === 1 ? .55 : 0) : 0;
+    face.style.transform = `translate(-50%,-50%) scale(${1 + e * .5}) rotate(${(Math.random() - .5) * 8}deg)`;
+    $('scareFlash').style.background = fr === 2 && e > .3 ? '#000' : '';
+    if (H.scare <= 0){ m.scale.setScalar(.88); m.position.y = 0; face.style.opacity = 0; $('scareFlash').style.background = ''; horrorCaughtCard(); }
     return;
   }
   // 이동
@@ -5399,7 +5530,8 @@ function syncHorror(dt){
       if (l < .15) m.path.shift();
       else { g.position.x += dx / l * Math.min(l, sp * dt); g.position.z += dz / l * Math.min(l, sp * dt); g.rotation.y = lerp(g.rotation.y, Math.atan2(dx, dz), Math.min(1, dt * 8)); }
     }
-    g.position.y = Math.abs(Math.sin(T * (m.chase ? 9 : 4))) * .08;
+    g.position.y = 0;
+    animateHorrorMonster(g, !!tgt, m.chase, dt);
     if (d < .95) horrorCaught(m);
   });
   // 심장 소리: 괴물이 가까울수록 빨리
@@ -5425,6 +5557,7 @@ function horrorCamera(){
   const H = W.horror, bob = Math.sin(T * 9) * .03;
   const eye = 1.6 - H.crouch * .7;
   camera.position.set(H.pos.x, eye + bob, H.pos.z);
+  if (H.scare > 0){ const sh = .12; camera.position.x += (Math.random() - .5) * sh; camera.position.y += (Math.random() - .5) * sh; camera.position.z += (Math.random() - .5) * sh; }
   const dir = new THREE.Vector3(-Math.sin(H.yaw) * Math.cos(H.pitch), Math.sin(H.pitch), -Math.cos(H.yaw) * Math.cos(H.pitch));
   curLook.copy(camera.position).add(dir);
   camera.lookAt(curLook);
