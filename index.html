@@ -500,6 +500,7 @@ body.horror-cut #horrorHud,body.horror-cut #horrorTouch,body.horror-cut #joystic
   <div class="hud-item combo" id="hudCombo"></div>
   <button class="icon-btn" id="muteBtn" title="소리 켜기/끄기">🔊</button>
   <button class="icon-btn" id="helpBtn" title="조작 도움말" onclick="showHelp()">❓</button>
+  <button class="icon-btn" id="quitBtn" title="게임 종료" onclick="quitGame()">🚪</button>
   <button class="icon-btn" id="pauseBtn" title="일시정지 (Esc)">⏸</button>
 </div>
 <div class="controls" id="lunchControls">
@@ -8462,6 +8463,27 @@ function closeEarly(){
 }
 
 // ================= 오버레이 / 이펙트 =================
+// ---- 게임 종료 (진행은 그날 아침 기준으로 저장돼 있어요) ----
+function quitGame(){
+  if (!$('overlay').hidden) return;
+  if (G && G.running){ G.running = false; G.paused = true; G.helpPaused = true; }
+  const sav = G ? loadProgress() : null;
+  showOverlay(`
+    <div class="card">
+      <div class="ending-ic">🚪</div>
+      <h2>게임을 끝낼까요?</h2>
+      <div class="day-note">${sav ? `진행은 <b>DAY ${sav.day} 아침</b> 기준으로 저장돼 있어요.<br>다음에 타이틀 화면에서 <b>이어하기</b>를 누르면 여기서부터 다시 해요.<br><small style="color:#8a6e55">오늘 벌어들인 돈은 저장되지 않아요</small>`
+                  : '지금까지의 진행은 저장되지 않아요.'}</div>
+      <button class="big-btn" onclick="quitToTitle()">🏠 타이틀로 나가기</button><br>
+      <button class="sub-btn" onclick="closeHelp()">↩️ 계속하기</button>
+    </div>`);
+}
+function quitToTitle(){
+  if (G) G.helpPaused = false;
+  sfx.click();
+  showTitle();
+  try { window.close(); } catch(e){}   // 게임만 띄운 창이면 창도 닫혀요
+}
 // ---- 조작 도움말 (볼 동안엔 장사가 멈춰요) ----
 function showHelp(){
   if (!$('overlay').hidden) return;
