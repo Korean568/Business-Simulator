@@ -5059,17 +5059,17 @@ function syncHome(dt){
   }
 }
 
-// ---------------- 문양 속 공포 미로 (1인칭 · 5단계) ----------------
-// 새벽시장 양념가게 뒤 문양을 밟으면 끌려와요. 부적을 모두 모아 출구 문양으로 탈출하세요.
+// ---------------- 문양 속 저주받은 집 (1인칭 공포 · 5단계) ----------------
+// 새벽시장 양념가게 뒤 문양을 밟으면 끌려와요. 방들을 뒤져 부적을 모두 모아 출구 문양으로 탈출하세요. 잡히면 '이상한 곳'으로 끌려가요.
 // WASD 이동 · Shift 달리기 · C 웅크리기 · 마우스 둘러보기 (5단계: F 손전등 · 배터리)
 const HORROR_STAGES = [
-  {n: 5, talis: 2, monsters: 1, speed: 2.6, sight: 6,  hear: 1.0, fog: 16},
-  {n: 6, talis: 3, monsters: 1, speed: 3.0, sight: 7,  hear: 1.15, fog: 15},
-  {n: 7, talis: 3, monsters: 1, speed: 3.4, sight: 8,  hear: 1.3, fog: 14},
-  {n: 8, talis: 4, monsters: 2, speed: 3.6, sight: 9,  hear: 1.45, fog: 13},
-  {n: 9, talis: 5, monsters: 2, speed: 4.0, sight: 10, hear: 1.6, fog: 12, battery: true},
+  {rw: 2, rh: 2, talis: 2, monsters: 1, speed: 2.6, sight: 6,  hear: 1.0,  fog: 16},
+  {rw: 3, rh: 2, talis: 3, monsters: 1, speed: 3.0, sight: 7,  hear: 1.15, fog: 15},
+  {rw: 3, rh: 3, talis: 3, monsters: 1, speed: 3.4, sight: 8,  hear: 1.3,  fog: 14},
+  {rw: 4, rh: 3, talis: 4, monsters: 2, speed: 3.6, sight: 9,  hear: 1.45, fog: 13},
+  {rw: 4, rh: 4, talis: 5, monsters: 2, speed: 4.0, sight: 10, hear: 1.6,  fog: 12, battery: true},
 ];
-const HB = 2.4, HWALL = 3.2;   // 미로 한 칸 크기 · 벽 높이
+const HB = 1.6, HWALL = 3.2, RI = 5;   // 칸 크기 · 벽 높이 · 방 한 변의 칸 수
 const SIGIL_AT = {x: -9.85, z: -8};   // 시장 문양 위치 (MARKET_X 기준)
 const H_WALK = 3.2, H_RUN = 5.8, H_CROUCH = 1.6, SCARE_LEN = 1.9;
 
@@ -5110,6 +5110,7 @@ function buildHorror(){
   root.add(H.aura);
   // 괴물 모델
   H.monsterModels = [0, 1].map(() => { const g = makeHorrorMonster(); g.visible = false; root.add(g); return g; });
+  buildOtherworld(H, root);
   // 점프 스케어 화면
   const flash = document.createElement('div'); flash.id = 'scareFlash'; document.body.appendChild(flash);
   const face = document.createElement('canvas'); face.id = 'scareFace'; face.width = face.height = 512; drawScareFace(face); document.body.appendChild(face);
@@ -5233,110 +5234,181 @@ function drawScareFace(c){
 
 // ---- 단계 만들기 ----
 function horrorBuildStage(stage){
-  const H = W.horror, P = HORROR_STAGES[stage - 1], N = P.n, S = 2 * N + 1;
-  H.stage = stage; H.P = P; H.N = N; H.S = S;
-  H.maze.children.slice().forEach(c => { H.maze.remove(c); if (c.geometry) c.geometry.dispose(); });
-  // 미로: 벽으로 가득 채운 뒤 구멍을 파요 (DFS) + 몇 군데 더 뚫어 도망갈 길을 만들어요
-  const wall = Array.from({length: S}, () => Array(S).fill(true));
-  const stack = [[0, 0]], seen = new Set(['0,0']);
-  wall[1][1] = false;
+  const H = W.horror, P = HORROR_STAGES[stage - 1], RW = P.rw, RH = P.rh;
+  const SX = RW * (RI + 1) + 1, SZ = RH * (RI + 1) + 1;
+  H.stage = stage; H.P = P; H.RW = RW; H.RH = RH; H.SX = SX; H.SZ = SZ;
+  H.maze.children.slice().forEach(c => { H.maze.remove(c); c.traverse(o => { if (o.geometry) o.geometry.dispose(); }); });
+  // 방: 벽으로 가득 채운 뒤 방마다 안을 비우고, 이웃한 방 사이에 문을 뚫어요 (모든 방이 이어지게 + 문 몇 개 더)
+  const wall = Array.from({length: SX}, () => Array(SZ).fill(true));
+  const r0 = r => r * (RI + 1) + 1, mid = Math.floor(RI / 2), doors = [];
+  for (let rx = 0; rx < RW; rx++) for (let rz = 0; rz < RH; rz++) for (let a = 0; a < RI; a++) for (let b = 0; b < RI; b++) wall[r0(rx) + a][r0(rz) + b] = false;
+  const door = (ax, az, dx) => {   // (ax, az) 방과 +x 또는 +z 쪽 이웃 방 사이
+    const i = dx ? (ax + 1) * (RI + 1) : r0(ax) + mid, j = dx ? r0(az) + mid : (az + 1) * (RI + 1);
+    if (!wall[i][j]) return;
+    wall[i][j] = false; doors.push({i, j, dx});
+  };
+  const seen = new Set(['0,0']), stack = [[0, 0]];
   while (stack.length){
-    const [cx, cy] = stack[stack.length - 1];
-    const nb = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [cx + dx, cy + dy, dx, dy]).filter(([x, y]) => x >= 0 && y >= 0 && x < N && y < N && !seen.has(x + ',' + y));
+    const [cx, cz] = stack[stack.length - 1];
+    const nb = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dz]) => [cx + dx, cz + dz, dx, dz]).filter(([x, z]) => x >= 0 && z >= 0 && x < RW && z < RH && !seen.has(x + ',' + z));
     if (!nb.length){ stack.pop(); continue; }
-    const [nx, ny, dx, dy] = nb[Math.floor(Math.random() * nb.length)];
-    wall[2 * cx + 1 + dx][2 * cy + 1 + dy] = false;
-    wall[2 * nx + 1][2 * ny + 1] = false;
-    seen.add(nx + ',' + ny); stack.push([nx, ny]);
+    const [nx, nz, dx] = nb[Math.floor(Math.random() * nb.length)];
+    door(Math.min(cx, nx), Math.min(cz, nz), !!dx);
+    seen.add(nx + ',' + nz); stack.push([nx, nz]);
   }
-  for (let k = 0; k < N; k++){
-    const i = 1 + Math.floor(Math.random() * (S - 2)), j = 1 + Math.floor(Math.random() * (S - 2));
-    if (wall[i][j] && (i % 2) !== (j % 2)) wall[i][j] = false;
+  for (let k = 0; k < Math.max(1, Math.floor(RW * RH / 3)); k++){
+    const dx = Math.random() < .5, rx = Math.floor(Math.random() * (RW - (dx ? 1 : 0))), rz = Math.floor(Math.random() * (RH - (dx ? 0 : 1)));
+    if (rx >= 0 && rz >= 0) door(rx, rz, dx);
   }
-  H.wall = wall;
-  H.x0 = HORROR_X - S * HB / 2; H.z0 = -S * HB / 2;
+  H.wall = wall; H.solid = new Set();
+  H.x0 = HORROR_X - SX * HB / 2; H.z0 = -SZ * HB / 2;
+  const bx = i => H.x0 + i * HB + HB / 2, bz = j => H.z0 + j * HB + HB / 2;
   // 벽 (InstancedMesh 하나로)
   const count = wall.flat().filter(Boolean).length;
   const wm = new THREE.InstancedMesh(new THREE.BoxGeometry(HB, HWALL, HB), new THREE.MeshStandardMaterial({map: H.wallTex, roughness: .95}), count);
   let n = 0; const m4 = new THREE.Matrix4();
-  for (let i = 0; i < S; i++) for (let j = 0; j < S; j++) if (wall[i][j]){ m4.makeTranslation(H.x0 + i * HB + HB / 2, HWALL / 2, H.z0 + j * HB + HB / 2); wm.setMatrixAt(n++, m4); }
-  wm.receiveShadow = false; H.maze.add(wm);
-  const size = S * HB;
-  H.floorTex.repeat.set(S, S);
-  const fl = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshStandardMaterial({map: H.floorTex, roughness: .9}));
+  for (let i = 0; i < SX; i++) for (let j = 0; j < SZ; j++) if (wall[i][j]){ m4.makeTranslation(bx(i), HWALL / 2, bz(j)); wm.setMatrixAt(n++, m4); }
+  H.maze.add(wm);
+  H.floorTex.repeat.set(SX, SZ);
+  const fl = new THREE.Mesh(new THREE.PlaneGeometry(SX * HB, SZ * HB), new THREE.MeshStandardMaterial({map: H.floorTex, roughness: .9}));
   fl.rotation.x = -Math.PI / 2; fl.position.set(HORROR_X, 0, 0); H.maze.add(fl);
-  const ce = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshStandardMaterial({color: 0x0c0b0a, roughness: 1}));
+  const ce = new THREE.Mesh(new THREE.PlaneGeometry(SX * HB, SZ * HB), new THREE.MeshStandardMaterial({color: 0x0c0b0a, roughness: 1}));
   ce.rotation.x = Math.PI / 2; ce.position.set(HORROR_X, HWALL, 0); H.maze.add(ce);
-  // 칸 좌표 도우미
-  const cells = [];
-  for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) cells.push([cx, cy]);
-  const far = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
-  const start = [0, 0], exit = [N - 1, N - 1];
-  // 부적 · 배터리 (시작점에서 먼 칸부터 골고루)
-  const pool = cells.filter(c => far(c, start) >= 3 && far(c, exit) >= 1).sort(() => Math.random() - .5);
-  H.talis = pool.slice(0, P.talis).map(c => {
+  // 문틀 (문 위를 막아 문처럼 보이게)
+  const wood = std(0x2a1a10, {roughness: .9});
+  doors.forEach(d => {
+    H.maze.add(mesh(new THREE.BoxGeometry(HB, HWALL - 2.3, HB), new THREE.MeshStandardMaterial({map: H.wallTex, roughness: .95}), bx(d.i), 2.3 + (HWALL - 2.3) / 2, bz(d.j), false));
+    for (const s of [-1, 1]) H.maze.add(mesh(new THREE.BoxGeometry(d.dx ? .2 : .12, 2.3, d.dx ? .12 : .2), wood, bx(d.i) + (d.dx ? 0 : s * (HB / 2 - .06)), 1.15, bz(d.j) + (d.dx ? s * (HB / 2 - .06) : 0), false));
+  });
+  // 방마다 가구 (구석에 놓고, 그 칸은 부딪혀요)
+  const rooms = [];
+  for (let rx = 0; rx < RW; rx++) for (let rz = 0; rz < RH; rz++) rooms.push([rx, rz]);
+  const kinds = ['bed', 'kitchen', 'store', 'bath', 'living'];
+  rooms.forEach(([rx, rz], idx) => {
+    const kind = idx === 0 ? 'living' : kinds[Math.floor(Math.random() * kinds.length)];
+    const i0 = r0(rx), j0 = r0(rz);
+    const solid = (a, b) => H.solid.add((i0 + a) * 1000 + (j0 + b));
+    const at = (a, b) => ({x: bx(i0 + a), z: bz(j0 + b)});
+    const f = new THREE.Group(); H.maze.add(f);
+    const put = (m, a, b, y = 0) => { const p = at(a, b); m.position.set(p.x, y, p.z); f.add(m); return m; };
+    if (kind === 'bed'){
+      const bed = new THREE.Group();
+      bed.add(mesh(new THREE.BoxGeometry(HB * 2 - .2, .5, HB - .2), wood, 0, .25, 0));
+      bed.add(mesh(new THREE.BoxGeometry(HB * 2 - .3, .25, HB - .3), std(0x8a8270, {roughness: 1}), 0, .62, 0));
+      bed.add(mesh(new THREE.BoxGeometry(HB * 1.2, .08, HB - .25), std(0x4a2020, {roughness: 1}), .3, .78, 0));   // 얼룩진 이불
+      bed.add(mesh(new THREE.BoxGeometry(.5, .2, .8), std(0xb0a890), -HB + .45, .82, 0));
+      bed.add(mesh(new THREE.BoxGeometry(.1, 1.1, HB - .2), wood, -HB + .1, .8, 0));
+      put(bed, .5, 0); bed.position.x = at(0, 0).x + HB / 2; solid(0, 0); solid(1, 0);
+    } else if (kind === 'kitchen'){
+      const table = new THREE.Group();
+      table.add(mesh(new THREE.BoxGeometry(HB - .2, .08, HB - .2), wood, 0, .9, 0));
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) table.add(mesh(new THREE.BoxGeometry(.08, .9, .08), wood, sx * (HB / 2 - .2), .45, sz * (HB / 2 - .2)));
+      table.add(mesh(new THREE.CylinderGeometry(.18, .12, .1, 12), std(0xd8d0c0), .2, .99, .1));   // 식은 그릇
+      put(table, RI - 1, RI - 1); solid(RI - 1, RI - 1);
+      const counter = mesh(new THREE.BoxGeometry(HB * 2 - .1, 1, HB - .4), std(0x4a4640, {roughness: .8}), 0, .5, 0);
+      put(counter, 0, 0); counter.position.x += HB / 2; solid(0, 0); solid(1, 0);
+      put(mesh(new THREE.CylinderGeometry(.3, .3, .35, 14), std(0x2a2a2a, {metalness: .5}), 0, 0, 0), 0, 0, 1.18);
+    } else if (kind === 'store'){
+      const shelf = new THREE.Group();
+      for (let k = 0; k < 3; k++) shelf.add(mesh(new THREE.BoxGeometry(HB * 2 - .2, .06, .6), wood, 0, .4 + k * .8, 0));
+      for (const sx of [-1, 1]) shelf.add(mesh(new THREE.BoxGeometry(.08, 2.2, .6), wood, sx * (HB - .15), 1.1, 0));
+      for (let k = 0; k < 6; k++) shelf.add(mesh(new THREE.BoxGeometry(.3, .3, .3), std(0x6a4a2a), -1.2 + k * .48, .6 + (k % 3) * .8, 0));
+      put(shelf, .5, 0); shelf.position.x = at(0, 0).x + HB / 2; solid(0, 0); solid(1, 0);
+      put(mesh(new THREE.BoxGeometry(1, .8, 1), std(0x5a3a1a), 0, .4, 0), RI - 1, RI - 1); solid(RI - 1, RI - 1);
+    } else if (kind === 'bath'){
+      const tub = new THREE.Group();
+      tub.add(mesh(new THREE.BoxGeometry(HB * 2 - .2, .7, HB - .3), std(0xd8d4c8, {roughness: .4}), 0, .35, 0));
+      tub.add(mesh(new THREE.BoxGeometry(HB * 2 - .45, .05, HB - .55), std(0x3a0808, {roughness: .2}), 0, .66, 0));   // 탁한 물
+      put(tub, .5, 0); tub.position.x = at(0, 0).x + HB / 2; solid(0, 0); solid(1, 0);
+    } else {
+      const sofa = new THREE.Group(), fab = std(0x3a3a2a, {roughness: 1});
+      sofa.add(mesh(new THREE.BoxGeometry(HB * 2 - .2, .5, HB - .5), fab, 0, .25, 0));
+      sofa.add(mesh(new THREE.BoxGeometry(HB * 2 - .2, .8, .25), fab, 0, .7, -(HB - .5) / 2));
+      put(sofa, .5, 0); sofa.position.x = at(0, 0).x + HB / 2; solid(0, 0); solid(1, 0);
+      const tv = new THREE.Group();
+      tv.add(mesh(new THREE.BoxGeometry(.9, .6, .5), std(0x1a1a1a), 0, .8, 0));
+      tv.add(mesh(new THREE.BoxGeometry(.7, .45, .02), new THREE.MeshBasicMaterial({color: 0x9aa0b0}), 0, .8, .26, false));   // 지지직 화면
+      tv.add(mesh(new THREE.BoxGeometry(.9, .5, .5), wood, 0, .25, 0));
+      put(tv, RI - 1, RI - 1); solid(RI - 1, RI - 1);
+    }
+  });
+  // 깜빡이는 전구 (방 몇 개만)
+  H.bulbs = rooms.slice().sort(() => Math.random() - .5).slice(0, Math.min(4, rooms.length)).map(([rx, rz]) => {
+    const p = horrorRoomPos([rx, rz]);
+    const g = new THREE.Group(); g.position.set(p.x, HWALL, p.z);
+    g.add(mesh(new THREE.CylinderGeometry(.01, .01, .6, 4), std(0x111111), 0, -.3, 0, false));
+    const glass = mesh(new THREE.SphereGeometry(.09, 8, 6), new THREE.MeshBasicMaterial({color: 0xffe0a0}), 0, -.65, 0, false); g.add(glass);
+    const l = new THREE.PointLight(0xffc890, .7, 7); l.position.y = -.7; g.add(l);
+    H.maze.add(g);
+    return {l, glass, t: Math.random() * 5};
+  });
+  // 부적 · 배터리: 시작 방을 뺀 방들에 골고루
+  const pool = rooms.slice(1).sort(() => Math.random() - .5);
+  const spot = (room, k) => { const p = horrorRoomPos(room); return {x: p.x + ((k % 3) - 1) * HB * .6, z: p.z + (Math.floor(k / 3) % 2 ? 1 : -1) * HB * .5}; };
+  H.talis = Array.from({length: P.talis}, (_, k) => {
     const g = new THREE.Group();
-    const paper = mesh(new THREE.PlaneGeometry(.35, .6), new THREE.MeshBasicMaterial({color: 0xf2d060, side: THREE.DoubleSide}), 0, 0, 0, false);
-    g.add(paper);
+    g.add(mesh(new THREE.PlaneGeometry(.35, .6), new THREE.MeshBasicMaterial({color: 0xf2d060, side: THREE.DoubleSide}), 0, 0, 0, false));
     g.add(mesh(new THREE.PlaneGeometry(.2, .3), new THREE.MeshBasicMaterial({color: 0xc0201a, side: THREE.DoubleSide}), 0, 0, .002, false));
-    const l = new THREE.PointLight(0xffd070, .6, 3); g.add(l);
-    const p = horrorCellPos(c); g.position.set(p.x, 1.1, p.z);
+    g.add(new THREE.PointLight(0xffd070, .6, 3));
+    const p = spot(pool[k % pool.length], Math.floor(k / pool.length)); g.position.set(p.x, 1.1, p.z);
     H.maze.add(g);
     return {g, got: false};
   });
-  H.batteries = P.battery ? pool.slice(P.talis, P.talis + 4).map(c => {
+  H.batteries = P.battery ? Array.from({length: 4}, (_, k) => {
     const g = new THREE.Group();
     g.add(mesh(new THREE.CylinderGeometry(.1, .1, .4, 10), std(0x2a8a3a, {emissive: 0x114418}), 0, 0, 0, false));
     g.add(mesh(new THREE.CylinderGeometry(.05, .05, .06, 8), std(0xcccccc), 0, .23, 0, false));
-    const p = horrorCellPos(c); g.position.set(p.x + .5, .4, p.z - .4); g.rotation.z = Math.PI / 2;
+    const p = spot(pool[(k + P.talis) % pool.length], 1 + k); g.position.set(p.x, .4, p.z); g.rotation.z = Math.PI / 2;
     H.maze.add(g);
     return {g, got: false};
   }) : [];
   H.talisLeft = H.talis.length;
-  // 출구 문양
-  const ep = horrorCellPos(exit);
+  // 출구 문양: 가장 먼 방 가운데
+  const ep = horrorRoomPos([RW - 1, RH - 1]);
   H.exitPos = ep;
-  H.exit = mesh(new THREE.PlaneGeometry(HB * .8, HB * .8), new THREE.MeshBasicMaterial({map: H.exitTex, transparent: true, depthWrite: false}), ep.x, .03, ep.z, false);
+  H.exit = mesh(new THREE.PlaneGeometry(HB * 1.3, HB * 1.3), new THREE.MeshBasicMaterial({map: H.exitTex, transparent: true, depthWrite: false}), ep.x, .03, ep.z, false);
   H.exit.rotation.x = -Math.PI / 2; H.maze.add(H.exit);
   H.exitLight = new THREE.PointLight(0xff3030, .8, 5); H.exitLight.position.set(ep.x, 1, ep.z); H.maze.add(H.exitLight);
   redrawTex(H.exitTex);
-  // 괴물: 출구 근처 · 미로 가운데쯤에서 시작
-  const mStarts = [[N - 1, 0], [0, N - 1]];
+  // 괴물: 먼 방에서 시작
+  const mStarts = [[RW - 1, 0], [0, RH - 1]];
   H.monsters = H.monsterModels.map((g, k) => {
     g.visible = k < P.monsters;
-    const c = mStarts[k], p = horrorCellPos(c);
+    const p = horrorRoomPos(mStarts[k]);
     g.position.set(p.x, 0, p.z);
     return {g, active: k < P.monsters, path: [], chase: false, chaseT: 0, thinkT: 0, last: null};
   }).filter(m => m.active);
-  // 사장님
-  const sp = horrorCellPos(start);
-  H.pos.set(sp.x, 0, sp.z);
-  H.yaw = wall[2][1] ? Math.PI : -Math.PI / 2; H.pitch = 0;   // 뚫린 통로 쪽을 보고 시작해요
+  // 사장님: 첫 방 가운데에서 문 쪽(+x)을 보고 시작
+  const sp = horrorRoomPos([0, 0]);
+  H.pos.set(sp.x, 0, sp.z + HB * .5);
+  H.yaw = -Math.PI / 2; H.pitch = 0;
   H.stamina = 100; H.crouch = 0; H.battery = 100; H.lightOn = true; H.scare = 0; H.done = false;
+  H.other = false; H.maze.visible = true; H.otherG.visible = false;
   scene.fog.near = 1; scene.fog.far = P.fog;
 }
-function horrorCellPos([cx, cy]){ const H = W.horror; return {x: H.x0 + (2 * cx + 1) * HB + HB / 2, z: H.z0 + (2 * cy + 1) * HB + HB / 2}; }
+function horrorRoomPos([rx, rz]){ const H = W.horror; return {x: H.x0 + (rx * (RI + 1) + 1 + RI / 2) * HB, z: H.z0 + (rz * (RI + 1) + 1 + RI / 2) * HB}; }
 function horrorBlock(x, z){ const H = W.horror; return [Math.floor((x - H.x0) / HB), Math.floor((z - H.z0) / HB)]; }
-function horrorWall(x, z){
-  const H = W.horror, [i, j] = horrorBlock(x, z);
-  return i < 0 || j < 0 || i >= H.S || j >= H.S || H.wall[i][j];
+function horrorBlocked(i, j){ const H = W.horror; return i < 0 || j < 0 || i >= H.SX || j >= H.SZ || H.wall[i][j] || H.solid.has(i * 1000 + j); }
+function horrorWall(x, z){ const [i, j] = horrorBlock(x, z); return horrorBlocked(i, j); }
+function horrorFree(x, z, r = .3){
+  if (W.horror.other) return Math.abs(x - W.horror.otherX) < 14 && z < 6 && z > -66;
+  return !horrorWall(x - r, z - r) && !horrorWall(x + r, z - r) && !horrorWall(x - r, z + r) && !horrorWall(x + r, z + r);
 }
-function horrorFree(x, z, r = .3){ return !horrorWall(x - r, z - r) && !horrorWall(x + r, z - r) && !horrorWall(x - r, z + r) && !horrorWall(x + r, z + r); }
-function horrorSees(a, b){   // 벽에 막히지 않고 보이나요?
+function horrorSees(a, b){   // 벽 · 가구에 막히지 않고 보이나요?
   const d = Math.hypot(b.x - a.x, b.z - a.z), steps = Math.ceil(d / .4);
   for (let k = 1; k < steps; k++){ const t = k / steps; if (horrorWall(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t)) return false; }
   return true;
 }
-// 미로 길찾기 (블록 격자 BFS)
+// 길찾기 (칸 격자 BFS)
 function horrorPath(from, to){
   const H = W.horror, [si, sj] = horrorBlock(from.x, from.z), [ti, tj] = horrorBlock(to.x, to.z);
-  const key = (i, j) => i * 100 + j, prev = new Map([[key(si, sj), null]]), q = [[si, sj]];
+  const key = (i, j) => i * 1000 + j, prev = new Map([[key(si, sj), null]]), q = [[si, sj]];
   while (q.length){
     const [i, j] = q.shift();
     if (i === ti && j === tj) break;
     for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){
       const ni = i + di, nj = j + dj, k = key(ni, nj);
-      if (ni < 0 || nj < 0 || ni >= H.S || nj >= H.S || H.wall[ni][nj] || prev.has(k)) continue;
+      if (horrorBlocked(ni, nj) || prev.has(k)) continue;
       prev.set(k, [i, j]); q.push([ni, nj]);
     }
   }
@@ -5344,6 +5416,101 @@ function horrorPath(from, to){
   if (!prev.has(key(ti, tj))) return path;
   while (cur && !(cur[0] === si && cur[1] === sj)){ path.unshift({x: H.x0 + cur[0] * HB + HB / 2, z: H.z0 + cur[1] * HB + HB / 2}); cur = prev.get(key(cur[0], cur[1])); }
   return path;
+}
+
+// ---- 이상한 곳 (잡히면 끌려와요) ----
+function buildOtherworld(H, root){
+  const O = H.otherG = new THREE.Group(); O.visible = false; root.add(O);
+  const X = H.otherX = HORROR_X + 300;
+  const crack = canvasTex(256, 256, (x, w, h) => {
+    x.fillStyle = '#1a0405'; x.fillRect(0, 0, w, h);
+    x.strokeStyle = 'rgba(200,30,20,.55)'; x.lineWidth = 2;
+    for (let k = 0; k < 12; k++){ x.beginPath(); let px = prand(k + 2100) * w, py = prand(k + 2110) * h; x.moveTo(px, py); for (let s = 0; s < 6; s++){ px += (prand(k * 9 + s) - .5) * 80; py += (prand(k * 7 + s + 1) - .5) * 80; x.lineTo(px, py); } x.stroke(); }
+  });
+  crack.wrapS = crack.wrapT = THREE.RepeatWrapping; crack.repeat.set(12, 18);
+  const fl = mesh(new THREE.PlaneGeometry(90, 140), new THREE.MeshStandardMaterial({map: crack, roughness: 1}), X, 0, -40, false);
+  fl.rotation.x = -Math.PI / 2; O.add(fl);
+  O.add(mesh(new THREE.SphereGeometry(14, 24, 16), new THREE.MeshBasicMaterial({color: 0x9a0c0c, fog: false}), X + 10, 45, -150, false));   // 붉은 달
+  // 촛불 길
+  H.flames = [];
+  for (let z = -4; z > -62; z -= 5) for (const sx of [-3.2, 3.2]){
+    O.add(mesh(new THREE.CylinderGeometry(.08, .1, .5, 8), std(0xe8e0c8), X + sx, .25, z, false));
+    const fm = mesh(new THREE.SphereGeometry(.07, 6, 5), new THREE.MeshBasicMaterial({color: 0xffa040}), X + sx, .56, z, false); O.add(fm); H.flames.push(fm);
+  }
+  // 떠다니는 가게 물건들 (식탁 · 그릇 · 의자 · 가마솥)
+  H.floaters = [];
+  for (let k = 0; k < 26; k++){
+    const g = new THREE.Group(), kind = k % 4;
+    if (kind === 0){ g.add(mesh(new THREE.BoxGeometry(1.4, .08, .8), std(0x5a3a22), 0, 0, 0, false)); for (const sx of [-.6, .6]) g.add(mesh(new THREE.BoxGeometry(.06, .7, .06), std(0x5a3a22), sx, -.35, .3, false)); }
+    else if (kind === 1){ g.add(mesh(new THREE.CylinderGeometry(.35, .2, .25, 14), std(0xd8d0c0), 0, 0, 0, false)); g.add(mesh(new THREE.CircleGeometry(.32, 14), std(0x5a0a08), 0, .11, 0, false).rotateX(-Math.PI / 2)); }
+    else if (kind === 2){ g.add(mesh(new THREE.BoxGeometry(.5, .06, .5), std(0x4a2a18), 0, 0, 0, false)); g.add(mesh(new THREE.BoxGeometry(.5, .6, .06), std(0x4a2a18), 0, .3, -.22, false)); }
+    else { g.add(mesh(new THREE.SphereGeometry(.5, 12, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), std(0x2a2a2a, {metalness: .6}), 0, 0, 0, false)); }
+    g.position.set(X + (prand(k + 2200) - .5) * 40, 2 + prand(k + 2210) * 9, 4 - prand(k + 2220) * 70);
+    g.rotation.set(prand(k + 2230) * 6, prand(k + 2240) * 6, prand(k + 2250) * 6);
+    O.add(g); H.floaters.push({g, s: .2 + prand(k + 2260) * .5, t: k});
+  }
+  // 촛불 길 옆에 서서 쳐다보는 검은 형체들
+  H.watchers = [];
+  for (let k = 0; k < 6; k++){
+    const g = makeHorrorMonster();
+    g.traverse(o => { if (o.isMesh) o.material = std(0x060506, {roughness: 1}); });
+    g.userData.head.children.forEach(c => { if (c.material && c.geometry.parameters && c.geometry.parameters.radius === .022) c.material = new THREE.MeshBasicMaterial({color: 0xff2010}); });
+    g.position.set(X + (k % 2 ? 1 : -1) * (6 + prand(k + 2300) * 3), 0, -10 - k * 8);
+    O.add(g); H.watchers.push(g);
+  }
+  // 빛이 새어 나오는 문
+  const dz = -64;
+  O.add(mesh(new THREE.BoxGeometry(2.6, 3.6, .3), std(0x100808), X, 1.8, dz - .2));
+  O.add(mesh(new THREE.PlaneGeometry(1.8, 3), new THREE.MeshBasicMaterial({color: 0xfff4d8, fog: false}), X, 1.5, dz - .03, false));   // 안개 너머로도 보이는 문빛
+  const dl = new THREE.PointLight(0xfff0d0, 2, 14); dl.position.set(X, 1.8, dz + 1.5); O.add(dl);
+  H.otherDoor = {x: X, z: dz + .8};
+}
+function horrorOtherworld(){
+  const H = W.horror;
+  $('scareFlash').classList.remove('on');
+  H.other = true;
+  H.maze.visible = false; H.monsters.forEach(m => { m.g.visible = false; }); H.otherG.visible = true;
+  H.pos.set(H.otherX, 0, 2); H.yaw = 0; H.pitch = .05; H.otherT = 0; H.droneT = 0;
+  H.stamina = 100;
+  scene.fog.near = 2; scene.fog.far = 40;
+  toast('❓ ...여긴 어디지? 멀리 빛이 새어 나오는 문이 보여요');
+}
+function syncOther(dt){
+  const H = W.horror;
+  H.otherT += dt;
+  H.flames.forEach((f, k) => { f.scale.setScalar(.8 + Math.sin(T * 17 + k * 3) * .25); });
+  H.floaters.forEach(f => { f.g.rotation.x += dt * f.s * .6; f.g.rotation.y += dt * f.s; f.g.position.y += Math.sin(T * f.s + f.t) * dt * .3; });
+  // 검은 형체들은 늘 사장님을 쳐다봐요. 너무 가까이 가면 스르르 사라져요
+  H.watchers.forEach(g => {
+    if (!g.visible) return;
+    g.lookAt(H.pos.x, 0, H.pos.z);
+    g.userData.head.rotation.z = Math.sin(T * 1.3 + g.position.z) * .4;
+    if (Math.hypot(g.position.x - H.pos.x, g.position.z - H.pos.z) < 2.2){ g.visible = false; sfx.whoosh(); }
+  });
+  H.droneT -= dt;
+  if (H.droneT <= 0){ H.droneT = 3.5; tone(42, 3.4, 'sawtooth', .035, 38); tone(63, 3.4, 'sine', .05); }
+  if (Math.hypot(H.otherDoor.x - H.pos.x, H.otherDoor.z - H.pos.z) < 1.6) horrorWake();
+  const hud = $('horrorHud');
+  const top = '❓ 이상한 곳 · 빛이 새어 나오는 문으로 걸어가세요';
+  const tEl = hud.querySelector('.hh-top'); if (tEl.textContent !== top) tEl.textContent = top;
+  hud.querySelector('.st i').style.width = H.stamina + '%';
+  hud.querySelector('.bt').hidden = hud.querySelector('.hh-bat').hidden = true;
+  const sEl = hud.querySelector('.hh-state'); if (sEl.textContent !== '...') sEl.textContent = '...';
+  hud.querySelector('.hh-hint').hidden = !!document.pointerLockElement;
+}
+function horrorWake(){
+  const H = W.horror, fine = Math.min(G.money, 20000);
+  if (H.done) return;
+  horrorLeave();
+  G.money -= fine;
+  sfx.bell();
+  showOverlay(`
+    <div class="card horror-card">
+      <div class="ending-ic">🚪</div>
+      <h2>문을 열자 눈이 부셨다...</h2>
+      <div class="day-note">정신을 차려보니 시장 바닥이었어요. 온몸이 아파요.<br>치료비 <b>-${fmt(fine)}</b> · ${H.stage}단계에서 다시 도전할 수 있어요</div>
+      <button class="big-btn" onclick="horrorReturn()">🏪 시장에서 깨어나기</button>
+    </div>`);
 }
 
 // ---- 시작 · 끝 ----
@@ -5363,8 +5530,8 @@ function horrorEnterStage(stage){
     <div class="card horror-card">
       <div class="ending-ic">🕯️</div>
       <h2>${stage === 1 ? '문양에 빨려 들어왔다...' : `더 깊은 곳 · ${stage}단계`}</h2>
-      <div class="day-note">어두운 미로 어딘가에 <b>부적 ${P.talis}장</b>이 떨어져 있어요. 모두 모아 <b>출구 문양</b>으로 탈출하세요.<br>
-        괴물 ${P.monsters}마리가 돌아다녀요. 달리면 소리가 커서 들키고, 웅크리면 조용해요.${P.battery ? '<br>🔦 손전등 배터리가 닳아요! F로 끄고 켜고, 배터리를 주워 충전하세요.' : ''}</div>
+      <div class="day-note">낡은 집의 방들 어딘가에 <b>부적 ${P.talis}장</b>이 떨어져 있어요. 모두 모아 <b>출구 문양</b>으로 탈출하세요.<br>
+        괴물 ${P.monsters}마리가 방을 돌아다녀요. 달리면 소리가 커서 들키고, 웅크리면 조용해요. 잡히면 <b>이상한 곳</b>으로 끌려가요.${P.battery ? '<br>🔦 손전등 배터리가 닳아요! F로 끄고 켜고, 배터리를 주워 충전하세요.' : ''}</div>
       <div class="hh-keys">🖱️ 클릭 후 마우스로 둘러보기 · WASD 이동 · Shift 달리기 · C 웅크리기${P.battery ? ' · F 손전등' : ''}</div>
       <button class="big-btn" onclick="horrorGo()">🔦 들어가기</button>
     </div>`);
@@ -5391,7 +5558,7 @@ function horrorClear(){
     <div class="card horror-card">
       <div class="ending-ic">${last ? '🏆' : '✨'}</div>
       <h2>${last ? '문양의 저주를 풀었다!' : `${st}단계 탈출!`}</h2>
-      <div class="day-note">${last ? '다섯 개의 미로를 모두 빠져나왔어요. 문양이 조용히 빛을 잃어요...' : '출구 문양이 빛나며 몸이 떠올라요.'}<br>보상 <b>+${fmt(reward)}</b></div>
+      <div class="day-note">${last ? '다섯 채의 저주받은 집을 모두 빠져나왔어요. 문양이 조용히 빛을 잃어요...' : '출구 문양이 빛나며 몸이 떠올라요.'}<br>보상 <b>+${fmt(reward)}</b></div>
       ${last ? '' : `<button class="big-btn" onclick="horrorEnterStage(${st + 1})">⬇️ ${st + 1}단계로 더 깊이</button><br>`}
       <button class="${last ? 'big-btn' : 'sub-btn'}" onclick="horrorReturn()">🏪 시장으로 돌아가기</button>
     </div>`);
@@ -5403,26 +5570,14 @@ function horrorCaught(m){
   sfx.jumpscare();
   $('scareFlash').classList.add('on');
 }
-function horrorCaughtCard(){
-  const H = W.horror, fine = Math.min(G.money, 20000);
-  horrorLeave();
-  $('scareFlash').classList.remove('on');
-  G.money -= fine;
-  showOverlay(`
-    <div class="card horror-card">
-      <div class="ending-ic">😱</div>
-      <h2>잡혔다...</h2>
-      <div class="day-note">정신을 잃었다가 시장 바닥에서 깨어났어요.<br>치료비 <b>-${fmt(fine)}</b> · ${H.stage}단계에서 다시 도전할 수 있어요</div>
-      <button class="big-btn" onclick="horrorReturn()">🏪 시장에서 깨어나기</button>
-    </div>`);
-}
-function horrorQuit(){ if (!inPhase('horror')) return; horrorLeave(); horrorReturn(); }
+function horrorQuit(){ if (!inPhase('horror')) return; if (W.horror.other){ horrorWake(); return; } horrorLeave(); horrorReturn(); }
 function horrorReturn(){
   const H = W.horror;
   horrorLeave();
   hideOverlay();
   $('scareFlash').classList.remove('on');
   H.monsters.forEach(m => { m.g.visible = false; });
+  H.other = false; H.otherG.visible = false; H.maze.visible = true;
   scene.fog.near = 22; scene.fog.far = 45;
   G.phase = 'market';
   setWorldMode('market');
@@ -5461,7 +5616,7 @@ function syncHorror(dt){
     face.style.opacity = e > .3 ? (fr === 0 ? 1 : fr === 1 ? .55 : 0) : 0;
     face.style.transform = `translate(-50%,-50%) scale(${1 + e * .5}) rotate(${(Math.random() - .5) * 8}deg)`;
     $('scareFlash').style.background = fr === 2 && e > .3 ? '#000' : '';
-    if (H.scare <= 0){ m.scale.setScalar(.88); m.position.y = 0; face.style.opacity = 0; $('scareFlash').style.background = ''; horrorCaughtCard(); }
+    if (H.scare <= 0){ m.scale.setScalar(.88); m.position.y = 0; face.style.opacity = 0; $('scareFlash').style.background = ''; horrorOtherworld(); }
     return;
   }
   // 이동
@@ -5486,8 +5641,9 @@ function syncHorror(dt){
     } else speed = 0;
     H.stamina = clamp(H.stamina + (running ? -28 : 14) * dt, 0, 100);
     // 배터리 (5단계)
-    if (P.battery && H.lightOn){ H.battery = Math.max(0, H.battery - 1.6 * dt); if (H.battery <= 0){ H.lightOn = false; toast('🔦 배터리가 다 됐어요! 배터리를 찾으세요'); } }
+    if (P.battery && H.lightOn && !H.other){ H.battery = Math.max(0, H.battery - 1.6 * dt); if (H.battery <= 0){ H.lightOn = false; toast('🔦 배터리가 다 됐어요! 배터리를 찾으세요'); } }
   }
+  if (H.other){ syncOther(dt); return; }
   // 부적 · 배터리 줍기
   H.talis.forEach(t => {
     if (t.got) return;
@@ -5521,7 +5677,7 @@ function syncHorror(dt){
     if (m.thinkT <= 0){
       m.thinkT = m.chase ? .35 : 1.5;
       if (m.chase) m.path = horrorPath(g.position, m.last);
-      else if (!m.path.length){ const c = [Math.floor(Math.random() * H.N), Math.floor(Math.random() * H.N)]; m.path = horrorPath(g.position, horrorCellPos(c)); }
+      else if (!m.path.length){ const c = [Math.floor(Math.random() * H.RW), Math.floor(Math.random() * H.RH)]; m.path = horrorPath(g.position, horrorRoomPos(c)); }
     }
     const sp = P.speed * (m.chase ? 1 : .55);
     const tgt = m.path[0];
@@ -5542,6 +5698,8 @@ function syncHorror(dt){
   if (on && ((P.battery && H.battery < 20) || H.stage === 5) && Math.random() < (H.battery < 20 ? .12 : .02)) on = false;   // 깜빡깜빡
   H.flash.intensity = on ? 2.4 : 0;
   H.aura.intensity = on ? .35 : .12;
+  // 방 전구는 불규칙하게 깜빡여요
+  H.bulbs.forEach(b => { b.t += dt; const lit = Math.sin(b.t * 23) + Math.sin(b.t * 7.3) > -.7 && Math.random() > .03; b.l.intensity = lit ? .7 : 0; b.glass.visible = lit; });
   // HUD
   const hud = $('horrorHud');
   const top = `👁️ ${H.stage}단계 · 📜 부적 ${H.talis.length - H.talisLeft}/${H.talis.length} · 출구 ${H.talisLeft ? '🔒' : '✨ 열림'}`;
@@ -5564,6 +5722,10 @@ function horrorCamera(){
   H.flash.position.copy(camera.position);
   H.flash.target.position.copy(camera.position).addScaledVector(dir, 6);
   H.aura.position.copy(camera.position);
+  if (H.other){   // 이상한 곳: 핏빛 하늘과 안개
+    scene.background.set(0x2a0506); scene.fog.color.copy(scene.background);
+    W.hemi.color.set(0xff6a50); W.hemi.intensity = .55;
+  }
 }
 document.addEventListener('mousemove', e => {
   if (!inPhase('horror') || document.pointerLockElement !== renderer.domElement) return;
