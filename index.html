@@ -138,6 +138,24 @@ button{font-family:inherit;cursor:pointer}
 .fb-btn.home{border-color:#e0a030}
 .home-note{font-size:15px;color:#8a6e55;margin:6px 0}
 .vp-log{text-align:left;font-size:16px;background:#fff0c2;border-radius:10px;padding:8px 12px;margin:8px 0;max-height:200px;overflow:auto}
+#scareFlash{position:fixed;inset:0;z-index:60;pointer-events:none;background:radial-gradient(rgba(255,0,0,.1),rgba(120,0,0,.85));opacity:0}
+#scareFlash.on{animation:scare .12s steps(2) infinite}
+@keyframes scare{50%{opacity:1}}
+#horrorHud{position:fixed;left:50%;top:60px;transform:translateX(-50%);z-index:16;color:#e8e0d0;text-align:center;text-shadow:0 2px 3px #000;pointer-events:none;width:min(560px,calc(100% - 24px))}
+#horrorHud .hh-top{font-size:18px}
+#horrorHud .hh-bars{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px}
+#horrorHud .hh-bar{width:120px;height:8px;background:rgba(255,255,255,.15);border-radius:5px;overflow:hidden}
+#horrorHud .hh-bar i{display:block;height:100%;width:100%}
+#horrorHud .st i{background:#8fd18f}
+#horrorHud .bt i{background:#f2d060}
+#horrorHud .hh-state{font-size:14px;margin-top:4px;color:#c8b8a0}
+#horrorHud .hh-hint{font-size:13px;margin-top:6px;color:#f2d060;animation:blink 1.4s infinite}
+#horrorHud .hh-quit{pointer-events:auto;margin-top:8px;font-size:13px;padding:4px 10px;opacity:.7}
+.card.horror-card{background:linear-gradient(#1a1414,#070505);border-color:#6a1a1a;color:#e8dcc8}
+.card.horror-card h2{color:#e05050}
+.card.horror-card .day-note{color:#c8b8a0}
+.card.horror-card .day-note b{color:#f2d060;font-weight:normal}
+.hh-keys{font-size:14px;color:#a89880;margin:8px 0}
 #carHud{position:fixed;right:16px;bottom:16px;z-index:16;background:rgba(5,7,12,.85);border:2px solid #2a8aff;border-radius:16px;padding:8px 10px 6px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.5)}
 #carHud canvas{display:block;width:240px;height:120px}
 #carHud .ch-title{color:#9fc4ff;font-size:13px;margin-top:4px;white-space:nowrap}
@@ -639,7 +657,7 @@ const MOVE_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'K
 const DRINK_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'drink');
 const FOOD_INGS = Object.keys(MARKET_ITEMS).filter(id => MARKET_ITEMS[id].cafe === 'food');
 const CAFE_LEN = 60, CAFE_SEATS = 3, CAFE_X = -120;
-const VIP_X = 240, TOWN_X = 360, CITY_X = 480, BUS_X = 600, CAR_X = 720, HOME_X = 960;
+const VIP_X = 240, TOWN_X = 360, CITY_X = 480, BUS_X = 600, CAR_X = 720, HOME_X = 960, HORROR_X = 1200;
 const DEFAULT_RECIPES = [
   {id:'greentea', name:'녹차',     type:'drink', ings:['tea'],                                     price:4000},
   {id:'coffee',   name:'커피',     type:'drink', ings:['coffee'],                                  price:4500},
@@ -732,6 +750,9 @@ const sfx = {
   bonk:  () => { tone(160, 0.18, 'square', 0.12, 50); tone(1400, 0.05, 'triangle', 0.05); },
   bang:  () => { tone(90, 0.35, 'sawtooth', 0.16, 30); tone(2400, 0.06, 'square', 0.08, 300); },
   siren: () => { tone(650, 0.35, 'sine', 0.06, 950); tone(950, 0.35, 'sine', 0.06, 650, 0.35); tone(650, 0.35, 'sine', 0.06, 950, 0.7); },
+  scream:() => { tone(900, 0.9, 'sawtooth', 0.09, 120); tone(1400, 0.7, 'square', 0.05, 200, 0.05); tone(300, 1.0, 'sawtooth', 0.06, 60); },
+  heart: () => { tone(58, 0.12, 'sine', 0.22, 40); tone(52, 0.12, 'sine', 0.16, 36, 0.18); },
+  step:  (v = .03) => tone(90 + Math.random() * 40, 0.06, 'triangle', v, 50),
   zap:   () => { tone(1800, 0.3, 'sawtooth', 0.05, 300); tone(900, 0.25, 'square', 0.03, 2400, 0.05); },
   cuff:  () => { tone(1500, 0.05, 'square', 0.05); tone(1100, 0.08, 'square', 0.05, null, 0.08); },
   elevator: () => { tone(1320, 0.15, 'sine', 0.06); tone(990, 0.35, 'sine', 0.06, null, 0.15); },
@@ -751,6 +772,7 @@ const CAMS = {
   town:  {look: new THREE.Vector3(TOWN_X, 2.2, -2.5), base: new THREE.Vector3(TOWN_X, 11.5, 14.5), pos: new THREE.Vector3()},
   city:  {look: new THREE.Vector3(CITY_X, 2.6, -3),   base: new THREE.Vector3(CITY_X, 12,   15),   pos: new THREE.Vector3()},
   car:   {look: new THREE.Vector3(CAR_X - .4, -1.5, -14), base: new THREE.Vector3(CAR_X - .4, 1.5, .55), pos: new THREE.Vector3()},   // 1인칭 (운전석)
+  horror:{look: new THREE.Vector3(HORROR_X, 1.6, -1), base: new THREE.Vector3(HORROR_X, 1.6, 0), pos: new THREE.Vector3()},
   home:  {look: new THREE.Vector3(HOME_X, 2, -2.5),   base: new THREE.Vector3(HOME_X, 8.5, 12),  pos: new THREE.Vector3()},
   bus:   {look: new THREE.Vector3(BUS_X + 16, 2.2, .2),  base: new THREE.Vector3(BUS_X + 3.45, 2.95, 2.1),  pos: new THREE.Vector3()},   // 1인칭 (창가 좌석)
 };
@@ -771,6 +793,7 @@ const LIGHTS = {
   vip:   {bg: new THREE.Color(0x1a0c14), hemi: new THREE.Color(0xffe8d0), hemiI: .7,  sun: new THREE.Color(0xffe0b0), sunI: .7},
   town:  {bg: new THREE.Color(0x8cc0e8), hemi: new THREE.Color(0xffffff), hemiI: .85, sun: new THREE.Color(0xfff2d8), sunI: .95},
   car:   {bg: new THREE.Color(0x9cc8ec), hemi: new THREE.Color(0xffffff), hemiI: .9,  sun: new THREE.Color(0xfff2d8), sunI: .9},
+  horror:{bg: new THREE.Color(0x020203), hemi: new THREE.Color(0x404060), hemiI: .06, sun: new THREE.Color(0x000000), sunI: 0},
   home:  {bg: new THREE.Color(0x2a1a14), hemi: new THREE.Color(0xfff1dc), hemiI: .75, sun: new THREE.Color(0xffe2b8), sunI: .7},
   bus:   {bg: new THREE.Color(0x9cc8ec), hemi: new THREE.Color(0xffffff), hemiI: .9,  sun: new THREE.Color(0xfff2d8), sunI: .9},
   city:  {bg: new THREE.Color(0x4a4a78), hemi: new THREE.Color(0xe8e4ff), hemiI: .85, sun: new THREE.Color(0xffd8b0), sunI: .8},
@@ -879,6 +902,7 @@ function init3D(){
   buildBus();
   buildCarRide();
   buildHome();
+  buildHorror();
   buildStaffModels();
   onResize();
   window.addEventListener('resize', onResize);
@@ -1610,6 +1634,7 @@ function setWorldMode(mode){
   $('vipControls').hidden = !(mode === 'vip' && open && !G.staff.vip);
   $('townControls').hidden = mode !== 'town';
   $('cityControls').hidden = mode !== 'city';
+  const hh = $('horrorHud'); if (hh) hh.hidden = mode !== 'horror';
   $('joystick').hidden = !(mode === 'town' || mode === 'city' || mode === 'car');
   W.keys.clear(); W.joy.x = W.joy.y = 0;
   if (W.town) W.town.target = null;
@@ -2383,7 +2408,7 @@ function marketKey(e){
     else toast('🏪 시장 끝 출구로 가면 가게로 돌아가요');
   }
 }
-window.addEventListener('keyup', e => { if (W.market) W.market.keys.delete(e.code); W.keys.delete(e.code); });
+window.addEventListener('keyup', e => { if (W.market) W.market.keys.delete(e.code); W.keys.delete(e.code); if (W.horror) W.horror.keys.delete(e.code); });
 window.addEventListener('blur', () => { if (W.market) W.market.keys.clear(); W.keys.clear(); W.joy.x = W.joy.y = 0; });
 
 // 가상 조이스틱 (마우스·터치로 드래그)
@@ -2440,6 +2465,12 @@ function syncMarket(dt){
       dA = Math.atan2(Math.sin(dA), Math.cos(dA));
       P.rotation.y += dA * Math.min(1, dt * 12);
     }
+  }
+  // 양념가게 뒤 문양을 밟으면 공포 미로로 끌려가요 (돌아온 뒤엔 한 번 벗어나야 다시 작동)
+  if (live){
+    const sd = Math.hypot(P.position.x - (MARKET_X + SIGIL_AT.x), P.position.z - SIGIL_AT.z);
+    if (M.sigilLock){ if (sd > 1.6) M.sigilLock = false; }
+    else if (sd < .7){ M.keys.clear(); M.target = null; startHorror(); return; }
   }
   if (moving) M.walkT += dt;
   const sw = moving ? Math.sin(M.walkT * 11) * .6 : 0;
@@ -5009,6 +5040,405 @@ function syncHome(dt){
   }
 }
 
+// ---------------- 문양 속 공포 미로 (1인칭 · 5단계) ----------------
+// 새벽시장 양념가게 뒤 문양을 밟으면 끌려와요. 부적을 모두 모아 출구 문양으로 탈출하세요.
+// WASD 이동 · Shift 달리기 · C 웅크리기 · 마우스 둘러보기 (5단계: F 손전등 · 배터리)
+const HORROR_STAGES = [
+  {n: 5, talis: 2, monsters: 1, speed: 2.6, sight: 6,  hear: 1.0, fog: 16},
+  {n: 6, talis: 3, monsters: 1, speed: 3.0, sight: 7,  hear: 1.15, fog: 15},
+  {n: 7, talis: 3, monsters: 1, speed: 3.4, sight: 8,  hear: 1.3, fog: 14},
+  {n: 8, talis: 4, monsters: 2, speed: 3.6, sight: 9,  hear: 1.45, fog: 13},
+  {n: 9, talis: 5, monsters: 2, speed: 4.0, sight: 10, hear: 1.6, fog: 12, battery: true},
+];
+const HB = 2.4, HWALL = 3.2;   // 미로 한 칸 크기 · 벽 높이
+const SIGIL_AT = {x: -9.85, z: -8};   // 시장 문양 위치 (MARKET_X 기준)
+const H_WALK = 3.2, H_RUN = 5.8, H_CROUCH = 1.6;
+
+function drawSigil(x, w, h, color, glow){
+  const cx = w / 2, cy = h / 2, R = w * .45;
+  x.strokeStyle = color; x.lineWidth = w * .028; x.lineJoin = 'round';
+  x.shadowColor = glow; x.shadowBlur = w * .03;
+  x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.stroke();
+  x.beginPath();
+  for (let k = 0; k < 3; k++){ const a = -Math.PI / 2 + k * Math.PI * 2 / 3; x[k ? 'lineTo' : 'moveTo'](cx + Math.cos(a) * R, cy + Math.sin(a) * R); }
+  x.closePath(); x.stroke();
+}
+
+function buildHorror(){
+  const H = W.horror = {origin: new THREE.Vector3(HORROR_X, 0, 0), hits: [], keys: new Set(), yaw: 0, pitch: 0, pos: new THREE.Vector3(), stamina: 100, crouch: 0, battery: 100, lightOn: true, stepT: 0, beatT: 0, scare: 0};
+  const root = H.root = new THREE.Group(); scene.add(root);
+  H.maze = new THREE.Group(); root.add(H.maze);
+  H.wallTex = canvasTex(256, 256, (x, w, h) => {
+    x.fillStyle = '#3a3630'; x.fillRect(0, 0, w, h);
+    for (let k = 0; k < 40; k++){ x.fillStyle = `rgba(${prand(k) > .5 ? '20,15,10' : '90,80,60'},${.1 + prand(k + 5) * .25})`; x.fillRect(prand(k + 9) * w, prand(k + 13) * h, 8 + prand(k + 2) * 60, 4 + prand(k + 3) * 40); }
+    x.fillStyle = 'rgba(90,10,10,.5)';
+    for (let k = 0; k < 5; k++){ const px = prand(k + 70) * w; x.fillRect(px, prand(k + 71) * h * .5, 3, 30 + prand(k + 72) * 90); }
+    x.strokeStyle = 'rgba(0,0,0,.35)'; x.lineWidth = 3; x.strokeRect(0, 0, w, h);
+  });
+  H.floorTex = canvasTex(256, 256, (x, w, h) => {
+    x.fillStyle = '#22201d'; x.fillRect(0, 0, w, h);
+    x.strokeStyle = '#141210'; x.lineWidth = 4;
+    for (let k = 0; k <= 4; k++){ x.beginPath(); x.moveTo(k * 64, 0); x.lineTo(k * 64, h); x.stroke(); x.beginPath(); x.moveTo(0, k * 64); x.lineTo(w, k * 64); x.stroke(); }
+    for (let k = 0; k < 6; k++){ x.fillStyle = 'rgba(60,5,5,.35)'; x.beginPath(); x.arc(prand(k + 80) * w, prand(k + 81) * h, 6 + prand(k + 82) * 16, 0, Math.PI * 2); x.fill(); }
+  });
+  H.floorTex.wrapS = H.floorTex.wrapT = THREE.RepeatWrapping;
+  H.exitTex = canvasTex(256, 256, (x, w, h) => { const open = H.talisLeft === 0; drawSigil(x, w, h, open ? '#f2c060' : '#8a2020', open ? 'rgba(255,210,100,.95)' : 'rgba(255,40,40,.8)'); });
+  // 손전등 · 주변을 아주 조금 비추는 빛
+  H.flash = new THREE.SpotLight(0xfff0d0, 2.4, 24, .5, .55, 1.2);
+  H.flash.target = new THREE.Object3D();
+  root.add(H.flash, H.flash.target);
+  H.aura = new THREE.PointLight(0x8a90b0, .35, 4.5);
+  root.add(H.aura);
+  // 괴물 모델
+  H.monsterModels = [0, 1].map(() => {
+    const g = new THREE.Group();
+    const skin = std(0x0a0a0c, {roughness: 1});
+    g.add(mesh(new THREE.CylinderGeometry(.3, .5, 2.4, 10), skin, 0, 1.2, 0));
+    g.add(mesh(new THREE.SphereGeometry(.42, 14, 10), skin, 0, 2.75, 0));
+    const eye = new THREE.MeshBasicMaterial({color: 0xff2020});
+    for (const sx of [-.15, .15]) g.add(mesh(new THREE.SphereGeometry(.07, 8, 6), eye, sx, 2.8, .36, false));
+    const mouth = mesh(new THREE.BoxGeometry(.3, .06, .05), new THREE.MeshBasicMaterial({color: 0x550000}), 0, 2.55, .38, false); g.add(mouth);
+    for (const sx of [-1, 1]){ const arm = mesh(new THREE.CylinderGeometry(.07, .05, 2.1, 6), skin, sx * .45, 1.4, .15); arm.rotation.z = sx * .15; arm.rotation.x = -.25; g.add(arm); }
+    const red = new THREE.PointLight(0xff2020, .5, 3.5); red.position.set(0, 2.8, .6); g.add(red);
+    g.visible = false; root.add(g);
+    return g;
+  });
+  // 점프 스케어 화면
+  const flash = document.createElement('div'); flash.id = 'scareFlash'; document.body.appendChild(flash);
+  const hud = document.createElement('div'); hud.id = 'horrorHud'; hud.hidden = true;
+  hud.innerHTML = '<div class="hh-top"></div><div class="hh-bars"><span>🏃</span><div class="hh-bar st"><i></i></div><span class="hh-bat">🔦</span><div class="hh-bar bt"><i></i></div></div><div class="hh-state"></div><div class="hh-hint">화면을 클릭하면 마우스로 둘러봐요 · WASD 이동 · Shift 달리기 · C 웅크리기 · ←→ 돌기</div><button class="sub-btn hh-quit" onclick="horrorQuit()">🏳️ 포기하고 돌아가기 (Q)</button>';
+  document.body.appendChild(hud);
+}
+
+// ---- 단계 만들기 ----
+function horrorBuildStage(stage){
+  const H = W.horror, P = HORROR_STAGES[stage - 1], N = P.n, S = 2 * N + 1;
+  H.stage = stage; H.P = P; H.N = N; H.S = S;
+  H.maze.children.slice().forEach(c => { H.maze.remove(c); if (c.geometry) c.geometry.dispose(); });
+  // 미로: 벽으로 가득 채운 뒤 구멍을 파요 (DFS) + 몇 군데 더 뚫어 도망갈 길을 만들어요
+  const wall = Array.from({length: S}, () => Array(S).fill(true));
+  const stack = [[0, 0]], seen = new Set(['0,0']);
+  wall[1][1] = false;
+  while (stack.length){
+    const [cx, cy] = stack[stack.length - 1];
+    const nb = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [cx + dx, cy + dy, dx, dy]).filter(([x, y]) => x >= 0 && y >= 0 && x < N && y < N && !seen.has(x + ',' + y));
+    if (!nb.length){ stack.pop(); continue; }
+    const [nx, ny, dx, dy] = nb[Math.floor(Math.random() * nb.length)];
+    wall[2 * cx + 1 + dx][2 * cy + 1 + dy] = false;
+    wall[2 * nx + 1][2 * ny + 1] = false;
+    seen.add(nx + ',' + ny); stack.push([nx, ny]);
+  }
+  for (let k = 0; k < N; k++){
+    const i = 1 + Math.floor(Math.random() * (S - 2)), j = 1 + Math.floor(Math.random() * (S - 2));
+    if (wall[i][j] && (i % 2) !== (j % 2)) wall[i][j] = false;
+  }
+  H.wall = wall;
+  H.x0 = HORROR_X - S * HB / 2; H.z0 = -S * HB / 2;
+  // 벽 (InstancedMesh 하나로)
+  const count = wall.flat().filter(Boolean).length;
+  const wm = new THREE.InstancedMesh(new THREE.BoxGeometry(HB, HWALL, HB), new THREE.MeshStandardMaterial({map: H.wallTex, roughness: .95}), count);
+  let n = 0; const m4 = new THREE.Matrix4();
+  for (let i = 0; i < S; i++) for (let j = 0; j < S; j++) if (wall[i][j]){ m4.makeTranslation(H.x0 + i * HB + HB / 2, HWALL / 2, H.z0 + j * HB + HB / 2); wm.setMatrixAt(n++, m4); }
+  wm.receiveShadow = false; H.maze.add(wm);
+  const size = S * HB;
+  H.floorTex.repeat.set(S, S);
+  const fl = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshStandardMaterial({map: H.floorTex, roughness: .9}));
+  fl.rotation.x = -Math.PI / 2; fl.position.set(HORROR_X, 0, 0); H.maze.add(fl);
+  const ce = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshStandardMaterial({color: 0x0c0b0a, roughness: 1}));
+  ce.rotation.x = Math.PI / 2; ce.position.set(HORROR_X, HWALL, 0); H.maze.add(ce);
+  // 칸 좌표 도우미
+  const cells = [];
+  for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) cells.push([cx, cy]);
+  const far = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+  const start = [0, 0], exit = [N - 1, N - 1];
+  // 부적 · 배터리 (시작점에서 먼 칸부터 골고루)
+  const pool = cells.filter(c => far(c, start) >= 3 && far(c, exit) >= 1).sort(() => Math.random() - .5);
+  H.talis = pool.slice(0, P.talis).map(c => {
+    const g = new THREE.Group();
+    const paper = mesh(new THREE.PlaneGeometry(.35, .6), new THREE.MeshBasicMaterial({color: 0xf2d060, side: THREE.DoubleSide}), 0, 0, 0, false);
+    g.add(paper);
+    g.add(mesh(new THREE.PlaneGeometry(.2, .3), new THREE.MeshBasicMaterial({color: 0xc0201a, side: THREE.DoubleSide}), 0, 0, .002, false));
+    const l = new THREE.PointLight(0xffd070, .6, 3); g.add(l);
+    const p = horrorCellPos(c); g.position.set(p.x, 1.1, p.z);
+    H.maze.add(g);
+    return {g, got: false};
+  });
+  H.batteries = P.battery ? pool.slice(P.talis, P.talis + 4).map(c => {
+    const g = new THREE.Group();
+    g.add(mesh(new THREE.CylinderGeometry(.1, .1, .4, 10), std(0x2a8a3a, {emissive: 0x114418}), 0, 0, 0, false));
+    g.add(mesh(new THREE.CylinderGeometry(.05, .05, .06, 8), std(0xcccccc), 0, .23, 0, false));
+    const p = horrorCellPos(c); g.position.set(p.x + .5, .4, p.z - .4); g.rotation.z = Math.PI / 2;
+    H.maze.add(g);
+    return {g, got: false};
+  }) : [];
+  H.talisLeft = H.talis.length;
+  // 출구 문양
+  const ep = horrorCellPos(exit);
+  H.exitPos = ep;
+  H.exit = mesh(new THREE.PlaneGeometry(HB * .8, HB * .8), new THREE.MeshBasicMaterial({map: H.exitTex, transparent: true, depthWrite: false}), ep.x, .03, ep.z, false);
+  H.exit.rotation.x = -Math.PI / 2; H.maze.add(H.exit);
+  H.exitLight = new THREE.PointLight(0xff3030, .8, 5); H.exitLight.position.set(ep.x, 1, ep.z); H.maze.add(H.exitLight);
+  redrawTex(H.exitTex);
+  // 괴물: 출구 근처 · 미로 가운데쯤에서 시작
+  const mStarts = [[N - 1, 0], [0, N - 1]];
+  H.monsters = H.monsterModels.map((g, k) => {
+    g.visible = k < P.monsters;
+    const c = mStarts[k], p = horrorCellPos(c);
+    g.position.set(p.x, 0, p.z);
+    return {g, active: k < P.monsters, path: [], chase: false, chaseT: 0, thinkT: 0, last: null};
+  }).filter(m => m.active);
+  // 사장님
+  const sp = horrorCellPos(start);
+  H.pos.set(sp.x, 0, sp.z);
+  H.yaw = wall[2][1] ? Math.PI : -Math.PI / 2; H.pitch = 0;   // 뚫린 통로 쪽을 보고 시작해요
+  H.stamina = 100; H.crouch = 0; H.battery = 100; H.lightOn = true; H.scare = 0; H.done = false;
+  scene.fog.near = 1; scene.fog.far = P.fog;
+}
+function horrorCellPos([cx, cy]){ const H = W.horror; return {x: H.x0 + (2 * cx + 1) * HB + HB / 2, z: H.z0 + (2 * cy + 1) * HB + HB / 2}; }
+function horrorBlock(x, z){ const H = W.horror; return [Math.floor((x - H.x0) / HB), Math.floor((z - H.z0) / HB)]; }
+function horrorWall(x, z){
+  const H = W.horror, [i, j] = horrorBlock(x, z);
+  return i < 0 || j < 0 || i >= H.S || j >= H.S || H.wall[i][j];
+}
+function horrorFree(x, z, r = .3){ return !horrorWall(x - r, z - r) && !horrorWall(x + r, z - r) && !horrorWall(x - r, z + r) && !horrorWall(x + r, z + r); }
+function horrorSees(a, b){   // 벽에 막히지 않고 보이나요?
+  const d = Math.hypot(b.x - a.x, b.z - a.z), steps = Math.ceil(d / .4);
+  for (let k = 1; k < steps; k++){ const t = k / steps; if (horrorWall(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t)) return false; }
+  return true;
+}
+// 미로 길찾기 (블록 격자 BFS)
+function horrorPath(from, to){
+  const H = W.horror, [si, sj] = horrorBlock(from.x, from.z), [ti, tj] = horrorBlock(to.x, to.z);
+  const key = (i, j) => i * 100 + j, prev = new Map([[key(si, sj), null]]), q = [[si, sj]];
+  while (q.length){
+    const [i, j] = q.shift();
+    if (i === ti && j === tj) break;
+    for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){
+      const ni = i + di, nj = j + dj, k = key(ni, nj);
+      if (ni < 0 || nj < 0 || ni >= H.S || nj >= H.S || H.wall[ni][nj] || prev.has(k)) continue;
+      prev.set(k, [i, j]); q.push([ni, nj]);
+    }
+  }
+  const path = []; let cur = [ti, tj];
+  if (!prev.has(key(ti, tj))) return path;
+  while (cur && !(cur[0] === si && cur[1] === sj)){ path.unshift({x: H.x0 + cur[0] * HB + HB / 2, z: H.z0 + cur[1] * HB + HB / 2}); cur = prev.get(key(cur[0], cur[1])); }
+  return path;
+}
+
+// ---- 시작 · 끝 ----
+function canHorror(){ return inPhase('horror') && $('overlay').hidden && !W.horror.done; }
+function startHorror(){
+  const stage = Math.min(5, (G.horrorBest || 0) + 1);
+  G.phase = 'horror';
+  sfx.scream();
+  horrorEnterStage(stage);
+}
+function horrorEnterStage(stage){
+  const H = W.horror;
+  horrorBuildStage(stage);
+  setWorldMode('horror'); W.snapCam = true;
+  const P = H.P;
+  showOverlay(`
+    <div class="card horror-card">
+      <div class="ending-ic">🕯️</div>
+      <h2>${stage === 1 ? '문양에 빨려 들어왔다...' : `더 깊은 곳 · ${stage}단계`}</h2>
+      <div class="day-note">어두운 미로 어딘가에 <b>부적 ${P.talis}장</b>이 떨어져 있어요. 모두 모아 <b>출구 문양</b>으로 탈출하세요.<br>
+        괴물 ${P.monsters}마리가 돌아다녀요. 달리면 소리가 커서 들키고, 웅크리면 조용해요.${P.battery ? '<br>🔦 손전등 배터리가 닳아요! F로 끄고 켜고, 배터리를 주워 충전하세요.' : ''}</div>
+      <div class="hh-keys">🖱️ 클릭 후 마우스로 둘러보기 · WASD 이동 · Shift 달리기 · C 웅크리기${P.battery ? ' · F 손전등' : ''}</div>
+      <button class="big-btn" onclick="horrorGo()">🔦 들어가기</button>
+    </div>`);
+}
+function horrorGo(){
+  hideOverlay();
+  W.horror.done = false;
+  try { renderer.domElement.requestPointerLock(); } catch(e){}
+}
+function horrorLeave(){
+  const H = W.horror;
+  H.done = true;
+  if (document.pointerLockElement) document.exitPointerLock();
+  H.keys.clear();
+}
+function horrorClear(){
+  const H = W.horror, st = H.stage, reward = st * 20000;
+  horrorLeave();
+  G.money += reward;
+  G.horrorBest = Math.max(G.horrorBest || 0, st);
+  sfx.fanfare();
+  const last = st >= 5;
+  showOverlay(`
+    <div class="card horror-card">
+      <div class="ending-ic">${last ? '🏆' : '✨'}</div>
+      <h2>${last ? '문양의 저주를 풀었다!' : `${st}단계 탈출!`}</h2>
+      <div class="day-note">${last ? '다섯 개의 미로를 모두 빠져나왔어요. 문양이 조용히 빛을 잃어요...' : '출구 문양이 빛나며 몸이 떠올라요.'}<br>보상 <b>+${fmt(reward)}</b></div>
+      ${last ? '' : `<button class="big-btn" onclick="horrorEnterStage(${st + 1})">⬇️ ${st + 1}단계로 더 깊이</button><br>`}
+      <button class="${last ? 'big-btn' : 'sub-btn'}" onclick="horrorReturn()">🏪 시장으로 돌아가기</button>
+    </div>`);
+}
+function horrorCaught(m){
+  const H = W.horror;
+  if (H.scare > 0 || H.done) return;
+  H.scare = 1.3; H.scareBy = m;
+  sfx.scream();
+  $('scareFlash').classList.add('on');
+}
+function horrorCaughtCard(){
+  const H = W.horror, fine = Math.min(G.money, 20000);
+  horrorLeave();
+  $('scareFlash').classList.remove('on');
+  G.money -= fine;
+  showOverlay(`
+    <div class="card horror-card">
+      <div class="ending-ic">😱</div>
+      <h2>잡혔다...</h2>
+      <div class="day-note">정신을 잃었다가 시장 바닥에서 깨어났어요.<br>치료비 <b>-${fmt(fine)}</b> · ${H.stage}단계에서 다시 도전할 수 있어요</div>
+      <button class="big-btn" onclick="horrorReturn()">🏪 시장에서 깨어나기</button>
+    </div>`);
+}
+function horrorQuit(){ if (!inPhase('horror')) return; horrorLeave(); horrorReturn(); }
+function horrorReturn(){
+  const H = W.horror;
+  horrorLeave();
+  hideOverlay();
+  $('scareFlash').classList.remove('on');
+  H.monsters.forEach(m => { m.g.visible = false; });
+  scene.fog.near = 22; scene.fog.far = 45;
+  G.phase = 'market';
+  setWorldMode('market');
+  const Pm = W.market.player;
+  Pm.position.set(MARKET_X + SIGIL_AT.x, 0, SIGIL_AT.z + 2.4);
+  W.market.sigilLock = true;
+  W.snapCam = true;
+}
+
+// ---- 매 프레임 ----
+function horrorKey(e, down){
+  const c = e.code, H = W.horror;
+  if (!down){ H.keys.delete(c); return; }
+  if (!canHorror()) return;
+  if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'ShiftRight', 'KeyC'].includes(c)){ H.keys.add(c); e.preventDefault(); }
+  if (c === 'KeyF' && !e.repeat && H.P.battery){ H.lightOn = !H.lightOn; sfx.click(); }
+  if (c === 'KeyQ' && !e.repeat) horrorQuit();
+}
+function syncHorror(dt){
+  const H = W.horror, P = H.P, live = canHorror();
+  const k = H.keys;
+  // 점프 스케어 중
+  if (H.scare > 0){
+    H.scare -= dt;
+    const m = H.scareBy.g;
+    m.position.set(H.pos.x - Math.sin(H.yaw) * .9, 0, H.pos.z - Math.cos(H.yaw) * .9);
+    m.lookAt(H.pos.x, 0, H.pos.z);
+    m.scale.setScalar(1 + (1.3 - H.scare) * .4);
+    if (H.scare <= 0){ m.scale.setScalar(1); horrorCaughtCard(); }
+    return;
+  }
+  // 이동
+  let speed = 0, noise = 0;
+  H.crouch = lerp(H.crouch, k.has('KeyC') ? 1 : 0, Math.min(1, dt * 10));
+  if (live){
+    if (k.has('ArrowLeft')) H.yaw += dt * 2.2;
+    if (k.has('ArrowRight')) H.yaw -= dt * 2.2;
+    const f = (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0);
+    const s = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0);
+    const running = (k.has('ShiftLeft') || k.has('ShiftRight')) && H.stamina > 1 && H.crouch < .5 && (f || s);
+    speed = H.crouch > .5 ? H_CROUCH : running ? H_RUN : H_WALK;
+    if (f || s){
+      const fx = -Math.sin(H.yaw), fz = -Math.cos(H.yaw), rx = Math.cos(H.yaw), rz = -Math.sin(H.yaw);
+      let mx = fx * f + rx * s, mz = fz * f + rz * s; const l = Math.hypot(mx, mz); mx /= l; mz /= l;
+      const nx = H.pos.x + mx * speed * dt, nz = H.pos.z + mz * speed * dt;
+      if (horrorFree(nx, H.pos.z)) H.pos.x = nx;
+      if (horrorFree(H.pos.x, nz)) H.pos.z = nz;
+      noise = H.crouch > .5 ? 1.2 : running ? 9 : 4.5;
+      H.stepT -= dt * speed;
+      if (H.stepT <= 0){ H.stepT = 2.2; sfx.step(running ? .05 : H.crouch > .5 ? .012 : .03); }
+    } else speed = 0;
+    H.stamina = clamp(H.stamina + (running ? -28 : 14) * dt, 0, 100);
+    // 배터리 (5단계)
+    if (P.battery && H.lightOn){ H.battery = Math.max(0, H.battery - 1.6 * dt); if (H.battery <= 0){ H.lightOn = false; toast('🔦 배터리가 다 됐어요! 배터리를 찾으세요'); } }
+  }
+  // 부적 · 배터리 줍기
+  H.talis.forEach(t => {
+    if (t.got) return;
+    t.g.rotation.y += dt * 1.5; t.g.position.y = 1.1 + Math.sin(T * 2) * .1;
+    if (Math.hypot(t.g.position.x - H.pos.x, t.g.position.z - H.pos.z) < 1){
+      t.got = true; t.g.visible = false; H.talisLeft--; sfx.coin();
+      toast(H.talisLeft ? `📜 부적을 주웠어요! (${H.talis.length - H.talisLeft}/${H.talis.length})` : '📜 부적을 모두 모았어요! 출구 문양이 금빛으로 빛나요');
+      if (!H.talisLeft){ redrawTex(H.exitTex); H.exitLight.color.set(0xffc060); }
+    }
+  });
+  H.batteries.forEach(b => {
+    if (b.got) return;
+    if (Math.hypot(b.g.position.x - H.pos.x, b.g.position.z - H.pos.z) < 1){ b.got = true; b.g.visible = false; H.battery = Math.min(100, H.battery + 45); sfx.pluck(); toast('🔋 배터리 충전 +45%'); }
+  });
+  // 출구
+  if (live && !H.talisLeft && Math.hypot(H.exitPos.x - H.pos.x, H.exitPos.z - H.pos.z) < 1){ horrorClear(); return; }
+  H.exit.rotation.z += dt * (H.talisLeft ? .2 : 1);
+  // 괴물
+  let nearest = 99;
+  H.monsters.forEach(m => {
+    const g = m.g, d = Math.hypot(g.position.x - H.pos.x, g.position.z - H.pos.z);
+    nearest = Math.min(nearest, d);
+    if (!live) return;
+    const heard = d < noise * P.hear;
+    const seen = d < P.sight * (H.crouch > .5 ? .6 : 1) && horrorSees(g.position, H.pos);
+    if (heard || seen){
+      if (!m.chase){ m.chase = true; sfx.alarm(); }
+      m.chaseT = 4; m.last = H.pos.clone();
+    } else if (m.chase){ m.chaseT -= dt; if (m.chaseT <= 0) m.chase = false; }
+    m.thinkT -= dt;
+    if (m.thinkT <= 0){
+      m.thinkT = m.chase ? .35 : 1.5;
+      if (m.chase) m.path = horrorPath(g.position, m.last);
+      else if (!m.path.length){ const c = [Math.floor(Math.random() * H.N), Math.floor(Math.random() * H.N)]; m.path = horrorPath(g.position, horrorCellPos(c)); }
+    }
+    const sp = P.speed * (m.chase ? 1 : .55);
+    const tgt = m.path[0];
+    if (tgt){
+      const dx = tgt.x - g.position.x, dz = tgt.z - g.position.z, l = Math.hypot(dx, dz);
+      if (l < .15) m.path.shift();
+      else { g.position.x += dx / l * Math.min(l, sp * dt); g.position.z += dz / l * Math.min(l, sp * dt); g.rotation.y = lerp(g.rotation.y, Math.atan2(dx, dz), Math.min(1, dt * 8)); }
+    }
+    g.position.y = Math.abs(Math.sin(T * (m.chase ? 9 : 4))) * .08;
+    if (d < .95) horrorCaught(m);
+  });
+  // 심장 소리: 괴물이 가까울수록 빨리
+  H.beatT -= dt;
+  if (live && nearest < 14 && H.beatT <= 0){ H.beatT = .35 + nearest / 14 * 1.1; sfx.heart(); }
+  // 손전등
+  let on = !P.battery || H.lightOn;
+  if (on && ((P.battery && H.battery < 20) || H.stage === 5) && Math.random() < (H.battery < 20 ? .12 : .02)) on = false;   // 깜빡깜빡
+  H.flash.intensity = on ? 2.4 : 0;
+  H.aura.intensity = on ? .35 : .12;
+  // HUD
+  const hud = $('horrorHud');
+  const top = `👁️ ${H.stage}단계 · 📜 부적 ${H.talis.length - H.talisLeft}/${H.talis.length} · 출구 ${H.talisLeft ? '🔒' : '✨ 열림'}`;
+  const tEl = hud.querySelector('.hh-top'); if (tEl.textContent !== top) tEl.textContent = top;
+  hud.querySelector('.st i').style.width = H.stamina + '%';
+  hud.querySelector('.bt').hidden = hud.querySelector('.hh-bat').hidden = !P.battery;
+  hud.querySelector('.bt i').style.width = H.battery + '%';
+  const state = `${H.crouch > .5 ? '🧎 웅크리기' : speed >= H_RUN ? '🏃 달리기' : speed ? '🚶 걷기' : '🧍 멈춤'} · 소리 ${'▮'.repeat(Math.round(noise / 3))}${'▯'.repeat(3 - Math.round(noise / 3))}${H.monsters.some(m => m.chase) ? ' · ⚠️ 쫓기는 중!' : ''}`;
+  const sEl = hud.querySelector('.hh-state'); if (sEl.textContent !== state) sEl.textContent = state;
+  hud.querySelector('.hh-hint').hidden = !!document.pointerLockElement;
+}
+function horrorCamera(){
+  const H = W.horror, bob = Math.sin(T * 9) * .03;
+  const eye = 1.6 - H.crouch * .7;
+  camera.position.set(H.pos.x, eye + bob, H.pos.z);
+  const dir = new THREE.Vector3(-Math.sin(H.yaw) * Math.cos(H.pitch), Math.sin(H.pitch), -Math.cos(H.yaw) * Math.cos(H.pitch));
+  curLook.copy(camera.position).add(dir);
+  camera.lookAt(curLook);
+  H.flash.position.copy(camera.position);
+  H.flash.target.position.copy(camera.position).addScaledVector(dir, 6);
+  H.aura.position.copy(camera.position);
+}
+document.addEventListener('mousemove', e => {
+  if (!inPhase('horror') || document.pointerLockElement !== renderer.domElement) return;
+  const H = W.horror;
+  H.yaw -= e.movementX * .0025;
+  H.pitch = clamp(H.pitch - e.movementY * .0025, -1.2, 1.2);
+});
+
 // ---------------- 대도시 ----------------
 const CITY_SHOPS = [
   {id: 'mall', name: '메가 대형마트',   icon: '🛒', x: -20, color: 0xe0a030, sign: '#d98a1e', desc: '없는 게 없어요! 영업 중에도 모든 재료·손질된 국밥 재료·도구를 시장 가격에 사요'},
@@ -7463,6 +7893,10 @@ function handleHit(u){
 document.addEventListener('pointerdown', e => {
   if (e.button !== 0) return;
   const t = e.target;
+  if (inPhase('horror')){   // 공포 미로: 화면을 클릭하면 마우스로 둘러봐요
+    if (canHorror() && t === renderer.domElement && !document.pointerLockElement) renderer.domElement.requestPointerLock();
+    return;
+  }
   const fb = t.closest('[data-floor]');
   if (fb){ if (outOK() && G.running && !G.paused) goFloor(+fb.dataset.floor); return; }
   const jzb = t.closest('[data-jz]');
@@ -7548,6 +7982,7 @@ window.addEventListener('keydown', e => {
     if (G.running && !G.paused && !e.repeat) goFloor(+c.slice(5));
     return;
   }
+  if (inPhase('horror')){ horrorKey(e, true); return; }
   if (canMarket()){ marketKey(e); return; }
   if (canVipPrep()){
     const m = /^(?:Digit|Numpad)([12])$/.exec(c);
@@ -7665,6 +8100,8 @@ function loop(ts){
     syncCarRide(fdt);
   } else if (W.mode === 'home'){
     syncHome(dt);
+  } else if (W.mode === 'horror'){
+    syncHorror(dt);
   } else if (W.mode === 'prep'){
     syncPrep(dt);
   } else if (W.mode === 'cafe'){
@@ -7691,12 +8128,14 @@ function loop(ts){
   W.sun.intensity = lerp(W.sun.intensity, Lt.sunI, lk);
 
   // 해 그림자는 지금 보는 곳을 따라가요
-  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : W.mode === 'vip' ? W.vip.origin : W.mode === 'town' ? W.town.owner.position : W.mode === 'city' ? W.city.owner.position : W.mode === 'bus' ? W.bus.origin : W.mode === 'car' ? W.car.origin : W.mode === 'home' ? W.home.origin : _origin;
+  const sunAt = W.mode === 'market' ? W.market.player.position : W.mode === 'cafe' ? W.cafe.origin : W.mode === 'vip' ? W.vip.origin : W.mode === 'town' ? W.town.owner.position : W.mode === 'city' ? W.city.owner.position : W.mode === 'bus' ? W.bus.origin : W.mode === 'car' ? W.car.origin : W.mode === 'home' ? W.home.origin : W.mode === 'horror' ? W.horror.origin : _origin;
   W.sun.position.set(sunAt.x - 5, 14, sunAt.z + 8);
   W.sun.target.position.set(sunAt.x, 0, sunAt.z);
   W.sun.target.updateMatrixWorld();
 
-  // 카메라 (시장에서는 주인공을 뒤에서 따라감)
+  // 카메라 (공포 미로는 1인칭 · 시장에서는 주인공을 뒤에서 따라감)
+  if (W.mode === 'horror') horrorCamera();
+  else {
   if (W.mode === 'market'){
     const pp = W.market.player.position, ck = W.camK || 1;
     _camTarget.set(pp.x, 1.2 + 7.3 * ck, pp.z - 2 + 12.5 * ck);
@@ -7718,6 +8157,7 @@ function loop(ts){
   curLook.lerp(_lookTarget, Math.min(1, dt * follow));
   if (W.shake > 0){ W.shake = Math.max(0, W.shake - dt); camera.position.x += (Math.random() - .5) * W.shake * .6; camera.position.y += (Math.random() - .5) * W.shake * .6; }
   camera.lookAt(curLook);
+  }
 
   renderer.render(scene, camera);
   requestAnimationFrame(loop);
