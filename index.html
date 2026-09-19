@@ -8381,8 +8381,8 @@ function continueGame(){
 function showEnding(reason){
   G.running = false;
   G.phase = 'result';
-  clearProgress();
   const d = G.day;
+  const sav = loadProgress();   // 죽어도 저장은 남겨둬요 (그날 아침부터 다시 이어서 해요)
   let grade;
   G.afterWork = false;
   if (reason === 'dev') grade = {e: '🔪', t: '개발자한테 사망', d: '가게 손님들은 모두 가짜였고, 사장님은 처음부터 타겟이었어요...<br>이 게임의 개발자 <b>돌격소총</b>에게 당했어요.'};
@@ -8417,7 +8417,7 @@ function showEnding(reason){
         <tr><td>완벽한 국밥</td><td>${G.totalPerfect + (!done ? G.stats.perfect : 0)}그릇</td></tr>
         <tr><td>최종 평판</td><td>⭐ ${G.rep.toFixed(1)}</td></tr>
       </table>
-      ${done ? `<button class="big-btn" onclick="continueGame()">▶ 계속하기</button> ` : ''}<button class="${done ? 'sub-btn' : 'big-btn'}" onclick="showTitle()">다시 하기 🔄</button>
+      ${done ? `<button class="big-btn" onclick="continueGame()">▶ 계속하기</button> ` : ''}${!done && sav ? `<button class="big-btn" onclick="continueSaved()">📂 DAY ${sav.day} 아침부터 이어하기</button> ` : ''}<button class="${done || sav ? 'sub-btn' : 'big-btn'}" onclick="showTitle()">다시 하기 🔄</button>
     </div>`);
 }
 
