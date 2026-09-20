@@ -3,7 +3,7 @@
 새벽시장에서 재료를 사고, 국밥을 끓여 팔고, 카페와 VIP 라운지까지 키우는 **3D 식당 경영 게임**입니다.
 브라우저만 있으면 바로 할 수 있어요. 설치도, 서버도 필요 없습니다.
 
-▶ **바로 하기**: https://korean568.github.io/Business-Simulator/
+▶ **바로 하기**: https://korean568.github.io/
 
 ![국밥 타이쿤](logo.png)
 
