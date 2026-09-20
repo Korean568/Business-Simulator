@@ -159,9 +159,10 @@ button{font-family:inherit;cursor:pointer}
 #scareFlash.on{animation:scare .12s steps(2) infinite}
 @keyframes scare{50%{opacity:1}}
 body.horror-mode #hud{display:none}
-body.horror-cut #horrorHud,body.horror-cut #horrorTouch,body.horror-cut #joystick{display:none!important}
+body.horror-cut #hud,body.horror-cut #horrorHud,body.horror-cut #horrorTouch,body.horror-cut #joystick{display:none!important}
 #cutSub{position:fixed;left:50%;bottom:9%;transform:translateX(-50%);z-index:62;width:min(760px,calc(100% - 32px));padding:14px 20px;background:rgba(0,0,0,.72);color:#f4ecdc;font-size:22px;line-height:1.45;text-align:center;border-radius:10px;pointer-events:none}
 #cutSub b{margin-right:10px}#cutSub b.me{color:#8ad0ff}#cutSub b.dev{color:#ff5a4a}
+#cutSkip{position:fixed;right:18px;bottom:18px;z-index:63}
 #cutBlack{position:fixed;inset:0;z-index:61;pointer-events:none;opacity:0;background:#000}
 @media (max-width:700px){#cutSub{font-size:16px;bottom:6%}}
 #horrorHud{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:16;color:#e8e0d0;text-align:center;text-shadow:0 2px 3px #000;pointer-events:none;width:min(560px,calc(100% - 24px))}
@@ -851,6 +852,7 @@ const CAMS = {
   horror:{look: new THREE.Vector3(HORROR_X, 1.6, -1), base: new THREE.Vector3(HORROR_X, 1.6, 0), pos: new THREE.Vector3()},
   home:  {look: new THREE.Vector3(HOME_X, 2, -2.5),   base: new THREE.Vector3(HOME_X, 8.5, 12),  pos: new THREE.Vector3()},
   bus:   {look: new THREE.Vector3(BUS_X + 16, 2.2, .2),  base: new THREE.Vector3(BUS_X + 3.45, 2.95, 2.1),  pos: new THREE.Vector3()},   // 1인칭 (창가 좌석)
+  intro: {look: new THREE.Vector3(HORROR_X + 600, 1.6, -1), base: new THREE.Vector3(HORROR_X + 600, 1.62, 1.1), pos: new THREE.Vector3()},   // 1인칭 (시작 컷신)
 };
 const curLook = CAMS.lunch.look.clone();
 const SEAT_X = [-6, -2, 2, 6], SEAT_Z = -2.15, COUNTER_TOP = 1.32;
@@ -873,6 +875,7 @@ const LIGHTS = {
   home:  {bg: new THREE.Color(0x2a1a14), hemi: new THREE.Color(0xfff1dc), hemiI: .75, sun: new THREE.Color(0xffe2b8), sunI: .7},
   bus:   {bg: new THREE.Color(0x9cc8ec), hemi: new THREE.Color(0xffffff), hemiI: .9,  sun: new THREE.Color(0xfff2d8), sunI: .9},
   city:  {bg: new THREE.Color(0x4a4a78), hemi: new THREE.Color(0xe8e4ff), hemiI: .85, sun: new THREE.Color(0xffd8b0), sunI: .8},
+  intro: {bg: new THREE.Color(0x14120f), hemi: new THREE.Color(0xd8d2c4), hemiI: .45, sun: new THREE.Color(0x000000), sunI: 0},
 };
 
 const matCache = {};
@@ -1726,7 +1729,7 @@ function setWorldMode(mode){
   const ht = $('horrorTouch'); if (ht) ht.hidden = !(IS_TOUCH && mode === 'horror');
   document.body.classList.toggle('horror-mode', mode === 'horror');   // 공포게임 중엔 가게 상단 정보를 숨겨요
   // 지금 있는 곳만 그려요 (안 보이는 지역의 조명까지 계산하면 느려져요)
-  const ZR = {market: W.market, cafe: W.cafe, vip: W.vip, town: W.town, city: W.city, bus: W.bus, car: W.car, home: W.home, horror: W.horror};
+  const ZR = {market: W.market, cafe: W.cafe, vip: W.vip, town: W.town, city: W.city, bus: W.bus, car: W.car, home: W.home, horror: W.horror, intro: W.intro};
   for (const z in ZR) if (ZR[z] && ZR[z].root) ZR[z].root.visible = z === mode;
   W.keys.clear(); W.joy.x = W.joy.y = 0;
   if (W.town) W.town.target = null;
@@ -1880,7 +1883,8 @@ function startGame(saved){
   if (saved){ Object.assign(G, saved); G.name = name; toast(`📂 DAY ${G.day}부터 이어서 해요`); }
   $('hudName').textContent = '🍲 ' + name;
   sfx.click();
-  showDayIntro();
+  if (saved) showDayIntro();
+  else { buildDay(); startIntroCut(); }   // 새로 시작하면 가면 쓴 남자에게 가게를 넘겨받는 장면부터
 }
 
 function showDayIntro(){
@@ -5156,6 +5160,154 @@ function syncHome(dt){
   }
 }
 
+// ---------------- 시작 컷신: 가면 쓴 남자에게 가게를 넘겨받아요 ----------------
+const INTRO_X = HORROR_X + 600;
+const INTRO_LINES = [
+  {t: 1.0,  who: '나',   text: '이 건물 몇 원이죠?'},
+  {t: 3.4,  who: '???',  text: '20만원입니다.'},
+  {t: 6.2,  who: '나',   text: '살게요.'},
+  {t: 8.2,  who: '???',  text: '좋습니다.'},
+  {t: 11.8, who: '???',  text: '임대료는 한 달에 5천원입니다.'},
+  {t: 15.4, who: '???',  text: '만약 한 달 안에 1000만원을 벌면 임대료는 무료로 해드리죠.'},
+  {t: 20.2, who: '나',   text: '꼭 한 달 안에 1000만원을 벌어야겠군.'},
+  {t: 23.4, who: '???',  text: '(후후후... 걸려들었군)'},
+  {t: 26.0, who: '나',   text: '뭐가 수상한데...'},
+];
+const INTRO_END = 30.0;
+// 검은 정장 · 검은 중절모 · 하얀 가면
+function makeMaskedMan(){
+  const g = new THREE.Group(), U = g.userData;
+  const suit = std(0x14141a, {roughness: .75}), shirt = std(0xe8eef2, {roughness: .8}), skin = std(0xf2d8b8, {roughness: .8});
+  for (const sx of [-.24, .24]) g.add(mesh(new THREE.BoxGeometry(.46, .95, .46), suit, sx, .475, 0));
+  g.add(mesh(new THREE.BoxGeometry(.95, .95, .46), suit, 0, 1.425, 0));
+  g.add(mesh(new THREE.BoxGeometry(.3, .8, .04), shirt, 0, 1.5, .24, false));            // 와이셔츠
+  g.add(mesh(new THREE.BoxGeometry(.1, .62, .03), std(0x101014), 0, 1.44, .27, false));   // 넥타이
+  // 머리 · 하얀 가면
+  const mask = canvasTex(128, 128, (x, w, h) => {
+    x.fillStyle = '#f4f2ee'; x.fillRect(0, 0, w, h);
+    x.fillStyle = 'rgba(180,178,172,.55)';
+    x.beginPath(); x.ellipse(40, 44, 18, 11, .2, 0, Math.PI * 2); x.ellipse(88, 44, 18, 11, -.2, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#0a0a0a';
+    x.beginPath(); x.ellipse(42, 47, 11, 6.5, .25, 0, Math.PI * 2); x.ellipse(86, 47, 11, 6.5, -.25, 0, Math.PI * 2); x.fill();
+    x.beginPath(); x.moveTo(36, 78); x.quadraticCurveTo(64, 104, 92, 78); x.quadraticCurveTo(64, 88, 36, 78); x.fill();   // 웃는 입
+  });
+  const head = U.head = new THREE.Group(); head.position.y = 1.9; g.add(head);
+  head.add(mesh(new THREE.BoxGeometry(.58, .58, .58), [skin, skin, skin, skin, new THREE.MeshStandardMaterial({map: mask, roughness: .6}), skin], 0, .29, 0));
+  // 중절모
+  head.add(mesh(new THREE.CylinderGeometry(.5, .52, .04, 18), suit, 0, .58, 0));
+  head.add(mesh(new THREE.CylinderGeometry(.27, .29, .3, 16), suit, 0, .74, 0));
+  head.add(mesh(new THREE.TorusGeometry(.28, .03, 6, 18), std(0x2a2a30), 0, .62, 0).rotateX(Math.PI / 2));
+  // 팔 (오른손엔 가게 열쇠)
+  U.arms = [-1, 1].map(sx => {
+    const sh = new THREE.Group(); sh.position.set(sx * .7, 1.85, 0); g.add(sh);
+    const a = new THREE.BoxGeometry(.4, .92, .4); a.translate(0, -.46, 0);
+    sh.add(mesh(a, suit));
+    sh.add(mesh(new THREE.BoxGeometry(.38, .2, .38), skin, 0, -.98, 0));
+    return sh;
+  });
+  const key = U.key = new THREE.Group(); key.position.set(0, -1.15, .1); U.arms[1].add(key);
+  key.add(mesh(new THREE.BoxGeometry(.04, .04, .3), std(0xd8b14a, {metalness: .7, roughness: .3}), 0, 0, .1, false));
+  key.add(mesh(new THREE.TorusGeometry(.07, .02, 6, 12), std(0xd8b14a, {metalness: .7, roughness: .3}), 0, 0, -.08, false));
+  key.add(mesh(new THREE.BoxGeometry(.03, .09, .04), std(0xd8b14a, {metalness: .7, roughness: .3}), 0, -.05, .22, false));
+  return g;
+}
+function buildIntroRoom(){
+  const I = W.intro = {cut: null};
+  const R = I.root = new THREE.Group(); R.visible = false; scene.add(R);
+  const X = I.x = INTRO_X;
+  const wall = std(0xbdb3a4, {roughness: 1}), floorM = std(0x9a8b74, {roughness: 1});
+  const fl = mesh(new THREE.PlaneGeometry(12, 12), floorM, X, 0, 0, false); fl.rotation.x = -Math.PI / 2; R.add(fl);
+  const ce = mesh(new THREE.PlaneGeometry(12, 12), wall, X, 3.6, 0, false); ce.rotation.x = Math.PI / 2; R.add(ce);
+  R.add(mesh(new THREE.BoxGeometry(12, 3.6, .2), wall, X, 1.8, -6, false));
+  R.add(mesh(new THREE.BoxGeometry(12, 3.6, .2), wall, X, 1.8, 6, false));
+  for (const sx of [-1, 1]) R.add(mesh(new THREE.BoxGeometry(.2, 3.6, 12), wall, X + sx * 6, 1.8, 0, false));
+  // 텅 빈 가게: 낡은 카운터 · 쌓인 상자 · 매달린 전구 · '임대' 안내문
+  R.add(mesh(new THREE.BoxGeometry(4, 1.1, .8), std(0x6b4a2c, {roughness: .9}), X - 2.4, .55, -4.4));
+  for (let k = 0; k < 4; k++){
+    const b = mesh(new THREE.BoxGeometry(.8, .7, .8), std(0xb08a56, {roughness: 1}), X + 3.4 - (k % 2) * .95, .35 + Math.floor(k / 2) * .72, -4.6 + (k % 2) * .3);
+    b.rotation.y = (prand(k + 3100) - .5) * .5; R.add(b);
+  }
+  R.add(mesh(new THREE.CylinderGeometry(.01, .01, 1.2, 4), std(0x333333), X, 3, 0, false));
+  R.add(mesh(new THREE.SphereGeometry(.12, 10, 8), new THREE.MeshBasicMaterial({color: 0xffeec0}), X, 2.36, 0, false));
+  I.bulb = new THREE.PointLight(0xffe6b8, 1.3, 16); I.bulb.position.set(X, 2.3, 0); R.add(I.bulb);
+  const noteTex = canvasTex(128, 96, (x, w, h) => {
+    x.fillStyle = '#f6f1e2'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#b02020'; x.font = 'bold 34px sans-serif'; x.textAlign = 'center'; x.fillText('임 대', w / 2, 42);
+    x.fillStyle = '#5a4a3a'; x.font = '16px sans-serif'; x.fillText('건물 팝니다', w / 2, 70);
+  });
+  const note = mesh(new THREE.PlaneGeometry(.9, .68), new THREE.MeshStandardMaterial({map: noteTex, roughness: .9}), X - 3.4, 1.9, -5.88, false);
+  note.rotation.z = .05; R.add(note);
+  I.man = makeMaskedMan(); I.man.position.set(X, 0, -3.8); R.add(I.man);
+  // 건네받은 열쇠 (카메라 앞에서 반짝)
+  const skip = document.createElement('button'); skip.id = 'cutSkip'; skip.hidden = true;
+  skip.className = 'sub-btn'; skip.textContent = '건너뛰기 ▶'; skip.onclick = endIntroCut;
+  document.body.appendChild(skip);
+}
+function startIntroCut(){
+  const I = W.intro;
+  G.phase = 'shopDeal';
+  I.cut = {t: 0, step: 0};
+  I.yaw = 0; I.pitch = .06;
+  I.man.position.set(I.x, 0, -3.8); I.man.rotation.y = 0;
+  I.man.userData.key.visible = true;
+  setWorldMode('intro'); W.snapCam = true;
+  hideOverlay();
+  document.body.classList.add('horror-cut');
+  $('cutSkip').hidden = false;
+  const blk = $('cutBlack'); blk.style.transition = 'none'; blk.style.background = '#000'; blk.style.opacity = 1;
+  requestAnimationFrame(() => { blk.style.transition = 'opacity 1.2s'; blk.style.opacity = 0; });
+}
+function syncIntroCut(dt){
+  const I = W.intro, C = I.cut;
+  if (!C) return;
+  const t = C.t += dt, U = I.man.userData;
+  const ease = (a, b) => clamp((t - a) / (b - a), 0, 1), sm = v => v * v * (3 - 2 * v);
+  // 사장님 시선: 남자를 보다가, 열쇠를 받을 땐 잠깐 손을 봐요
+  I.yaw = Math.sin(t * .5) * .02;
+  I.pitch = .06 + (t > 8.4 && t < 11 ? -.2 * sm(ease(8.4, 9.2)) * (1 - sm(ease(10.2, 11))) : 0);
+  // 남자: 말할 때 살짝 끄덕이고, 열쇠를 건네줘요
+  const speaking = INTRO_LINES.some(L => L.who === '???' && t > L.t && t < L.t + 1.6);
+  U.head.rotation.x = speaking ? Math.sin(t * 6) * .05 : 0;
+  U.arms[0].rotation.x = Math.sin(t * .8) * .05;
+  if (t > 8.4 && t < 11){        // 열쇠를 내미는 팔
+    const r = sm(ease(8.4, 9.4)) * (1 - sm(ease(10.2, 11)));
+    U.arms[1].rotation.x = -1.45 * r;
+  } else U.arms[1].rotation.x = Math.sin(t * .8) * -.05;
+  if (C.step === 0 && t > 8.6){ C.step = 1; sfx.pluck(); }
+  if (C.step === 1 && t > 10.4){ C.step = 2; U.key.visible = false; sfx.coin(); toast('🔑 가게 열쇠를 받았어요!'); }
+  if (C.step === 2 && t > 23.4){ C.step = 3; tone(160, .5, 'sine', .07, 120); tone(120, .6, 'sine', .06, 90, .22); }   // 낮은 웃음소리
+  if (t > 23.4) I.man.rotation.y = sm(ease(23.4, 25)) * .5;   // 슬쩍 몸을 돌려요
+  I.bulb.intensity = 1.3 + Math.sin(t * 3) * .05;
+  // 자막
+  let li = -1; INTRO_LINES.forEach((L, k) => { if (t >= L.t) li = k; });
+  const sub = $('cutSub');
+  if (li >= 0){
+    const L = INTRO_LINES[li], n = Math.floor((t - L.t) * 22);
+    const html = `${L.who ? `<b class="${L.who === '나' ? 'me' : 'dev'}">${L.who}</b>` : ''}${esc(L.text.slice(0, n))}`;
+    if (sub.innerHTML !== html) sub.innerHTML = html;
+    sub.hidden = false;
+  }
+  if (t > INTRO_END - 1.2 && C.step < 4){ C.step = 4; const blk = $('cutBlack'); blk.style.transition = 'opacity 1.1s'; blk.style.background = '#000'; blk.style.opacity = 1; }
+  if (t > INTRO_END) endIntroCut();
+}
+function endIntroCut(){
+  const I = W.intro;
+  if (!I.cut) return;
+  I.cut = null;
+  $('cutSub').hidden = true;
+  $('cutSkip').hidden = true;
+  document.body.classList.remove('horror-cut');
+  const blk = $('cutBlack'); blk.style.transition = 'opacity .8s'; blk.style.opacity = 0;
+  showDayIntro();
+}
+function introCamera(){
+  const I = W.intro;
+  camera.position.set(I.x, 1.62 + Math.sin(T * 1.2) * .01, 1.1);
+  const dir = new THREE.Vector3(-Math.sin(I.yaw) * Math.cos(I.pitch), Math.sin(I.pitch), -Math.cos(I.yaw) * Math.cos(I.pitch));
+  curLook.copy(camera.position).add(dir);
+  camera.lookAt(curLook);
+}
+
 // ---------------- 문양 속 저주받은 집 (1인칭 공포 · 5단계) ----------------
 // 새벽시장 양념가게 뒤 문양을 밟으면 끌려와요. 방들을 뒤져 부적을 모두 모아 출구 문양으로 탈출하세요. 잡히면 '이상한 곳'으로 끌려가요.
 // WASD 이동 · Shift 달리기 · C 웅크리기 · 마우스 둘러보기 (5단계: F 손전등 · 배터리)
@@ -5209,6 +5361,7 @@ function buildHorror(){
   H.monsterModels = [0, 1].map(() => { const g = makeHorrorMonster(); g.visible = false; root.add(g); return g; });
   buildOtherworld(H, root);
   buildDevRoom(H, root);
+  buildIntroRoom();
   // 점프 스케어 화면
   const flash = document.createElement('div'); flash.id = 'scareFlash'; document.body.appendChild(flash);
   const face = document.createElement('canvas'); face.id = 'scareFace'; face.width = face.height = 512; drawScareFace(face); document.body.appendChild(face);
@@ -8435,7 +8588,7 @@ const PAUSE_KEYS = {
 };
 function togglePause(){
   if (!G || inPhase('result')) return;
-  if (W.horror && W.horror.cut) return;                       // 컷신 중엔 멈추지 않아요
+  if ((W.horror && W.horror.cut) || (W.intro && W.intro.cut)) return;   // 컷신 중엔 멈추지 않아요
   const timed = inPhase('lunch') || inPhase('cafe') || inPhase('open');
   if (timed && !G.running && !G.paused) return;
   if (!G.paused && !$('overlay').hidden) return;              // 다른 창이 떠 있으면 무시해요
@@ -8799,6 +8952,8 @@ function loop(ts){
     syncCarRide(fdt);
   } else if (W.mode === 'home'){
     syncHome(dt);
+  } else if (W.mode === 'intro'){
+    syncIntroCut(dt);
   } else if (W.mode === 'horror'){
     syncHorror(dt);
   } else if (W.mode === 'prep'){
@@ -8834,6 +8989,7 @@ function loop(ts){
 
   // 카메라 (공포 미로는 1인칭 · 시장에서는 주인공을 뒤에서 따라감)
   if (W.mode === 'horror') horrorCamera();
+  else if (W.mode === 'intro') introCamera();
   else {
   if (W.mode === 'market'){
     const pp = W.market.player.position, ck = W.camK || 1;
