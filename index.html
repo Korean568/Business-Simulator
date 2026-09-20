@@ -853,6 +853,7 @@ const CAMS = {
   home:  {look: new THREE.Vector3(HOME_X, 2, -2.5),   base: new THREE.Vector3(HOME_X, 8.5, 12),  pos: new THREE.Vector3()},
   bus:   {look: new THREE.Vector3(BUS_X + 16, 2.2, .2),  base: new THREE.Vector3(BUS_X + 3.45, 2.95, 2.1),  pos: new THREE.Vector3()},   // 1인칭 (창가 좌석)
   intro: {look: new THREE.Vector3(HORROR_X + 600, 1.6, -1), base: new THREE.Vector3(HORROR_X + 600, 1.62, 1.1), pos: new THREE.Vector3()},   // 1인칭 (시작 컷신)
+  finale:{look: new THREE.Vector3(HORROR_X + 780, 1.7, 0),  base: new THREE.Vector3(HORROR_X + 780, 3.2, 9.2), pos: new THREE.Vector3()},   // 3인칭 (마지막 컷신)
 };
 const curLook = CAMS.lunch.look.clone();
 const SEAT_X = [-6, -2, 2, 6], SEAT_Z = -2.15, COUNTER_TOP = 1.32;
@@ -876,6 +877,7 @@ const LIGHTS = {
   bus:   {bg: new THREE.Color(0x9cc8ec), hemi: new THREE.Color(0xffffff), hemiI: .9,  sun: new THREE.Color(0xfff2d8), sunI: .9},
   city:  {bg: new THREE.Color(0x4a4a78), hemi: new THREE.Color(0xe8e4ff), hemiI: .85, sun: new THREE.Color(0xffd8b0), sunI: .8},
   intro: {bg: new THREE.Color(0x14120f), hemi: new THREE.Color(0xd8d2c4), hemiI: .45, sun: new THREE.Color(0x000000), sunI: 0},
+  finale:{bg: new THREE.Color(0x140e0a), hemi: new THREE.Color(0xffe2c0), hemiI: .5,  sun: new THREE.Color(0x000000), sunI: 0},
 };
 
 const matCache = {};
@@ -1729,7 +1731,7 @@ function setWorldMode(mode){
   const ht = $('horrorTouch'); if (ht) ht.hidden = !(IS_TOUCH && mode === 'horror');
   document.body.classList.toggle('horror-mode', mode === 'horror');   // 공포게임 중엔 가게 상단 정보를 숨겨요
   // 지금 있는 곳만 그려요 (안 보이는 지역의 조명까지 계산하면 느려져요)
-  const ZR = {market: W.market, cafe: W.cafe, vip: W.vip, town: W.town, city: W.city, bus: W.bus, car: W.car, home: W.home, horror: W.horror, intro: W.intro};
+  const ZR = {market: W.market, cafe: W.cafe, vip: W.vip, town: W.town, city: W.city, bus: W.bus, car: W.car, home: W.home, horror: W.horror, intro: W.intro, finale: W.finale};
   for (const z in ZR) if (ZR[z] && ZR[z].root) ZR[z].root.visible = z === mode;
   W.keys.clear(); W.joy.x = W.joy.y = 0;
   if (W.town) W.town.target = null;
@@ -5177,22 +5179,31 @@ const INTRO_END = 30.0;
 // 검은 정장 · 검은 중절모 · 하얀 가면
 function makeMaskedMan(){
   const g = new THREE.Group(), U = g.userData;
-  const suit = std(0x14141a, {roughness: .75}), shirt = std(0xe8eef2, {roughness: .8}), skin = std(0xf2d8b8, {roughness: .8});
+  const suit = std(0x14141a, {roughness: .75}), shirt = std(0xe8eef2, {roughness: .8}), skin = std(0xf5cd30, {roughness: .7});   // 노란 팔·얼굴
   for (const sx of [-.24, .24]) g.add(mesh(new THREE.BoxGeometry(.46, .95, .46), suit, sx, .475, 0));
   g.add(mesh(new THREE.BoxGeometry(.95, .95, .46), suit, 0, 1.425, 0));
   g.add(mesh(new THREE.BoxGeometry(.3, .8, .04), shirt, 0, 1.5, .24, false));            // 와이셔츠
   g.add(mesh(new THREE.BoxGeometry(.1, .62, .03), std(0x101014), 0, 1.44, .27, false));   // 넥타이
-  // 머리 · 하얀 가면
-  const mask = canvasTex(128, 128, (x, w, h) => {
-    x.fillStyle = '#f4f2ee'; x.fillRect(0, 0, w, h);
-    x.fillStyle = 'rgba(180,178,172,.55)';
-    x.beginPath(); x.ellipse(40, 44, 18, 11, .2, 0, Math.PI * 2); x.ellipse(88, 44, 18, 11, -.2, 0, Math.PI * 2); x.fill();
-    x.fillStyle = '#0a0a0a';
-    x.beginPath(); x.ellipse(42, 47, 11, 6.5, .25, 0, Math.PI * 2); x.ellipse(86, 47, 11, 6.5, -.25, 0, Math.PI * 2); x.fill();
-    x.beginPath(); x.moveTo(36, 78); x.quadraticCurveTo(64, 104, 92, 78); x.quadraticCurveTo(64, 88, 36, 78); x.fill();   // 웃는 입
+  // 머리: 가면 밑은 돌격소총의 노란 얼굴이에요
+  const under = canvasTex(128, 128, (x, w, h) => {
+    x.fillStyle = '#f5cd30'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#111'; x.beginPath(); x.ellipse(44, 52, 7, 12, 0, 0, Math.PI * 2); x.ellipse(84, 52, 7, 12, 0, 0, Math.PI * 2); x.fill();
+    x.strokeStyle = '#111'; x.lineWidth = 6; x.lineCap = 'round'; x.beginPath(); x.arc(64, 70, 26, Math.PI * .2, Math.PI * .8); x.stroke();
   });
   const head = U.head = new THREE.Group(); head.position.y = 1.9; g.add(head);
-  head.add(mesh(new THREE.BoxGeometry(.58, .58, .58), [skin, skin, skin, skin, new THREE.MeshStandardMaterial({map: mask, roughness: .6}), skin], 0, .29, 0));
+  head.add(mesh(new THREE.BoxGeometry(.58, .58, .58), [skin, skin, skin, skin, new THREE.MeshStandardMaterial({map: under, roughness: .7}), skin], 0, .29, 0));
+  // 동그란 하얀 가면 (마지막에 벗어요)
+  const maskTex = canvasTex(128, 128, (x, w, h) => {
+    x.clearRect(0, 0, w, h);
+    x.fillStyle = '#f4f2ee'; x.beginPath(); x.arc(64, 64, 60, 0, Math.PI * 2); x.fill();
+    x.fillStyle = 'rgba(176,172,164,.5)';
+    x.beginPath(); x.ellipse(44, 52, 16, 10, .2, 0, Math.PI * 2); x.ellipse(84, 52, 16, 10, -.2, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#0a0a0a';
+    x.beginPath(); x.ellipse(45, 55, 10, 6, .25, 0, Math.PI * 2); x.ellipse(83, 55, 10, 6, -.25, 0, Math.PI * 2); x.fill();
+    x.beginPath(); x.moveTo(40, 82); x.quadraticCurveTo(64, 104, 88, 82); x.quadraticCurveTo(64, 91, 40, 82); x.fill();   // 웃는 입
+  });
+  const maskG = U.mask = new THREE.Group(); maskG.position.set(0, .29, .33); head.add(maskG);
+  maskG.add(mesh(new THREE.CircleGeometry(.31, 28), new THREE.MeshStandardMaterial({map: maskTex, transparent: true, roughness: .55}), 0, 0, 0, false));
   // 중절모
   head.add(mesh(new THREE.CylinderGeometry(.5, .52, .04, 18), suit, 0, .58, 0));
   head.add(mesh(new THREE.CylinderGeometry(.27, .29, .3, 16), suit, 0, .74, 0));
@@ -5308,6 +5319,211 @@ function introCamera(){
   camera.lookAt(curLook);
 }
 
+// ---------------- 마지막 컷신: 가면남의 정체 (3인칭) ----------------
+const FIN_X = HORROR_X + 780;
+const FIN_LINES = [
+  {t: .8,   who: '???',  text: '(무전기로) 좋아. 작전을 시작하지. 경찰이 올 수 있으니 잘 보고 있으라고.'},
+  {t: 7.8,  who: '나',   text: '어? 안녕하세ㅇ'},
+  {t: 9.4,  who: '',     text: '(가면남이 총을 겨눈다)'},
+  {t: 10.8, who: '나',   text: '(비상용 총을 꺼내 든다)'},
+  {t: 12.2, who: '',     text: '(탕! 탕! 탕!)'},
+  {t: 14.0, who: '나',   text: '(다 피하고 여섯 발을 쏜다)'},
+  {t: 16.8, who: '',     text: '(틱... 틱... 총알이 다 떨어졌다)'},
+  {t: 18.2, who: '',     text: '(가면남이 주먹을 휘두른다)'},
+  {t: 19.6, who: '나',   text: '(주먹을 막고 머리에 총을 겨눠 쏜다)'},
+  {t: 20.8, who: '',     text: '(가면남이 몸을 숙여 피한다)'},
+  {t: 22.2, who: '나',   text: '윽..!'},
+  {t: 24.2, who: '???',  text: '하하하 너도 이제 끝이다.'},
+  {t: 27.2, who: '나',   text: '대체 왜 날 쏘는 거죠?'},
+  {t: 30.0, who: '???',  text: '나 돌격소총님은 네가 1000만원을 못 벌 것 같아서 손님 겸 감시병을 보냈다.'},
+  {t: 34.0, who: '???',  text: '그리고 난 이 순간만을 기다려왔다!!'},
+  {t: 37.4, who: '돌격소총', text: '이제 잘 가라.'},
+  {t: 41.6, who: '', text: ''},
+];
+const FIN_END = 45.0, FIN_BLACK = 41.4;
+// 카메라 자리 (시간, 카메라 위치, 바라보는 곳)
+const FIN_CAM = [
+  {t: 0,    p: [5.6, 2.3, 7.2], l: [5.4, 1.9, 1.0]},    // 가게 앞, 무전기
+  {t: 5.4,  p: [3.0, 2.6, 8.0], l: [2.2, 1.7, 0]},      // 들어오는 뒷모습
+  {t: 9.0,  p: [0, 3.2, 9.2],   l: [0, 1.7, 0]},        // 대치
+  {t: 12.0, p: [-.6, 2.6, 8.2], l: [.4, 1.7, 0]},       // 총격전
+  {t: 18.0, p: [.8, 2.4, 6.4],  l: [.6, 1.8, 0]},       // 몸싸움
+  {t: 22.0, p: [-1.4, 2.2, 5.6], l: [-.6, 1.8, 0]},     // 맞은 사장님
+  {t: 27.0, p: [0, 2.6, 7.6],   l: [0, 1.8, 0]},        // 둘 다
+  {t: 33.0, p: [2.0, 2.4, 4.6], l: [2.4, 2.4, 0]},      // 가면 벗기
+  {t: 39.0, p: [0, 2.8, 8.4],   l: [0, 1.6, 0]},        // 마지막
+];
+function makePistol(dark){
+  const g = new THREE.Group();
+  const body = std(dark ? 0x1a1a1e : 0x3a3a42, {metalness: .7, roughness: .35});
+  g.add(mesh(new THREE.BoxGeometry(.07, .12, .34), body, 0, 0, .1, false));
+  g.add(mesh(new THREE.BoxGeometry(.06, .06, .18), body, 0, .02, .3, false));
+  const grip = mesh(new THREE.BoxGeometry(.07, .2, .1), std(0x2a1a14), 0, -.13, -.02, false); grip.rotation.x = -.25; g.add(grip);
+  return g;
+}
+function finPerson(scale){
+  const g = makeCustomer({id: 'owner'});
+  g.scale.setScalar(scale);
+  return g;
+}
+function buildFinale(){
+  const F = W.finale = {cut: null};
+  const R = F.root = new THREE.Group(); R.visible = false; scene.add(R);
+  const X = F.x = FIN_X;
+  const wall = std(0xcdb79a, {roughness: 1}), floorM = std(0xa08a6a, {roughness: 1});
+  const fl = mesh(new THREE.PlaneGeometry(20, 14), floorM, X, 0, 0, false); fl.rotation.x = -Math.PI / 2; R.add(fl);
+  R.add(mesh(new THREE.BoxGeometry(20, 4.4, .2), wall, X, 2.2, -5, false));
+  for (const sx of [-1, 1]) R.add(mesh(new THREE.BoxGeometry(.2, 4.4, 14), wall, X + sx * 8, 2.2, -1, false));
+  const fce = mesh(new THREE.PlaneGeometry(20, 14), wall, X, 4.4, -1, false); fce.rotation.x = Math.PI / 2; R.add(fce);
+  // 가게 안: 카운터 · 의자 · 냄비 · 간판
+  R.add(mesh(new THREE.BoxGeometry(9, 1.3, 1.1), std(0x6b4a2c, {roughness: .9}), X - 1, .65, -3.4));
+  for (let k = 0; k < 4; k++) R.add(mesh(new THREE.CylinderGeometry(.22, .2, .75, 12), std(0x4a3524), X - 4 + k * 2, .38, -2.1));
+  for (const dx of [-2.2, -.6]) R.add(mesh(new THREE.CylinderGeometry(.42, .45, .5, 16), std(0x2b2b30, {metalness: .5}), X + dx, 1.55, -3.4));
+  const sign = canvasTex(160, 64, (x, w, h) => {
+    x.fillStyle = '#7a1f14'; x.fillRect(0, 0, w, h);
+    x.fillStyle = '#ffe6b8'; x.font = 'bold 30px sans-serif'; x.textAlign = 'center'; x.fillText('국밥', w / 2, 42);
+  });
+  R.add(mesh(new THREE.PlaneGeometry(2.4, .96), new THREE.MeshStandardMaterial({map: sign, roughness: .9}), X - 1, 3.1, -4.88, false));
+  // 문 (가면남이 들어와요)
+  R.add(mesh(new THREE.BoxGeometry(.16, 3, 1.9), std(0x4a3524), X + 6.4, 1.5, .6));
+  F.lamp = new THREE.PointLight(0xffdcae, 1.5, 26); F.lamp.position.set(X, 3.4, -1); R.add(F.lamp);
+  const warm = new THREE.PointLight(0xffc98a, .8, 16); warm.position.set(X + 4, 3, 1); R.add(warm);
+  // 사람: 사장님 · 가면남 (가면남은 손님들과 키를 맞춰요)
+  F.me = finPerson(1); F.me.position.set(X - 2.2, 0, 0); F.me.rotation.y = Math.PI / 2; R.add(F.me);
+  F.man = makeMaskedMan(); F.man.scale.setScalar(1.5); F.man.position.set(X + 7.5, 0, .6); F.man.rotation.y = -Math.PI / 2; R.add(F.man);
+  F.man.userData.key.visible = false;
+  F.manGun = makePistol(true); F.manGun.scale.setScalar(1.5); R.add(F.manGun);
+  F.myGun = makePistol(false); R.add(F.myGun); F.myGun.visible = false;
+  // 총구 불빛
+  F.flash = mesh(new THREE.SphereGeometry(.16, 8, 6), new THREE.MeshBasicMaterial({color: 0xfff0a0}), 0, 0, 0, false);
+  F.flash.visible = false; R.add(F.flash);
+  F.flashLight = new THREE.PointLight(0xffd070, 0, 8); R.add(F.flashLight);
+}
+function startFinaleCut(){
+  const F = W.finale, X = F.x;
+  G.phase = 'finale';
+  F.cut = {t: 0, step: 0, shots: 0};
+  F.me.position.set(X - 2.2, 0, 0); F.me.rotation.set(0, Math.PI / 2, 0);
+  F.man.position.set(X + 7.5, 0, .6); F.man.rotation.set(0, -Math.PI / 2, 0);
+  const U = F.man.userData;
+  U.mask.visible = true; U.mask.position.set(0, .29, .33); U.mask.rotation.set(0, 0, 0);
+  U.arms[0].rotation.set(0, 0, 0); U.arms[1].rotation.set(0, 0, 0);
+  F.myGun.visible = false; F.flash.visible = false; F.flashLight.intensity = 0;
+  setWorldMode('finale'); W.snapCam = true;
+  hideOverlay();
+  document.body.classList.add('horror-cut');
+  $('cutSkip').hidden = false;
+  $('cutSkip').onclick = endFinaleCut;
+  const blk = $('cutBlack'); blk.style.transition = 'none'; blk.style.background = '#000'; blk.style.opacity = 1;
+  requestAnimationFrame(() => { blk.style.transition = 'opacity 1.2s'; blk.style.opacity = 0; });
+}
+// 총 쏘는 순간들 (시간, 누가)
+const FIN_SHOTS = [[12.2, 'man'], [12.7, 'man'], [13.2, 'man'], [14.2, 'me'], [14.6, 'me'], [15.0, 'me'], [15.4, 'me'], [15.8, 'me'], [16.2, 'me'],
+  [19.8, 'me'], [21.6, 'man'], [38.8, 'man'], [39.3, 'man']];
+function syncFinaleCut(dt){
+  const F = W.finale, C = F.cut;
+  if (!C) return;
+  const t = C.t += dt, X = F.x, U = F.man.userData, P = F.me.userData;
+  const ease = (a, b) => clamp((t - a) / (b - a), 0, 1), sm = v => v * v * (3 - 2 * v);
+  // --- 가면남 ---
+  if (t < 5.4){   // 무전기
+    U.arms[1].rotation.x = -2.2; U.arms[1].rotation.z = -.5;
+    F.man.position.set(X + 7.5, 0, .6);
+  } else {        // 가게로 들어와요
+    const w = sm(ease(5.4, 8.0));
+    F.man.position.x = lerp(X + 7.5, X + 2.4, w);
+    F.man.position.z = lerp(.6, 0, w);
+    const walking = t > 5.4 && t < 8.0;
+    U.arms[0].rotation.x = walking ? Math.sin(t * 9) * .5 : Math.sin(t * .8) * .06;
+    U.arms[1].rotation.z = 0;
+    let aim = 0;
+    if (t > 9.4) aim = sm(ease(9.4, 10.2));                       // 총을 겨눠요
+    if (t > 18.2 && t < 19.6) aim = 1 - sm(ease(18.2, 18.8)) * .5;  // 주먹
+    U.arms[1].rotation.x = walking ? Math.sin(t * 9 + Math.PI) * .5 : -1.5 * aim;
+  }
+  // 주먹 · 피하기 · 가면 벗기
+  if (t > 18.2 && t < 19.6){ const p = Math.sin(ease(18.2, 19.4) * Math.PI); F.man.position.x = lerp(X + 2.4, X + 1.3, p); U.arms[0].rotation.x = -2.2 * p; }
+  if (t > 20.6 && t < 21.4){ const d = Math.sin(ease(20.6, 21.4) * Math.PI); F.man.position.y = -.45 * d; } else if (t < 35) F.man.position.y = 0;
+  if (t > 35.2){   // 가면을 벗어 던져요
+    const r = ease(35.2, 36.4);
+    U.mask.position.set(.1 + r * .5, .29 - r * r * 2.6, .33 + r * .8);
+    U.mask.rotation.set(-r * 4, r * 2, r * 3);
+    if (r >= 1) U.mask.visible = false;
+  }
+  U.head.rotation.x = Math.sin(t * 5) * (FIN_LINES.some(L => (L.who === '???' || L.who === '돌격소총') && t > L.t && t < L.t + 1.8) ? .05 : .01);
+  // --- 사장님 ---
+  if (t > 10.8 && !F.myGun.visible) F.myGun.visible = true;
+  let mx = X - 2.2, lean = 0;
+  if (t > 12.0 && t < 13.6) { mx += Math.sin((t - 12) * 6) * .55; lean = Math.sin((t - 12) * 6) * .25; }   // 총알을 피해요
+  if (t > 14.0 && t < 16.4) mx += Math.sin(t * 3) * .12;
+  if (t > 21.6 && t < 23) mx -= sm(ease(21.6, 22.2)) * .35;                                                // 총에 맞고 밀려요
+  F.me.position.x = mx; F.me.rotation.z = lean;
+  P.armR.rotation.x = t > 10.8 ? (t > 21.8 ? -.2 : -1.55) : -.1;   // 팔을 맞은 뒤엔 총이 내려가요
+  P.armL.rotation.x = t > 18.2 && t < 20 ? -1.7 : -.05;            // 주먹을 막아요
+  if (t > 39.3){ const f = sm(ease(39.3, 40.4)); F.me.rotation.z = f * 1.45; F.me.position.y = -f * .1; }   // 쓰러져요
+  // 총 위치 (손에 붙여요)
+  const handPos = (person, arm, gun, scale) => {
+    arm.updateWorldMatrix(true, false);
+    gun.position.setFromMatrixPosition(arm.matrixWorld);
+    gun.position.y -= .9 * scale; gun.rotation.copy(person.rotation);
+    gun.rotation.x = arm.rotation.x + Math.PI / 2;
+  };
+  handPos(F.man, U.arms[1], F.manGun, 1.5);
+  handPos(F.me, P.armR, F.myGun, 1);
+  // --- 총소리 · 불빛 ---
+  while (C.shots < FIN_SHOTS.length && t >= FIN_SHOTS[C.shots][0]){
+    const who = FIN_SHOTS[C.shots][1];
+    const gun = who === 'man' ? F.manGun : F.myGun;
+    F.flash.position.copy(gun.position); F.flash.position.y += .1;
+    F.flash.visible = true; F.flashLight.position.copy(F.flash.position); F.flashLight.intensity = 6;
+    sfx.bang(); W.shake = .35;
+    C.flashT = .07; C.shots++;
+  }
+  if (C.flashT > 0){ C.flashT -= dt; if (C.flashT <= 0){ F.flash.visible = false; F.flashLight.intensity = 0; } }
+  if (C.step === 0 && t > .8){ C.step = 1; noiseBurst(.3, .07); tone(1400, .1, 'square', .03); }          // 무전기 잡음
+  if (C.step === 1 && t > 16.8){ C.step = 2; tone(1200, .03, 'square', .07); tone(1200, .03, 'square', .07, null, .35); }   // 빈 총 틱 틱
+  if (C.step === 2 && t > 24.2){ C.step = 3; tone(150, .5, 'sine', .07, 110); tone(120, .5, 'sine', .06, 90, .25); }        // 웃음
+  if (C.step === 3 && t > FIN_BLACK){
+    C.step = 4;
+    const blk = $('cutBlack'); blk.style.transition = 'opacity .5s'; blk.style.background = '#000'; blk.style.opacity = 1;
+  }
+  // --- 자막 ---
+  let li = -1; FIN_LINES.forEach((L, k) => { if (t >= L.t) li = k; });
+  const sub = $('cutSub');
+  if (li >= 0){
+    const L = FIN_LINES[li], n = Math.floor((t - L.t) * 22);
+    const html = L.text ? `${L.who ? `<b class="${L.who === '나' ? 'me' : 'dev'}">${L.who}</b>` : ''}${esc(L.text.slice(0, n))}` : '';
+    if (sub.innerHTML !== html) sub.innerHTML = html;
+    sub.hidden = !L.text;
+  }
+  if (t > FIN_END) endFinaleCut();
+}
+function endFinaleCut(){
+  const F = W.finale;
+  if (!F.cut) return;
+  F.cut = null;
+  $('cutSub').hidden = true;
+  $('cutSkip').hidden = true;
+  $('cutSkip').onclick = endIntroCut;
+  document.body.classList.remove('horror-cut');
+  const blk = $('cutBlack'); blk.style.transition = 'opacity .9s'; blk.style.opacity = 0;
+  showEnding('shot');
+}
+const _finP = new THREE.Vector3(), _finL = new THREE.Vector3();
+function finaleCamera(){
+  const F = W.finale, t = F.cut ? F.cut.t : FIN_END, X = F.x;
+  let i = 0;
+  for (let k = 0; k < FIN_CAM.length; k++) if (t >= FIN_CAM[k].t) i = k;
+  const a = FIN_CAM[i], b = FIN_CAM[Math.min(i + 1, FIN_CAM.length - 1)];
+  const span = Math.max(.001, (b.t || a.t + 4) - a.t), r = clamp((t - a.t) / span, 0, 1) * .35;   // 천천히 다가가요
+  _finP.set(X + lerp(a.p[0], b.p[0], r), lerp(a.p[1], b.p[1], r), lerp(a.p[2], b.p[2], r));
+  _finL.set(X + lerp(a.l[0], b.l[0], r), lerp(a.l[1], b.l[1], r), lerp(a.l[2], b.l[2], r));
+  camera.position.copy(_finP);
+  if (W.shake > 0){ camera.position.x += (Math.random() - .5) * W.shake * .3; camera.position.y += (Math.random() - .5) * W.shake * .3; }
+  curLook.copy(_finL);
+  camera.lookAt(curLook);
+}
+
 // ---------------- 문양 속 저주받은 집 (1인칭 공포 · 5단계) ----------------
 // 새벽시장 양념가게 뒤 문양을 밟으면 끌려와요. 방들을 뒤져 부적을 모두 모아 출구 문양으로 탈출하세요. 잡히면 '이상한 곳'으로 끌려가요.
 // WASD 이동 · Shift 달리기 · C 웅크리기 · 마우스 둘러보기 (5단계: F 손전등 · 배터리)
@@ -5362,6 +5578,7 @@ function buildHorror(){
   buildOtherworld(H, root);
   buildDevRoom(H, root);
   buildIntroRoom();
+  buildFinale();
   // 점프 스케어 화면
   const flash = document.createElement('div'); flash.id = 'scareFlash'; document.body.appendChild(flash);
   const face = document.createElement('canvas'); face.id = 'scareFace'; face.width = face.height = 512; drawScareFace(face); document.body.appendChild(face);
@@ -8459,7 +8676,7 @@ function endDay(){
   sfx.fanfare();
   let nextBtn;
   if (G.money < 0) nextBtn = `<button class="big-btn" onclick="showEnding('bankrupt')">결과 보기...</button>`;
-  else if (netWorth() >= GOAL && !G.continued) nextBtn = `<button class="big-btn" onclick="showEnding('goal')">🏆 1000만원 달성! 결과 보기</button>`;
+  else if (netWorth() >= GOAL && !G.continued) nextBtn = `<button class="big-btn" onclick="goalFinale()">🏆 1000만원 달성! 결과 보기</button>`;
   else nextBtn = `<div class="home-note">🏠 퇴근은 원할 때! 늦을수록(${TIRE_SECS}초마다 1%) 피곤해지고 100%면 쓰러져요</div><button class="big-btn" onclick="startEvening()">🌙 저녁 자유시간</button> <button class="sub-btn" onclick="eveningShop()">업그레이드 상점 🛒</button>`;
   showOverlay(`
     <div class="card">
@@ -8531,6 +8748,13 @@ function continueGame(){
   sfx.click();
   startEvening();
 }
+function goalFinale(){
+  if (G.sawFinale) return showEnding('goal');   // 한 번 본 사람은 바로 결과로
+  G.sawFinale = true;
+  G.running = false; G.paused = false;
+  sfx.click();
+  startFinaleCut();
+}
 function showEnding(reason){
   G.running = false;
   G.phase = 'result';
@@ -8538,7 +8762,8 @@ function showEnding(reason){
   const sav = loadProgress();   // 죽어도 저장은 남겨둬요 (그날 아침부터 다시 이어서 해요)
   let grade;
   G.afterWork = false;
-  if (reason === 'dev') grade = {e: '🔪', t: '개발자한테 사망', d: '가게 손님들은 모두 가짜였고, 사장님은 처음부터 타겟이었어요...<br>이 게임의 개발자 <b>돌격소총</b>에게 당했어요.'};
+  if (reason === 'shot') grade = {e: '🔫', t: '돌격소총한테 사망', d: '가게를 넘겨준 가면 쓴 남자는 이 게임의 개발자 <b>돌격소총</b>이었어요.<br>1000만원을 모은 그날, 그는 총을 들고 찾아왔어요...'};
+  else if (reason === 'dev') grade = {e: '🔪', t: '개발자한테 사망', d: '가게 손님들은 모두 가짜였고, 사장님은 처음부터 타겟이었어요...<br>이 게임의 개발자 <b>돌격소총</b>에게 당했어요.'};
   else if (reason === 'tired') grade = {e: '😵', t: '과로로 쓰러졌어요...', d: '퇴근을 너무 미뤄서 피곤함이 100%가 됐어요. 사장님도 쉬어야 해요!'};
   else if (reason === 'rep') grade = {e: '🥀', t: '폐업... 손님이 발길을 끊었어요', d: '평판이 바닥났어요. 국밥은 정성입니다!'};
   else if (reason === 'bankrupt') grade = {e: '💸', t: '파산... 임대료를 못 냈어요', d: '재료 구입비와 임대료 관리가 중요해요.'};
@@ -8570,7 +8795,7 @@ function showEnding(reason){
         <tr><td>완벽한 국밥</td><td>${G.totalPerfect + (!done ? G.stats.perfect : 0)}그릇</td></tr>
         <tr><td>최종 평판</td><td>⭐ ${G.rep.toFixed(1)}</td></tr>
       </table>
-      ${done ? `<button class="big-btn" onclick="continueGame()">▶ 계속하기</button> ` : ''}${!done && sav ? `<button class="big-btn" onclick="continueSaved()">📂 DAY ${sav.day} 아침부터 이어하기</button> ` : ''}<button class="${done || sav ? 'sub-btn' : 'big-btn'}" onclick="showTitle()">다시 하기 🔄</button>
+      ${reason === 'shot' ? `<button class="big-btn" onclick="showEnding('goal')">🏆 그래도 1000만원은 모았다 · 결과 보기</button><br>` : ''}${done ? `<button class="big-btn" onclick="continueGame()">▶ 계속하기</button> ` : ''}${!done && sav ? `<button class="big-btn" onclick="continueSaved()">📂 DAY ${sav.day} 아침부터 이어하기</button> ` : ''}<button class="${done || sav ? 'sub-btn' : 'big-btn'}" onclick="showTitle()">다시 하기 🔄</button>
     </div>`);
 }
 
@@ -8588,7 +8813,7 @@ const PAUSE_KEYS = {
 };
 function togglePause(){
   if (!G || inPhase('result')) return;
-  if ((W.horror && W.horror.cut) || (W.intro && W.intro.cut)) return;   // 컷신 중엔 멈추지 않아요
+  if ((W.horror && W.horror.cut) || (W.intro && W.intro.cut) || (W.finale && W.finale.cut)) return;   // 컷신 중엔 멈추지 않아요
   const timed = inPhase('lunch') || inPhase('cafe') || inPhase('open');
   if (timed && !G.running && !G.paused) return;
   if (!G.paused && !$('overlay').hidden) return;              // 다른 창이 떠 있으면 무시해요
@@ -8954,6 +9179,8 @@ function loop(ts){
     syncHome(dt);
   } else if (W.mode === 'intro'){
     syncIntroCut(dt);
+  } else if (W.mode === 'finale'){
+    syncFinaleCut(dt);
   } else if (W.mode === 'horror'){
     syncHorror(dt);
   } else if (W.mode === 'prep'){
@@ -8990,6 +9217,7 @@ function loop(ts){
   // 카메라 (공포 미로는 1인칭 · 시장에서는 주인공을 뒤에서 따라감)
   if (W.mode === 'horror') horrorCamera();
   else if (W.mode === 'intro') introCamera();
+  else if (W.mode === 'finale') finaleCamera();
   else {
   if (W.mode === 'market'){
     const pp = W.market.player.position, ck = W.camK || 1;
