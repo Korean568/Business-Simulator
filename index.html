@@ -5337,7 +5337,7 @@ const FIN_LINES = [
   {t: 48.0, who: '돌격소총', text: '이제 죽어라!!'},
   {t: 52.0, who: '', text: ''},
 ];
-const FIN_END = 55.5, FIN_BLACK = 51.8;
+const FIN_END = 56.5, FIN_BLACK = 52.6;
 // 카메라 자리 (시간, 카메라 위치, 바라보는 곳)
 const FIN_CAM = [
   {t: 0,    p: [4.4, 2.9, 8.2],  l: [6.8, 2.4, .4]},    // 가게 앞, 무전기
@@ -5350,7 +5350,8 @@ const FIN_CAM = [
   {t: 27.0, p: [.0, 2.9, 10.6],  l: [-.5, 1.5, 0]},     // 둘 다
   {t: 47.6, p: [-.6, 3.2, 5.2],  l: [2.4, 2.9, .2]},    // 가면 벗기 (얼굴 쪽에서)
   {t: 48.7, p: [.85, 3.3, 1.2],  l: [2.4, 3.3, 0]},     // 가면 밑 얼굴을 잠깐 가까이
-  {t: 52.6, p: [.2, 3.3, 12.0],  l: [.2, 1.8, 0]},      // 다시 3인칭
+  {t: 50.0, p: [.2, 3.3, 12.0],  l: [.2, 2.0, 0]},      // 첫 발은 3인칭으로
+  {t: 52.8, p: [.2, 3.3, 12.0],  l: [.2, 1.8, 0]},      // 다시 3인칭
 ];
 function makePistol(dark){
   const g = new THREE.Group();
@@ -5399,10 +5400,10 @@ function buildFinale(){
   F.myGun = makePistol(false); F.myGun.position.set(0, -.98, .02); F.myGun.rotation.x = Math.PI / 2;
   F.me.userData.armR.add(F.myGun); F.myGun.visible = false;
   // 총알 (마지막 두 발은 느리게 날아가는 게 보여요)
-  const bg = new THREE.CylinderGeometry(.05, .07, .26, 10); bg.rotateX(Math.PI / 2);
+  const bg = new THREE.CylinderGeometry(.022, .032, .15, 10); bg.rotateX(Math.PI / 2);
   F.bullet = mesh(bg, std(0xf2c24a, {metalness: .85, roughness: .2, emissive: 0x8a6a20}), 0, 0, 0, false);
-  const tg = new THREE.CylinderGeometry(.035, .005, .9, 8); tg.rotateX(Math.PI / 2); tg.translate(0, 0, -.58);
-  F.bullet.add(mesh(tg, new THREE.MeshBasicMaterial({color: 0xffe3a0, transparent: true, opacity: .45}), 0, 0, 0, false));   // 꼬리
+  const tg = new THREE.CylinderGeometry(.018, .003, .5, 8); tg.rotateX(Math.PI / 2); tg.translate(0, 0, -.33);
+  F.bullet.add(mesh(tg, new THREE.MeshBasicMaterial({color: 0xffe3a0, transparent: true, opacity: .35}), 0, 0, 0, false));   // 꼬리
   F.bullet.visible = false; R.add(F.bullet);
   F.bulletLight = new THREE.PointLight(0xffd070, 0, 5); R.add(F.bulletLight);
   // 총구 불빛
@@ -5420,6 +5421,7 @@ function startFinaleCut(){
   U.mask.visible = true; U.mask.position.set(0, .29, .33); U.mask.rotation.set(0, 0, 0);
   U.arms[0].rotation.set(0, 0, 0); U.arms[1].rotation.set(0, 0, 0);
   F.myGun.visible = false; F.flash.visible = false; F.flashLight.intensity = 0;
+  F.bullet.visible = false; F.bulletLight.intensity = 0; F.camAt = null;
   setWorldMode('finale'); W.snapCam = true;
   hideOverlay();
   document.body.classList.add('horror-cut');
@@ -5429,12 +5431,13 @@ function startFinaleCut(){
   requestAnimationFrame(() => { blk.style.transition = 'opacity 1.2s'; blk.style.opacity = 0; });
 }
 // 총 쏘는 순간들 (시간, 누가)
-const FIN_BULLETS = [[50.4, .5], [50.9, .5]];   // 마지막 두 발이 날아가는 시간
+const FIN_BULLETS = [[50.4, .62], [51.1, .62]];   // 마지막 두 발이 날아가는 시간
 const FIN_SHOTS = [[12.2, 'man'], [12.7, 'man'], [13.2, 'man'], [14.2, 'me'], [14.6, 'me'], [15.0, 'me'], [15.4, 'me'], [15.8, 'me'], [16.2, 'me'],
-  [19.8, 'me'], [21.6, 'man'], [50.4, 'man'], [50.9, 'man']];
+  [19.8, 'me'], [21.6, 'man'], [50.4, 'man'], [51.1, 'man']];
 function syncFinaleCut(dt){
   const F = W.finale, C = F.cut;
   if (!C) return;
+  if (C.t > 50.95 && C.t < 52.4) dt *= .32;   // 마지막 한 발은 슬로우 모션
   const t = C.t += dt, X = F.x, U = F.man.userData, P = F.me.userData;
   const ease = (a, b) => clamp((t - a) / (b - a), 0, 1), sm = v => v * v * (3 - 2 * v);
   // --- 가면남 ---
@@ -5490,7 +5493,7 @@ function syncFinaleCut(dt){
   P.armL.rotation.z = blocking ? -.45 : -.15;
   P.armR.rotation.z = blocking ? .45 : .15;
   if (blocking && !C.punchHit && t > 19.15){ C.punchHit = true; tone(110, .14, 'square', .2, 60); noiseBurst(.12, .22); W.shake = .4; }   // 퍽!
-  if (t > 50.9){ const f = sm(ease(50.9, 51.4)); F.me.position.y = .55 + f * .08; F.me.rotation.z = 1.5 + f * .12; }   // 마지막 총에 움찔하고 늘어져요
+  if (t > 51.6){ const f = sm(ease(51.6, 52.1)); F.me.position.y = .55 + f * .08; F.me.rotation.z = 1.5 + f * .12; }   // 마지막 총에 움찔하고 늘어져요
   // --- 총소리 · 불빛 ---
   while (C.shots < FIN_SHOTS.length && t >= FIN_SHOTS[C.shots][0]){
     const who = FIN_SHOTS[C.shots][1];
@@ -5545,7 +5548,7 @@ function endFinaleCut(){
   showEnding('shot');
 }
 const _finP = new THREE.Vector3(), _finL = new THREE.Vector3(), _finO = new THREE.Vector3();
-const _finB1 = new THREE.Vector3(), _finB2 = new THREE.Vector3();
+const _finB1 = new THREE.Vector3(), _finB2 = new THREE.Vector3(), _finB3 = new THREE.Vector3();
 function finShot(look, dx, dy, dz){   // 한 곳을 화면 가운데에 두고 가까이 봐요
   curLook.copy(look);
   camera.position.copy(look).add(_finO.set(dx, dy, dz));
@@ -5566,10 +5569,12 @@ function finaleCamera(){
     finShot(_finL, -1.5, .85, 3.4);
     return;
   }
-  if (t >= 50.0 && t < 52.6){        // 10번: 날아가는 총알이 화면 한가운데
-    if (F.bullet.visible) _finL.copy(F.bullet.position);
-    else F.manGun.userData.tip.getWorldPosition(_finL);
-    finShot(_finL, -1.0, .55, 2.7);
+  if (t >= 51.0 && t < 52.8){        // 10번: 마지막 한 발만 총알을 따라가요
+    if (F.bullet.visible) _finB3.copy(F.bullet.position);
+    else F.manGun.userData.tip.getWorldPosition(_finB3);
+    if (!F.camAt) F.camAt = _finB3.clone();
+    F.camAt.lerp(_finB3, .12);        // 부드럽게 따라가요
+    finShot(F.camAt, -1.4, .8, 4.2);
     return;
   }
   let i = 0;
