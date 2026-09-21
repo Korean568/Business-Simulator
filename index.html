@@ -5447,13 +5447,15 @@ function syncFinaleCut(dt){
     let aim = 0;
     if (t > 9.4) aim = sm(ease(9.4, 10.2));                       // 총을 겨눠요
     if (t > 18.2 && t < 19.6) aim = 1 - sm(ease(18.2, 18.8)) * .5;  // 주먹
-    U.arms[1].rotation.x = walking ? Math.sin(t * 9 + Math.PI) * .5 : -1.5 * aim;
+    U.arms[1].rotation.x = walking ? Math.sin(t * 9 + Math.PI) * .5 : -1.86 * aim;   // 머리를 겨눠요
   }
   // 주먹 · 피하기 · 가면 벗기
   if (t > 18.2 && t < 20.2){   // 성큼 다가와 주먹을 뻗어요
     const p = Math.sin(ease(18.2, 20.2) * Math.PI);
-    F.man.position.x = lerp(X + 2.4, X + .3, p);
-    U.arms[0].rotation.x = -1.65 * p;
+    F.man.position.x = lerp(X + 2.4, X - .6, p);
+    F.man.position.z = -.35 * p;                 // 살짝 비껴서 서로 겹치지 않게
+    U.arms[0].rotation.x = -2.0 * p;             // 키 큰 사장님 얼굴 쪽으로 올려쳐요
+    U.arms[0].rotation.z = -.2 * p;
   }
   if (t > 20.6 && t < 21.4){ const d = Math.sin(ease(20.6, 21.4) * Math.PI); F.man.position.y = -.45 * d; } else if (t < 48) F.man.position.y = 0;
   if (t > 48.2){   // 가면을 벗어 던져요
@@ -5472,11 +5474,11 @@ function syncFinaleCut(dt){
   if (t > 21.6 && t < 23) mx -= sm(ease(21.6, 22.2)) * .35;                                                // 총에 맞고 밀려요
   if (blocking) mx -= .25;                                        // 주먹을 막으며 밀려요
   F.me.position.x = mx; F.me.rotation.z = lean + (blocking ? -.12 : 0);
-  P.armR.rotation.x = t > 10.8 ? (t > 21.8 ? -.2 : -1.55) : -.1;   // 팔을 맞은 뒤엔 총이 내려가요
-  // 주먹을 두 팔로 막아요 (팔을 앞으로 뻗고 몸을 뒤로 젖혀요)
-  P.armL.rotation.x = blocking ? -2.05 : -.05;
-  P.armL.rotation.z = blocking ? -.75 : -.15;
-  P.armR.rotation.z = blocking ? .55 : .15;
+  P.armR.rotation.x = blocking ? -1.45 : t > 10.8 ? (t > 21.8 ? -.2 : -1.42) : -.1;   // 겨눌 땐 가면남 머리 높이, 맞은 뒤엔 내려가요
+  // 주먹을 두 손으로 막아요 (가면남의 주먹 높이에 손을 맞춰요)
+  P.armL.rotation.x = blocking ? -1.5 : -.05;
+  P.armL.rotation.z = blocking ? -.3 : -.15;
+  P.armR.rotation.z = blocking ? .3 : .15;
   if (t > 50.9){ const f = sm(ease(50.9, 52.0)); F.me.rotation.z = f * 1.45; F.me.position.y = -f * .1; }   // 쓰러져요
   // --- 총소리 · 불빛 ---
   while (C.shots < FIN_SHOTS.length && t >= FIN_SHOTS[C.shots][0]){
