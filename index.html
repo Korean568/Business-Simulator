@@ -5210,10 +5210,11 @@ function makeMaskedMan(){
   head.add(mesh(new THREE.TorusGeometry(.28, .03, 6, 18), std(0x2a2a30), 0, .62, 0).rotateX(Math.PI / 2));
   // 팔 (오른손엔 가게 열쇠)
   U.arms = [-1, 1].map(sx => {
-    const sh = new THREE.Group(); sh.position.set(sx * .7, 1.85, 0); g.add(sh);
-    const a = new THREE.BoxGeometry(.4, .92, .4); a.translate(0, -.46, 0);
+    const sh = new THREE.Group(); sh.position.set(sx * .56, 1.74, 0); g.add(sh);
+    sh.add(mesh(new THREE.BoxGeometry(.36, .36, .4), suit, 0, 0, 0));            // 어깨
+    const a = new THREE.BoxGeometry(.33, .88, .36); a.translate(0, -.52, 0);
     sh.add(mesh(a, suit));
-    sh.add(mesh(new THREE.BoxGeometry(.38, .2, .38), skin, 0, -.98, 0));
+    sh.add(mesh(new THREE.BoxGeometry(.31, .22, .34), skin, 0, -1.04, 0));       // 손
     return sh;
   });
   const key = U.key = new THREE.Group(); key.position.set(0, -1.15, .1); U.arms[1].add(key);
@@ -5344,22 +5345,25 @@ const FIN_LINES = [
 const FIN_END = 55.5, FIN_BLACK = 51.8;
 // 카메라 자리 (시간, 카메라 위치, 바라보는 곳)
 const FIN_CAM = [
-  {t: 0,    p: [5.6, 2.3, 7.2], l: [5.4, 1.9, 1.0]},    // 가게 앞, 무전기
-  {t: 5.4,  p: [3.0, 2.6, 8.0], l: [2.2, 1.7, 0]},      // 들어오는 뒷모습
-  {t: 9.0,  p: [0, 3.2, 9.2],   l: [0, 1.7, 0]},        // 대치
-  {t: 12.0, p: [-.6, 2.6, 8.2], l: [.4, 1.7, 0]},       // 총격전
-  {t: 18.0, p: [.8, 2.4, 6.4],  l: [.6, 1.8, 0]},       // 몸싸움
-  {t: 22.0, p: [-1.4, 2.2, 5.6], l: [-.6, 1.8, 0]},     // 맞은 사장님
-  {t: 27.0, p: [0, 2.6, 7.6],   l: [0, 1.8, 0]},        // 둘 다
-  {t: 47.6, p: [2.0, 2.4, 4.6], l: [2.4, 2.4, 0]},      // 가면 벗기
-  {t: 50.2, p: [0, 2.8, 8.4],   l: [0, 1.6, 0]},        // 마지막
+  {t: 0,    p: [4.6, 2.4, 7.4],  l: [6.6, 1.9, .4]},    // 가게 앞, 무전기
+  {t: 5.4,  p: [2.2, 2.8, 9.6],  l: [2.6, 1.8, 0]},     // 들어오는 모습
+  {t: 9.0,  p: [.2, 3.1, 11.5],  l: [.2, 1.8, 0]},      // 대치 (둘 다 보여요)
+  {t: 12.0, p: [.2, 2.9, 11.0],  l: [.2, 1.8, 0]},      // 총격전
+  {t: 18.0, p: [-.4, 2.7, 9.4],  l: [-.6, 1.8, 0]},     // 몸싸움
+  {t: 22.0, p: [-1.4, 2.5, 8.2], l: [-1.8, 1.8, 0]},    // 맞은 사장님
+  {t: 27.0, p: [.2, 2.9, 10.8],  l: [.2, 1.8, 0]},      // 둘 다
+  {t: 47.6, p: [-.2, 2.7, 4.2],  l: [2.4, 2.5, .2]},    // 가면 벗기 (얼굴 쪽에서)
+  {t: 48.7, p: [.9, 2.85, 1.0],  l: [2.4, 2.85, 0]},    // 가면 밑 얼굴을 잠깐 가까이
+  {t: 50.4, p: [.2, 3.0, 11.0],  l: [.2, 1.7, 0]},      // 다시 3인칭
 ];
 function makePistol(dark){
   const g = new THREE.Group();
-  const body = std(dark ? 0x1a1a1e : 0x3a3a42, {metalness: .7, roughness: .35});
-  g.add(mesh(new THREE.BoxGeometry(.07, .12, .34), body, 0, 0, .1, false));
-  g.add(mesh(new THREE.BoxGeometry(.06, .06, .18), body, 0, .02, .3, false));
-  const grip = mesh(new THREE.BoxGeometry(.07, .2, .1), std(0x2a1a14), 0, -.13, -.02, false); grip.rotation.x = -.25; g.add(grip);
+  const body = std(dark ? 0x23232a : 0x54545e, {metalness: .6, roughness: .35});
+  g.add(mesh(new THREE.BoxGeometry(.14, .22, .62), body, 0, 0, .16, false));         // 몸통
+  g.add(mesh(new THREE.BoxGeometry(.11, .11, .4), body, 0, .03, .58, false));        // 총열
+  g.add(mesh(new THREE.BoxGeometry(.16, .06, .2), body, 0, .13, .1, false));         // 조준선
+  const grip = mesh(new THREE.BoxGeometry(.13, .38, .2), std(0x3a2418), 0, -.24, -.06, false); grip.rotation.x = -.22; g.add(grip);
+  const tip = g.userData.tip = new THREE.Object3D(); tip.position.set(0, .03, .8); g.add(tip);   // 총구
   return g;
 }
 function finPerson(scale){
@@ -5387,14 +5391,17 @@ function buildFinale(){
   R.add(mesh(new THREE.PlaneGeometry(2.4, .96), new THREE.MeshStandardMaterial({map: sign, roughness: .9}), X - 1, 3.1, -4.88, false));
   // 문 (가면남이 들어와요)
   R.add(mesh(new THREE.BoxGeometry(.16, 3, 1.9), std(0x4a3524), X + 6.4, 1.5, .6));
-  F.lamp = new THREE.PointLight(0xffdcae, 1.5, 26); F.lamp.position.set(X, 3.4, -1); R.add(F.lamp);
-  const warm = new THREE.PointLight(0xffc98a, .8, 16); warm.position.set(X + 4, 3, 1); R.add(warm);
+  F.lamp = new THREE.PointLight(0xffdcae, 1.0, 22); F.lamp.position.set(X, 3.4, -1); R.add(F.lamp);
+  const warm = new THREE.PointLight(0xffc98a, .55, 14); warm.position.set(X + 4, 3, 1); R.add(warm);
   // 사람: 사장님 · 가면남 (가면남은 손님들과 키를 맞춰요)
-  F.me = finPerson(1); F.me.position.set(X - 2.2, 0, 0); F.me.rotation.y = Math.PI / 2; R.add(F.me);
-  F.man = makeMaskedMan(); F.man.scale.setScalar(1.5); F.man.position.set(X + 7.5, 0, .6); F.man.rotation.y = -Math.PI / 2; R.add(F.man);
+  F.me = finPerson(1); F.me.position.set(X - 2.2, 0, 0); F.me.rotation.y = Math.PI / 2 - .55; R.add(F.me);
+  F.man = makeMaskedMan(); F.man.scale.setScalar(1.3); F.man.position.set(X + 7.5, 0, .6); F.man.rotation.y = -Math.PI / 2 + .55; R.add(F.man);
   F.man.userData.key.visible = false;
-  F.manGun = makePistol(true); F.manGun.scale.setScalar(1.5); R.add(F.manGun);
-  F.myGun = makePistol(false); R.add(F.myGun); F.myGun.visible = false;
+  // 총은 손(팔 끝)에 매달아요 · 팔이 올라가면 앞을 겨눠요
+  F.manGun = makePistol(true); F.manGun.position.set(0, -1.06, 0); F.manGun.rotation.x = Math.PI / 2;
+  F.man.userData.arms[1].add(F.manGun);
+  F.myGun = makePistol(false); F.myGun.position.set(0, -1.14, 0); F.myGun.rotation.x = Math.PI / 2;
+  F.me.userData.armR.add(F.myGun); F.myGun.visible = false;
   // 총구 불빛
   F.flash = mesh(new THREE.SphereGeometry(.16, 8, 6), new THREE.MeshBasicMaterial({color: 0xfff0a0}), 0, 0, 0, false);
   F.flash.visible = false; R.add(F.flash);
@@ -5404,8 +5411,8 @@ function startFinaleCut(){
   const F = W.finale, X = F.x;
   G.phase = 'finale';
   F.cut = {t: 0, step: 0, shots: 0};
-  F.me.position.set(X - 2.2, 0, 0); F.me.rotation.set(0, Math.PI / 2, 0);
-  F.man.position.set(X + 7.5, 0, .6); F.man.rotation.set(0, -Math.PI / 2, 0);
+  F.me.position.set(X - 2.2, 0, 0); F.me.rotation.set(0, Math.PI / 2 - .55, 0);
+  F.man.position.set(X + 7.5, 0, .6); F.man.rotation.set(0, -Math.PI / 2 + .55, 0);
   const U = F.man.userData;
   U.mask.visible = true; U.mask.position.set(0, .29, .33); U.mask.rotation.set(0, 0, 0);
   U.arms[0].rotation.set(0, 0, 0); U.arms[1].rotation.set(0, 0, 0);
@@ -5443,7 +5450,11 @@ function syncFinaleCut(dt){
     U.arms[1].rotation.x = walking ? Math.sin(t * 9 + Math.PI) * .5 : -1.5 * aim;
   }
   // 주먹 · 피하기 · 가면 벗기
-  if (t > 18.2 && t < 19.6){ const p = Math.sin(ease(18.2, 19.4) * Math.PI); F.man.position.x = lerp(X + 2.4, X + 1.3, p); U.arms[0].rotation.x = -2.2 * p; }
+  if (t > 18.2 && t < 20.2){   // 성큼 다가와 주먹을 뻗어요
+    const p = Math.sin(ease(18.2, 20.2) * Math.PI);
+    F.man.position.x = lerp(X + 2.4, X + .3, p);
+    U.arms[0].rotation.x = -1.65 * p;
+  }
   if (t > 20.6 && t < 21.4){ const d = Math.sin(ease(20.6, 21.4) * Math.PI); F.man.position.y = -.45 * d; } else if (t < 48) F.man.position.y = 0;
   if (t > 48.2){   // 가면을 벗어 던져요
     const r = ease(48.2, 49.4);
@@ -5454,28 +5465,24 @@ function syncFinaleCut(dt){
   U.head.rotation.x = Math.sin(t * 5) * (FIN_LINES.some(L => (L.who === '???' || L.who === '돌격소총') && t > L.t && t < L.t + 1.8) ? .05 : .01);
   // --- 사장님 ---
   if (t > 10.8 && !F.myGun.visible) F.myGun.visible = true;
+  const blocking = t > 18.4 && t < 20.2;   // 주먹을 막는 동안
   let mx = X - 2.2, lean = 0;
   if (t > 12.0 && t < 13.6) { mx += Math.sin((t - 12) * 6) * .55; lean = Math.sin((t - 12) * 6) * .25; }   // 총알을 피해요
   if (t > 14.0 && t < 16.4) mx += Math.sin(t * 3) * .12;
   if (t > 21.6 && t < 23) mx -= sm(ease(21.6, 22.2)) * .35;                                                // 총에 맞고 밀려요
-  F.me.position.x = mx; F.me.rotation.z = lean;
+  if (blocking) mx -= .25;                                        // 주먹을 막으며 밀려요
+  F.me.position.x = mx; F.me.rotation.z = lean + (blocking ? -.12 : 0);
   P.armR.rotation.x = t > 10.8 ? (t > 21.8 ? -.2 : -1.55) : -.1;   // 팔을 맞은 뒤엔 총이 내려가요
-  P.armL.rotation.x = t > 18.2 && t < 20 ? -1.7 : -.05;            // 주먹을 막아요
+  // 주먹을 두 팔로 막아요 (팔을 앞으로 뻗고 몸을 뒤로 젖혀요)
+  P.armL.rotation.x = blocking ? -2.05 : -.05;
+  P.armL.rotation.z = blocking ? -.75 : -.15;
+  P.armR.rotation.z = blocking ? .55 : .15;
   if (t > 50.9){ const f = sm(ease(50.9, 52.0)); F.me.rotation.z = f * 1.45; F.me.position.y = -f * .1; }   // 쓰러져요
-  // 총 위치 (손에 붙여요)
-  const handPos = (person, arm, gun, scale) => {
-    arm.updateWorldMatrix(true, false);
-    gun.position.setFromMatrixPosition(arm.matrixWorld);
-    gun.position.y -= .9 * scale; gun.rotation.copy(person.rotation);
-    gun.rotation.x = arm.rotation.x + Math.PI / 2;
-  };
-  handPos(F.man, U.arms[1], F.manGun, 1.5);
-  handPos(F.me, P.armR, F.myGun, 1);
   // --- 총소리 · 불빛 ---
   while (C.shots < FIN_SHOTS.length && t >= FIN_SHOTS[C.shots][0]){
     const who = FIN_SHOTS[C.shots][1];
     const gun = who === 'man' ? F.manGun : F.myGun;
-    F.flash.position.copy(gun.position); F.flash.position.y += .1;
+    gun.userData.tip.getWorldPosition(F.flash.position);
     F.flash.visible = true; F.flashLight.position.copy(F.flash.position); F.flashLight.intensity = 6;
     sfx.bang(); W.shake = .35;
     C.flashT = .07; C.shots++;
