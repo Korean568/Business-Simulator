@@ -5165,7 +5165,7 @@ function syncHome(dt){
 // ---------------- 시작 컷신: 가면 쓴 남자에게 가게를 넘겨받아요 ----------------
 const INTRO_X = HORROR_X + 600;
 // 가면남 · 돌격소총은 키 5 (가면남은 모자까지, 돌격소총은 머리까지)
-const MAN_SCALE = 5 / 2.8, DEV_SCALE = 3.74 / 2.48;
+const DEV_SCALE = 3.74 / 2.48, MAN_SCALE = DEV_SCALE;   // 가면남 = 돌격소총 (모자 두께만 더 높아요)
 const INTRO_LINES = [
   {t: 1.0,  who: '나',   text: '이 건물 몇 원이죠?'},
   {t: 3.4,  who: '???',  text: '20만원입니다.'},
@@ -5261,7 +5261,7 @@ function startIntroCut(){
   const I = W.intro;
   G.phase = 'shopDeal';
   I.cut = {t: 0, step: 0};
-  I.yaw = 0; I.pitch = .34;
+  I.yaw = 0; I.pitch = .26;
   I.man.position.set(I.x, 0, -5.4); I.man.rotation.y = 0;
   I.man.userData.key.visible = true;
   setWorldMode('intro'); W.snapCam = true;
@@ -5278,7 +5278,7 @@ function syncIntroCut(dt){
   const ease = (a, b) => clamp((t - a) / (b - a), 0, 1), sm = v => v * v * (3 - 2 * v);
   // 사장님 시선: 남자를 보다가, 열쇠를 받을 땐 잠깐 손을 봐요
   I.yaw = Math.sin(t * .5) * .02;
-  I.pitch = .34 + (t > 8.4 && t < 11 ? -.5 * sm(ease(8.4, 9.2)) * (1 - sm(ease(10.2, 11))) : 0);
+  I.pitch = .26 + (t > 8.4 && t < 11 ? -.42 * sm(ease(8.4, 9.2)) * (1 - sm(ease(10.2, 11))) : 0);
   // 남자: 말할 때 살짝 끄덕이고, 열쇠를 건네줘요
   const speaking = INTRO_LINES.some(L => L.who === '???' && t > L.t && t < L.t + 1.6);
   U.head.rotation.x = speaking ? Math.sin(t * 6) * .05 : 0;
@@ -5347,16 +5347,16 @@ const FIN_LINES = [
 const FIN_END = 55.5, FIN_BLACK = 51.8;
 // 카메라 자리 (시간, 카메라 위치, 바라보는 곳)
 const FIN_CAM = [
-  {t: 0,    p: [4.4, 3.2, 8.6],  l: [6.8, 2.8, .4]},    // 가게 앞, 무전기
-  {t: 5.4,  p: [2.0, 3.6, 11.5], l: [2.6, 2.4, 0]},     // 들어오는 모습
-  {t: 9.0,  p: [.2, 3.8, 13.6],  l: [.2, 2.4, 0]},      // 대치 (둘 다 보여요)
-  {t: 12.0, p: [.2, 3.6, 13.0],  l: [.2, 2.4, 0]},      // 총격전
-  {t: 18.0, p: [-.6, 3.4, 11.2], l: [-.6, 2.6, 0]},     // 몸싸움
-  {t: 22.0, p: [-1.6, 3.0, 9.6], l: [-2.0, 2.2, 0]},    // 맞은 사장님
-  {t: 27.0, p: [.2, 3.6, 12.8],  l: [.2, 2.5, 0]},      // 둘 다
-  {t: 47.6, p: [-.6, 3.6, 5.6],  l: [2.4, 3.4, .2]},    // 가면 벗기 (얼굴 쪽에서)
-  {t: 48.7, p: [.7, 3.9, 1.35],  l: [2.4, 3.9, 0]},     // 가면 밑 얼굴을 잠깐 가까이
-  {t: 50.4, p: [.2, 3.8, 13.2],  l: [.2, 2.3, 0]},      // 다시 3인칭
+  {t: 0,    p: [4.4, 2.9, 8.2],  l: [6.8, 2.4, .4]},    // 가게 앞, 무전기
+  {t: 5.4,  p: [2.0, 3.3, 10.8], l: [2.6, 2.1, 0]},     // 들어오는 모습
+  {t: 9.0,  p: [.2, 3.5, 12.6],  l: [.2, 2.1, 0]},      // 대치 (둘 다 보여요)
+  {t: 12.0, p: [.2, 3.3, 12.0],  l: [.2, 2.1, 0]},      // 총격전
+  {t: 18.0, p: [-.6, 3.2, 10.4], l: [-.6, 2.4, 0]},     // 몸싸움
+  {t: 22.0, p: [-.6, 3.2, 10.2], l: [-2.5, .9, -.3]},   // 쓰러진 사장님
+  {t: 27.0, p: [.0, 2.9, 10.6],  l: [-.5, 1.5, 0]},     // 둘 다
+  {t: 47.6, p: [-.6, 3.2, 5.2],  l: [2.4, 2.9, .2]},    // 가면 벗기 (얼굴 쪽에서)
+  {t: 48.7, p: [.85, 3.3, 1.2],  l: [2.4, 3.3, 0]},     // 가면 밑 얼굴을 잠깐 가까이
+  {t: 50.4, p: [.2, 3.3, 12.0],  l: [.2, 1.8, 0]},      // 다시 3인칭
 ];
 function makePistol(dark){
   const g = new THREE.Group();
@@ -5396,7 +5396,7 @@ function buildFinale(){
   F.lamp = new THREE.PointLight(0xffdcae, 1.25, 28); F.lamp.position.set(X, 5.6, -1); R.add(F.lamp);
   const warm = new THREE.PointLight(0xffc98a, .7, 18); warm.position.set(X + 4, 4.4, 1); R.add(warm);
   // 사람: 사장님 · 가면남 (가면남은 손님들과 키를 맞춰요)
-  F.me = finPerson(1); F.me.position.set(X - 2.2, 0, 0); F.me.rotation.y = Math.PI / 2 - .55; R.add(F.me);
+  F.me = finPerson(1); F.me.rotation.order = 'ZYX'; F.me.position.set(X - 2.2, 0, 0); F.me.rotation.y = Math.PI / 2 - .55; R.add(F.me);
   F.man = makeMaskedMan(); F.man.scale.setScalar(MAN_SCALE); F.man.position.set(X + 7.5, 0, .6); F.man.rotation.y = -Math.PI / 2 + .55; R.add(F.man);
   F.man.userData.key.visible = false;
   // 총은 손(팔 끝)에 매달아요 · 팔이 올라가면 앞을 겨눠요
@@ -5413,7 +5413,7 @@ function startFinaleCut(){
   const F = W.finale, X = F.x;
   G.phase = 'finale';
   F.cut = {t: 0, step: 0, shots: 0};
-  F.me.position.set(X - 2.2, 0, 0); F.me.rotation.set(0, Math.PI / 2 - .55, 0);
+  F.me.position.set(X - 2.2, 0, 0); F.me.rotation.set(0, Math.PI / 2 - .55, 0, 'ZYX');
   F.man.position.set(X + 7.5, 0, .6); F.man.rotation.set(0, -Math.PI / 2 + .55, 0);
   const U = F.man.userData;
   U.mask.visible = true; U.mask.position.set(0, .29, .33); U.mask.rotation.set(0, 0, 0);
@@ -5449,14 +5449,14 @@ function syncFinaleCut(dt){
     let aim = 0;
     if (t > 9.4) aim = sm(ease(9.4, 10.2));                       // 총을 겨눠요
     if (t > 18.2 && t < 19.6) aim = 1 - sm(ease(18.2, 18.8)) * .5;  // 주먹
-    U.arms[1].rotation.x = walking ? Math.sin(t * 9 + Math.PI) * .5 : -1.42 * aim;   // 사장님 머리로 내려 겨눠요
+    U.arms[1].rotation.x = walking ? Math.sin(t * 9 + Math.PI) * .5 : -1.66 * aim;   // 사장님 머리를 겨눠요
   }
   // 주먹 · 피하기 · 가면 벗기
   if (t > 18.2 && t < 20.2){   // 성큼 다가와 주먹을 뻗어요
     const p = Math.sin(ease(18.2, 20.2) * Math.PI);
-    F.man.position.x = lerp(X + 2.4, X + .55, p);
-    F.man.position.z = -.5 * p;                  // 살짝 비껴서 서로 겹치지 않게
-    U.arms[0].rotation.x = -1.3 * p;             // 위에서 내리꽂아요
+    F.man.position.x = lerp(X + 2.4, X + .05, p);
+    F.man.position.z = -.45 * p;                 // 살짝 비껴서 서로 겹치지 않게
+    U.arms[0].rotation.x = -1.5 * p;             // 사장님 얼굴 높이로 휘둘러요
     U.arms[0].rotation.z = -.25 * p;
   }
   if (t > 20.6 && t < 21.4){ const d = Math.sin(ease(20.6, 21.4) * Math.PI); F.man.position.y = -.8 * d; } else if (t < 48) F.man.position.y = 0;
@@ -5475,14 +5475,18 @@ function syncFinaleCut(dt){
   if (t > 14.0 && t < 16.4) mx += Math.sin(t * 3) * .12;
   if (t > 21.6 && t < 23) mx -= sm(ease(21.6, 22.2)) * .35;                                                // 총에 맞고 밀려요
   if (blocking) mx -= .25;                                        // 주먹을 막으며 밀려요
-  F.me.position.x = mx; F.me.rotation.z = lean + (blocking ? -.12 : 0);
-  P.armR.rotation.x = blocking ? -2.15 : t > 10.8 ? (t > 21.8 ? -.2 : -1.95) : -.1;   // 위를 겨누고, 막을 땐 손을 올려요
+  const fallen = t > 21.8 ? sm(ease(21.8, 23.0)) : 0;             // 팔에 맞고 뒤로 넘어져 누워요
+  if (fallen && !C.fell){ C.fell = true; tone(75, .35, 'sine', .2, 45); noiseBurst(.2, .15); W.shake = .55; }
+  F.me.position.x = mx - fallen * .5;
+  F.me.position.y = fallen * .55;
+  F.me.rotation.z = lean + (blocking ? -.12 : 0) + fallen * 1.5;
+  P.armR.rotation.x = blocking ? -2.15 : t > 10.8 ? (t > 21.8 ? -.2 : -1.79) : -.1;   // 가면남 머리를 겨누고, 막을 땐 손을 올려요
   // 주먹을 두 손으로 막아요 (가면남의 주먹 높이에 손을 맞춰요)
   P.armL.rotation.x = blocking ? -2.15 : -.05;
   P.armL.rotation.z = blocking ? -.45 : -.15;
   P.armR.rotation.z = blocking ? .45 : .15;
   if (blocking && !C.punchHit && t > 19.15){ C.punchHit = true; tone(110, .14, 'square', .2, 60); noiseBurst(.12, .22); W.shake = .4; }   // 퍽!
-  if (t > 50.9){ const f = sm(ease(50.9, 52.0)); F.me.rotation.z = f * 1.45; F.me.position.y = -f * .1; }   // 쓰러져요
+  if (t > 50.9){ const f = sm(ease(50.9, 51.4)); F.me.position.y = .55 + f * .08; F.me.rotation.z = 1.5 + f * .12; }   // 마지막 총에 움찔하고 늘어져요
   // --- 총소리 · 불빛 ---
   while (C.shots < FIN_SHOTS.length && t >= FIN_SHOTS[C.shots][0]){
     const who = FIN_SHOTS[C.shots][1];
