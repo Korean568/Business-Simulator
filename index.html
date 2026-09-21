@@ -5174,7 +5174,7 @@ const INTRO_LINES = [
   {t: 11.8, who: '???',  text: '임대료는 하루에 만원입니다.'},
   {t: 15.4, who: '???',  text: '만약 두 달 안에 500만원을 벌면 임대료는 무료로 해드리죠.'},
   {t: 20.2, who: '나',   text: '꼭 두 달 안에 500만원을 벌어야겠군.'},
-  {t: 23.4, who: '???',  text: '(후후후... 걸려들었군)'},
+  {t: 23.4, who: '???',  text: "'후후후... 걸려들었군'"},   // 속마음
   {t: 26.0, who: '나',   text: '뭐가 수상한데...'},
 ];
 const INTRO_END = 30.0;
@@ -5325,23 +5325,16 @@ function introCamera(){
 // ---------------- 마지막 컷신: 가면남의 정체 (3인칭) ----------------
 const FIN_X = HORROR_X + 780;
 const FIN_LINES = [
-  {t: .8,   who: '???',  text: '(무전기로) 좋아. 작전을 시작하지. 경찰이 올 수 있으니 잘 보고 있으라고.'},
+  {t: .8,   who: '???',  text: '좋아. 작전을 시작하지. 경찰이 올 수 있으니 잘 보고 있으라고.'},
   {t: 7.8,  who: '나',   text: '어? 안녕하세ㅇ'},
-  {t: 9.4,  who: '',     text: '(가면남이 총을 겨눈다)'},
-  {t: 10.8, who: '나',   text: '(비상용 총을 꺼내 든다)'},
-  {t: 12.2, who: '',     text: '(탕! 탕! 탕!)'},
-  {t: 14.0, who: '나',   text: '(다 피하고 여섯 발을 쏜다)'},
-  {t: 16.8, who: '',     text: '(틱... 틱... 총알이 다 떨어졌다)'},
-  {t: 18.2, who: '',     text: '(가면남이 주먹을 휘두른다)'},
-  {t: 19.6, who: '나',   text: '(주먹을 막고 머리에 총을 겨눠 쏜다)'},
-  {t: 20.8, who: '',     text: '(가면남이 몸을 숙여 피한다)'},
+  {t: 9.8,  who: '',     text: ''},
   {t: 22.2, who: '나',   text: '윽..!'},
   {t: 24.2, who: '???',  text: '하하하 너도 이제 끝이다.'},
   {t: 27.2, who: '나',   text: '대체 왜 날 쏘는 거죠?'},
   {t: 30.0, who: '???',  text: '나 돌격소총님은 처음부터 널 노리고 있었다. 그 이유는 너는 예전에 우리 회사에 들어오라고 했지만 들어오지 않았기 때문이다!'},
   {t: 36.2, who: '돌격소총', text: '그 때나 지금이나 우리나라의 거의 모든 사람들은 우리 회사에 취업하고, 그 힘으로 우리나라를 거의 정복시키려고 했는데!!'},
   {t: 42.6, who: '돌격소총', text: '넌 내 말에 따르지 않았다. 그리고 내 말에 따르지 않는 사람은 여태까지 너밖에 없었다!!'},
-  {t: 48.0, who: '돌격소총', text: '(가면을 벗으며) 이제 죽어라!!'},
+  {t: 48.0, who: '돌격소총', text: '이제 죽어라!!'},
   {t: 52.0, who: '', text: ''},
 ];
 const FIN_END = 55.5, FIN_BLACK = 51.8;
@@ -5350,13 +5343,14 @@ const FIN_CAM = [
   {t: 0,    p: [4.4, 2.9, 8.2],  l: [6.8, 2.4, .4]},    // 가게 앞, 무전기
   {t: 5.4,  p: [2.0, 3.3, 10.8], l: [2.6, 2.1, 0]},     // 들어오는 모습
   {t: 9.0,  p: [.2, 3.5, 12.6],  l: [.2, 2.1, 0]},      // 대치 (둘 다 보여요)
-  {t: 12.0, p: [.2, 3.3, 12.0],  l: [.2, 2.1, 0]},      // 총격전
-  {t: 18.0, p: [-.6, 3.2, 10.4], l: [-.6, 2.4, 0]},     // 몸싸움
-  {t: 22.0, p: [-.6, 3.2, 10.2], l: [-2.5, .9, -.3]},   // 쓰러진 사장님
+  {t: 12.0, p: [.2, 2.7, 6.0],   l: [.2, 2.1, 0]},      // 총격전 (2배 확대)
+  {t: 16.8, p: [.2, 3.3, 12.0],  l: [.2, 2.1, 0]},      // 총알이 떨어져요 (원래 크기)
+  {t: 18.2, p: [-.3, 3.1, 5.6],  l: [-.5, 2.6, 0]},     // 몸싸움 (가까이, 2배)
+  {t: 24.2, p: [.0, 2.9, 10.6],  l: [-.5, 1.5, 0]},     // 쓰러진 사장님과 가면남
   {t: 27.0, p: [.0, 2.9, 10.6],  l: [-.5, 1.5, 0]},     // 둘 다
   {t: 47.6, p: [-.6, 3.2, 5.2],  l: [2.4, 2.9, .2]},    // 가면 벗기 (얼굴 쪽에서)
   {t: 48.7, p: [.85, 3.3, 1.2],  l: [2.4, 3.3, 0]},     // 가면 밑 얼굴을 잠깐 가까이
-  {t: 50.4, p: [.2, 3.3, 12.0],  l: [.2, 1.8, 0]},      // 다시 3인칭
+  {t: 52.6, p: [.2, 3.3, 12.0],  l: [.2, 1.8, 0]},      // 다시 3인칭
 ];
 function makePistol(dark){
   const g = new THREE.Group();
@@ -5400,10 +5394,17 @@ function buildFinale(){
   F.man = makeMaskedMan(); F.man.scale.setScalar(MAN_SCALE); F.man.position.set(X + 7.5, 0, .6); F.man.rotation.y = -Math.PI / 2 + .55; R.add(F.man);
   F.man.userData.key.visible = false;
   // 총은 손(팔 끝)에 매달아요 · 팔이 올라가면 앞을 겨눠요
-  F.manGun = makePistol(true); F.manGun.position.set(0, -1.02, .02); F.manGun.rotation.x = Math.PI / 2;
+  F.manGun = makePistol(true); F.manGun.position.set(0, -1.28, .02); F.manGun.rotation.x = Math.PI / 2;   // 손 바로 앞
   F.man.userData.arms[1].add(F.manGun);
   F.myGun = makePistol(false); F.myGun.position.set(0, -.98, .02); F.myGun.rotation.x = Math.PI / 2;
   F.me.userData.armR.add(F.myGun); F.myGun.visible = false;
+  // 총알 (마지막 두 발은 느리게 날아가는 게 보여요)
+  const bg = new THREE.CylinderGeometry(.05, .07, .26, 10); bg.rotateX(Math.PI / 2);
+  F.bullet = mesh(bg, std(0xf2c24a, {metalness: .85, roughness: .2, emissive: 0x8a6a20}), 0, 0, 0, false);
+  const tg = new THREE.CylinderGeometry(.035, .005, .9, 8); tg.rotateX(Math.PI / 2); tg.translate(0, 0, -.58);
+  F.bullet.add(mesh(tg, new THREE.MeshBasicMaterial({color: 0xffe3a0, transparent: true, opacity: .45}), 0, 0, 0, false));   // 꼬리
+  F.bullet.visible = false; R.add(F.bullet);
+  F.bulletLight = new THREE.PointLight(0xffd070, 0, 5); R.add(F.bulletLight);
   // 총구 불빛
   F.flash = mesh(new THREE.SphereGeometry(.16, 8, 6), new THREE.MeshBasicMaterial({color: 0xfff0a0}), 0, 0, 0, false);
   F.flash.visible = false; R.add(F.flash);
@@ -5428,6 +5429,7 @@ function startFinaleCut(){
   requestAnimationFrame(() => { blk.style.transition = 'opacity 1.2s'; blk.style.opacity = 0; });
 }
 // 총 쏘는 순간들 (시간, 누가)
+const FIN_BULLETS = [[50.4, .5], [50.9, .5]];   // 마지막 두 발이 날아가는 시간
 const FIN_SHOTS = [[12.2, 'man'], [12.7, 'man'], [13.2, 'man'], [14.2, 'me'], [14.6, 'me'], [15.0, 'me'], [15.4, 'me'], [15.8, 'me'], [16.2, 'me'],
   [19.8, 'me'], [21.6, 'man'], [50.4, 'man'], [50.9, 'man']];
 function syncFinaleCut(dt){
@@ -5449,6 +5451,8 @@ function syncFinaleCut(dt){
     let aim = 0;
     if (t > 9.4) aim = sm(ease(9.4, 10.2));                       // 총을 겨눠요
     if (t > 18.2 && t < 19.6) aim = 1 - sm(ease(18.2, 18.8)) * .5;  // 주먹
+    if (t > 29.6) aim = 1 - sm(ease(29.6, 30.6));                 // 이야기하는 동안엔 총을 내려요
+    if (t > 47.6) aim = sm(ease(47.6, 48.6));                     // '이제 죽어라!!' 하며 다시 겨눠요
     U.arms[1].rotation.x = walking ? Math.sin(t * 9 + Math.PI) * .5 : -1.66 * aim;   // 사장님 머리를 겨눠요
   }
   // 주먹 · 피하기 · 가면 벗기
@@ -5497,6 +5501,20 @@ function syncFinaleCut(dt){
     C.flashT = .07; C.shots++;
   }
   if (C.flashT > 0){ C.flashT -= dt; if (C.flashT <= 0){ F.flash.visible = false; F.flashLight.intensity = 0; } }
+  // 마지막 두 발: 총알이 천천히 날아가 사장님에게 꽂혀요
+  let flying = false;
+  for (const [bt, dur] of FIN_BULLETS){
+    if (t < bt || t > bt + dur) continue;
+    const r = (t - bt) / dur;
+    F.manGun.userData.tip.getWorldPosition(_finB1);
+    _finB2.set(F.me.position.x + .25, .8, F.me.position.z - .1);
+    F.bullet.position.lerpVectors(_finB1, _finB2, r);
+    F.bullet.lookAt(_finB2);
+    F.bullet.visible = true; flying = true;
+    F.bulletLight.position.copy(F.bullet.position); F.bulletLight.intensity = 2.4;
+    if (r > .96 && !C['hit' + bt]){ C['hit' + bt] = true; tone(90, .18, 'square', .22, 40); W.shake = .5; }
+  }
+  if (!flying){ F.bullet.visible = false; F.bulletLight.intensity = 0; }
   if (C.step === 0 && t > .8){ C.step = 1; noiseBurst(.3, .07); tone(1400, .1, 'square', .03); }          // 무전기 잡음
   if (C.step === 1 && t > 16.8){ C.step = 2; tone(1200, .03, 'square', .07); tone(1200, .03, 'square', .07, null, .35); }   // 빈 총 틱 틱
   if (C.step === 2 && t > 24.2){ C.step = 3; tone(150, .5, 'sine', .07, 110); tone(120, .5, 'sine', .06, 90, .25); }        // 웃음
@@ -5526,9 +5544,34 @@ function endFinaleCut(){
   const blk = $('cutBlack'); blk.style.transition = 'opacity .9s'; blk.style.opacity = 0;
   showEnding('shot');
 }
-const _finP = new THREE.Vector3(), _finL = new THREE.Vector3();
+const _finP = new THREE.Vector3(), _finL = new THREE.Vector3(), _finO = new THREE.Vector3();
+const _finB1 = new THREE.Vector3(), _finB2 = new THREE.Vector3();
+function finShot(look, dx, dy, dz){   // 한 곳을 화면 가운데에 두고 가까이 봐요
+  curLook.copy(look);
+  camera.position.copy(look).add(_finO.set(dx, dy, dz));
+  if (W.shake > 0){ camera.position.x += (Math.random() - .5) * W.shake * .2; camera.position.y += (Math.random() - .5) * W.shake * .2; }
+  camera.lookAt(curLook);
+}
 function finaleCamera(){
   const F = W.finale, t = F.cut ? F.cut.t : FIN_END, X = F.x;
+  if (t >= 5.4 && t < 9.0){          // 2번: 사장님 눈으로 (1인칭)
+    F.me.userData.head.getWorldPosition(_finP);
+    _finP.y += .18; _finP.x += .62; _finP.z += .38;   // 사장님 눈 바로 앞
+    F.man.userData.head.getWorldPosition(_finL);
+    camera.position.copy(_finP); curLook.copy(_finL); camera.lookAt(curLook);
+    return;
+  }
+  if (t >= 21.6 && t < 24.2){        // 7번: 가면남의 총을 화면 가운데에
+    F.manGun.getWorldPosition(_finL);
+    finShot(_finL, -1.5, .85, 3.4);
+    return;
+  }
+  if (t >= 50.0 && t < 52.6){        // 10번: 날아가는 총알이 화면 한가운데
+    if (F.bullet.visible) _finL.copy(F.bullet.position);
+    else F.manGun.userData.tip.getWorldPosition(_finL);
+    finShot(_finL, -1.0, .55, 2.7);
+    return;
+  }
   let i = 0;
   for (let k = 0; k < FIN_CAM.length; k++) if (t >= FIN_CAM[k].t) i = k;
   const a = FIN_CAM[i], b = FIN_CAM[Math.min(i + 1, FIN_CAM.length - 1)];
@@ -6015,7 +6058,7 @@ const DEV_LINES = [
   {t: 10,   who: '나', text: '그럼 다들 가짜였던 거야??'},
   {t: 12.8, who: '나', text: '잠깐만.. 내 사진도 있네?'},
   {t: 16.4, who: '나', text: '잠깐만.. 타, 타겟?!'},
-  {t: 18.6, who: '',   text: '(스르릉... 칼 뽑는 소리)'},
+  {t: 18.6, who: '',   text: ''},
   {t: 21,   who: '???', text: '오 뭐야 타겟이 제 발로 왔네?! 그럼 나야 이득이지'},
   {t: 25.2, who: '???', text: '아 그럼 네가 죽기 전에 이름만 알려줄게. 난 돌격소총이라는 이 게임 개발자다.'},
   {t: 30.2, who: '돌격소총', text: '그럼 이제 죽어라!'},
