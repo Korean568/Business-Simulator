@@ -5164,6 +5164,8 @@ function syncHome(dt){
 
 // ---------------- 시작 컷신: 가면 쓴 남자에게 가게를 넘겨받아요 ----------------
 const INTRO_X = HORROR_X + 600;
+// 가면남 · 돌격소총은 키 5 (가면남은 모자까지, 돌격소총은 머리까지)
+const MAN_SCALE = 5 / 2.8, DEV_SCALE = 3.74 / 2.48;
 const INTRO_LINES = [
   {t: 1.0,  who: '나',   text: '이 건물 몇 원이죠?'},
   {t: 3.4,  who: '???',  text: '20만원입니다.'},
@@ -5229,19 +5231,19 @@ function buildIntroRoom(){
   const X = I.x = INTRO_X;
   const wall = std(0xbdb3a4, {roughness: 1}), floorM = std(0x9a8b74, {roughness: 1});
   const fl = mesh(new THREE.PlaneGeometry(12, 12), floorM, X, 0, 0, false); fl.rotation.x = -Math.PI / 2; R.add(fl);
-  const ce = mesh(new THREE.PlaneGeometry(12, 12), wall, X, 3.6, 0, false); ce.rotation.x = Math.PI / 2; R.add(ce);
-  R.add(mesh(new THREE.BoxGeometry(12, 3.6, .2), wall, X, 1.8, -6, false));
-  R.add(mesh(new THREE.BoxGeometry(12, 3.6, .2), wall, X, 1.8, 6, false));
-  for (const sx of [-1, 1]) R.add(mesh(new THREE.BoxGeometry(.2, 3.6, 12), wall, X + sx * 6, 1.8, 0, false));
+  const ce = mesh(new THREE.PlaneGeometry(12, 12), wall, X, 6.4, 0, false); ce.rotation.x = Math.PI / 2; R.add(ce);
+  R.add(mesh(new THREE.BoxGeometry(12, 6.4, .2), wall, X, 3.2, -6, false));
+  R.add(mesh(new THREE.BoxGeometry(12, 6.4, .2), wall, X, 3.2, 6, false));
+  for (const sx of [-1, 1]) R.add(mesh(new THREE.BoxGeometry(.2, 6.4, 12), wall, X + sx * 6, 3.2, 0, false));
   // 텅 빈 가게: 낡은 카운터 · 쌓인 상자 · 매달린 전구 · '임대' 안내문
   R.add(mesh(new THREE.BoxGeometry(4, 1.1, .8), std(0x6b4a2c, {roughness: .9}), X - 2.4, .55, -4.4));
   for (let k = 0; k < 4; k++){
     const b = mesh(new THREE.BoxGeometry(.8, .7, .8), std(0xb08a56, {roughness: 1}), X + 3.4 - (k % 2) * .95, .35 + Math.floor(k / 2) * .72, -4.6 + (k % 2) * .3);
     b.rotation.y = (prand(k + 3100) - .5) * .5; R.add(b);
   }
-  R.add(mesh(new THREE.CylinderGeometry(.01, .01, 1.2, 4), std(0x333333), X, 3, 0, false));
-  R.add(mesh(new THREE.SphereGeometry(.12, 10, 8), new THREE.MeshBasicMaterial({color: 0xffeec0}), X, 2.36, 0, false));
-  I.bulb = new THREE.PointLight(0xffe6b8, 1.3, 16); I.bulb.position.set(X, 2.3, 0); R.add(I.bulb);
+  R.add(mesh(new THREE.CylinderGeometry(.01, .01, 1.2, 4), std(0x333333), X, 5.8, 0, false));
+  R.add(mesh(new THREE.SphereGeometry(.12, 10, 8), new THREE.MeshBasicMaterial({color: 0xffeec0}), X, 5.16, 0, false));
+  I.bulb = new THREE.PointLight(0xffe6b8, 1.5, 20); I.bulb.position.set(X, 5.1, 0); R.add(I.bulb);
   const noteTex = canvasTex(128, 96, (x, w, h) => {
     x.fillStyle = '#f6f1e2'; x.fillRect(0, 0, w, h);
     x.fillStyle = '#b02020'; x.font = 'bold 34px sans-serif'; x.textAlign = 'center'; x.fillText('임 대', w / 2, 42);
@@ -5249,7 +5251,7 @@ function buildIntroRoom(){
   });
   const note = mesh(new THREE.PlaneGeometry(.9, .68), new THREE.MeshStandardMaterial({map: noteTex, roughness: .9}), X - 3.4, 1.9, -5.88, false);
   note.rotation.z = .05; R.add(note);
-  I.man = makeMaskedMan(); I.man.position.set(X, 0, -3.8); R.add(I.man);
+  I.man = makeMaskedMan(); I.man.scale.setScalar(MAN_SCALE); I.man.position.set(X, 0, -5.4); R.add(I.man);
   // 건네받은 열쇠 (카메라 앞에서 반짝)
   const skip = document.createElement('button'); skip.id = 'cutSkip'; skip.hidden = true;
   skip.className = 'sub-btn'; skip.textContent = '건너뛰기 ▶'; skip.onclick = endIntroCut;
@@ -5259,8 +5261,8 @@ function startIntroCut(){
   const I = W.intro;
   G.phase = 'shopDeal';
   I.cut = {t: 0, step: 0};
-  I.yaw = 0; I.pitch = .06;
-  I.man.position.set(I.x, 0, -3.8); I.man.rotation.y = 0;
+  I.yaw = 0; I.pitch = .34;
+  I.man.position.set(I.x, 0, -5.4); I.man.rotation.y = 0;
   I.man.userData.key.visible = true;
   setWorldMode('intro'); W.snapCam = true;
   hideOverlay();
@@ -5276,7 +5278,7 @@ function syncIntroCut(dt){
   const ease = (a, b) => clamp((t - a) / (b - a), 0, 1), sm = v => v * v * (3 - 2 * v);
   // 사장님 시선: 남자를 보다가, 열쇠를 받을 땐 잠깐 손을 봐요
   I.yaw = Math.sin(t * .5) * .02;
-  I.pitch = .06 + (t > 8.4 && t < 11 ? -.2 * sm(ease(8.4, 9.2)) * (1 - sm(ease(10.2, 11))) : 0);
+  I.pitch = .34 + (t > 8.4 && t < 11 ? -.5 * sm(ease(8.4, 9.2)) * (1 - sm(ease(10.2, 11))) : 0);
   // 남자: 말할 때 살짝 끄덕이고, 열쇠를 건네줘요
   const speaking = INTRO_LINES.some(L => L.who === '???' && t > L.t && t < L.t + 1.6);
   U.head.rotation.x = speaking ? Math.sin(t * 6) * .05 : 0;
@@ -5345,16 +5347,16 @@ const FIN_LINES = [
 const FIN_END = 55.5, FIN_BLACK = 51.8;
 // 카메라 자리 (시간, 카메라 위치, 바라보는 곳)
 const FIN_CAM = [
-  {t: 0,    p: [4.6, 2.4, 7.4],  l: [6.6, 1.9, .4]},    // 가게 앞, 무전기
-  {t: 5.4,  p: [2.2, 2.8, 9.6],  l: [2.6, 1.8, 0]},     // 들어오는 모습
-  {t: 9.0,  p: [.2, 3.1, 11.5],  l: [.2, 1.8, 0]},      // 대치 (둘 다 보여요)
-  {t: 12.0, p: [.2, 2.9, 11.0],  l: [.2, 1.8, 0]},      // 총격전
-  {t: 18.0, p: [-.4, 2.7, 9.4],  l: [-.6, 1.8, 0]},     // 몸싸움
-  {t: 22.0, p: [-1.4, 2.5, 8.2], l: [-1.8, 1.8, 0]},    // 맞은 사장님
-  {t: 27.0, p: [.2, 2.9, 10.8],  l: [.2, 1.8, 0]},      // 둘 다
-  {t: 47.6, p: [-.2, 2.4, 4.2],  l: [2.4, 2.1, .2]},    // 가면 벗기 (얼굴 쪽에서)
-  {t: 48.7, p: [1.05, 2.2, .85], l: [2.4, 2.2, 0]},     // 가면 밑 얼굴을 잠깐 가까이
-  {t: 50.4, p: [.2, 3.0, 11.0],  l: [.2, 1.7, 0]},      // 다시 3인칭
+  {t: 0,    p: [4.4, 3.2, 8.6],  l: [6.8, 2.8, .4]},    // 가게 앞, 무전기
+  {t: 5.4,  p: [2.0, 3.6, 11.5], l: [2.6, 2.4, 0]},     // 들어오는 모습
+  {t: 9.0,  p: [.2, 3.8, 13.6],  l: [.2, 2.4, 0]},      // 대치 (둘 다 보여요)
+  {t: 12.0, p: [.2, 3.6, 13.0],  l: [.2, 2.4, 0]},      // 총격전
+  {t: 18.0, p: [-.6, 3.4, 11.2], l: [-.6, 2.6, 0]},     // 몸싸움
+  {t: 22.0, p: [-1.6, 3.0, 9.6], l: [-2.0, 2.2, 0]},    // 맞은 사장님
+  {t: 27.0, p: [.2, 3.6, 12.8],  l: [.2, 2.5, 0]},      // 둘 다
+  {t: 47.6, p: [-.6, 3.6, 5.6],  l: [2.4, 3.4, .2]},    // 가면 벗기 (얼굴 쪽에서)
+  {t: 48.7, p: [.7, 3.9, 1.35],  l: [2.4, 3.9, 0]},     // 가면 밑 얼굴을 잠깐 가까이
+  {t: 50.4, p: [.2, 3.8, 13.2],  l: [.2, 2.3, 0]},      // 다시 3인칭
 ];
 function makePistol(dark){
   const g = new THREE.Group();
@@ -5377,9 +5379,9 @@ function buildFinale(){
   const X = F.x = FIN_X;
   const wall = std(0xcdb79a, {roughness: 1}), floorM = std(0xa08a6a, {roughness: 1});
   const fl = mesh(new THREE.PlaneGeometry(20, 14), floorM, X, 0, 0, false); fl.rotation.x = -Math.PI / 2; R.add(fl);
-  R.add(mesh(new THREE.BoxGeometry(20, 4.4, .2), wall, X, 2.2, -5, false));
-  for (const sx of [-1, 1]) R.add(mesh(new THREE.BoxGeometry(.2, 4.4, 14), wall, X + sx * 8, 2.2, -1, false));
-  const fce = mesh(new THREE.PlaneGeometry(20, 14), wall, X, 4.4, -1, false); fce.rotation.x = Math.PI / 2; R.add(fce);
+  R.add(mesh(new THREE.BoxGeometry(20, 6.8, .2), wall, X, 3.4, -5, false));
+  for (const sx of [-1, 1]) R.add(mesh(new THREE.BoxGeometry(.2, 6.8, 14), wall, X + sx * 8, 3.4, -1, false));
+  const fce = mesh(new THREE.PlaneGeometry(20, 14), wall, X, 6.8, -1, false); fce.rotation.x = Math.PI / 2; R.add(fce);
   // 가게 안: 카운터 · 의자 · 냄비 · 간판
   R.add(mesh(new THREE.BoxGeometry(9, 1.3, 1.1), std(0x6b4a2c, {roughness: .9}), X - 1, .65, -3.4));
   for (let k = 0; k < 4; k++) R.add(mesh(new THREE.CylinderGeometry(.22, .2, .75, 12), std(0x4a3524), X - 4 + k * 2, .38, -2.1));
@@ -5388,14 +5390,14 @@ function buildFinale(){
     x.fillStyle = '#7a1f14'; x.fillRect(0, 0, w, h);
     x.fillStyle = '#ffe6b8'; x.font = 'bold 30px sans-serif'; x.textAlign = 'center'; x.fillText('국밥', w / 2, 42);
   });
-  R.add(mesh(new THREE.PlaneGeometry(2.4, .96), new THREE.MeshStandardMaterial({map: sign, roughness: .9}), X - 1, 3.1, -4.88, false));
+  R.add(mesh(new THREE.PlaneGeometry(2.4, .96), new THREE.MeshStandardMaterial({map: sign, roughness: .9}), X - 1, 3.9, -4.88, false));
   // 문 (가면남이 들어와요)
-  R.add(mesh(new THREE.BoxGeometry(.16, 3, 1.9), std(0x4a3524), X + 6.4, 1.5, .6));
-  F.lamp = new THREE.PointLight(0xffdcae, 1.0, 22); F.lamp.position.set(X, 3.4, -1); R.add(F.lamp);
-  const warm = new THREE.PointLight(0xffc98a, .55, 14); warm.position.set(X + 4, 3, 1); R.add(warm);
+  R.add(mesh(new THREE.BoxGeometry(.16, 5.4, 2.4), std(0x4a3524), X + 6.4, 2.7, .6));
+  F.lamp = new THREE.PointLight(0xffdcae, 1.25, 28); F.lamp.position.set(X, 5.6, -1); R.add(F.lamp);
+  const warm = new THREE.PointLight(0xffc98a, .7, 18); warm.position.set(X + 4, 4.4, 1); R.add(warm);
   // 사람: 사장님 · 가면남 (가면남은 손님들과 키를 맞춰요)
   F.me = finPerson(1); F.me.position.set(X - 2.2, 0, 0); F.me.rotation.y = Math.PI / 2 - .55; R.add(F.me);
-  F.man = makeMaskedMan(); F.man.position.set(X + 7.5, 0, .6); F.man.rotation.y = -Math.PI / 2 + .55; R.add(F.man);
+  F.man = makeMaskedMan(); F.man.scale.setScalar(MAN_SCALE); F.man.position.set(X + 7.5, 0, .6); F.man.rotation.y = -Math.PI / 2 + .55; R.add(F.man);
   F.man.userData.key.visible = false;
   // 총은 손(팔 끝)에 매달아요 · 팔이 올라가면 앞을 겨눠요
   F.manGun = makePistol(true); F.manGun.position.set(0, -1.06, 0); F.manGun.rotation.x = Math.PI / 2;
@@ -5447,20 +5449,20 @@ function syncFinaleCut(dt){
     let aim = 0;
     if (t > 9.4) aim = sm(ease(9.4, 10.2));                       // 총을 겨눠요
     if (t > 18.2 && t < 19.6) aim = 1 - sm(ease(18.2, 18.8)) * .5;  // 주먹
-    U.arms[1].rotation.x = walking ? Math.sin(t * 9 + Math.PI) * .5 : -1.86 * aim;   // 머리를 겨눠요
+    U.arms[1].rotation.x = walking ? Math.sin(t * 9 + Math.PI) * .5 : -1.42 * aim;   // 사장님 머리로 내려 겨눠요
   }
   // 주먹 · 피하기 · 가면 벗기
   if (t > 18.2 && t < 20.2){   // 성큼 다가와 주먹을 뻗어요
     const p = Math.sin(ease(18.2, 20.2) * Math.PI);
-    F.man.position.x = lerp(X + 2.4, X - .6, p);
-    F.man.position.z = -.35 * p;                 // 살짝 비껴서 서로 겹치지 않게
-    U.arms[0].rotation.x = -2.0 * p;             // 키 큰 사장님 얼굴 쪽으로 올려쳐요
-    U.arms[0].rotation.z = -.2 * p;
+    F.man.position.x = lerp(X + 2.4, X + .55, p);
+    F.man.position.z = -.5 * p;                  // 살짝 비껴서 서로 겹치지 않게
+    U.arms[0].rotation.x = -1.3 * p;             // 위에서 내리꽂아요
+    U.arms[0].rotation.z = -.25 * p;
   }
-  if (t > 20.6 && t < 21.4){ const d = Math.sin(ease(20.6, 21.4) * Math.PI); F.man.position.y = -.45 * d; } else if (t < 48) F.man.position.y = 0;
+  if (t > 20.6 && t < 21.4){ const d = Math.sin(ease(20.6, 21.4) * Math.PI); F.man.position.y = -.8 * d; } else if (t < 48) F.man.position.y = 0;
   if (t > 48.2){   // 가면을 벗어 던져요
     const r = ease(48.2, 49.4);
-    U.mask.position.set(.1 + r * .5, .29 - r * r * 2.6, .33 + r * .8);
+    U.mask.position.set(.1 + r * .5, .29 - r * r * 3.4, .33 + r * .8);
     U.mask.rotation.set(-r * 4, r * 2, r * 3);
     if (r >= 1) U.mask.visible = false;
   }
@@ -5474,11 +5476,12 @@ function syncFinaleCut(dt){
   if (t > 21.6 && t < 23) mx -= sm(ease(21.6, 22.2)) * .35;                                                // 총에 맞고 밀려요
   if (blocking) mx -= .25;                                        // 주먹을 막으며 밀려요
   F.me.position.x = mx; F.me.rotation.z = lean + (blocking ? -.12 : 0);
-  P.armR.rotation.x = blocking ? -1.45 : t > 10.8 ? (t > 21.8 ? -.2 : -1.42) : -.1;   // 겨눌 땐 가면남 머리 높이, 맞은 뒤엔 내려가요
+  P.armR.rotation.x = blocking ? -2.15 : t > 10.8 ? (t > 21.8 ? -.2 : -1.95) : -.1;   // 위를 겨누고, 막을 땐 손을 올려요
   // 주먹을 두 손으로 막아요 (가면남의 주먹 높이에 손을 맞춰요)
-  P.armL.rotation.x = blocking ? -1.5 : -.05;
-  P.armL.rotation.z = blocking ? -.3 : -.15;
-  P.armR.rotation.z = blocking ? .3 : .15;
+  P.armL.rotation.x = blocking ? -2.15 : -.05;
+  P.armL.rotation.z = blocking ? -.45 : -.15;
+  P.armR.rotation.z = blocking ? .45 : .15;
+  if (blocking && !C.punchHit && t > 19.15){ C.punchHit = true; tone(110, .14, 'square', .2, 60); noiseBurst(.12, .22); W.shake = .4; }   // 퍽!
   if (t > 50.9){ const f = sm(ease(50.9, 52.0)); F.me.rotation.z = f * 1.45; F.me.position.y = -f * .1; }   // 쓰러져요
   // --- 총소리 · 불빛 ---
   while (C.shots < FIN_SHOTS.length && t >= FIN_SHOTS[C.shots][0]){
@@ -6081,10 +6084,10 @@ function buildDevRoom(H, root){
   const X = H.devX = HORROR_X + 420;
   const wallM = new THREE.MeshStandardMaterial({color: 0x4a4640, roughness: 1});
   const fl = mesh(new THREE.PlaneGeometry(11, 11), new THREE.MeshStandardMaterial({map: H.floorTex, roughness: 1}), X, 0, 0, false); fl.rotation.x = -Math.PI / 2; R.add(fl);
-  const ce = mesh(new THREE.PlaneGeometry(11, 11), wallM, X, 3.4, 0, false); ce.rotation.x = Math.PI / 2; R.add(ce);
-  R.add(mesh(new THREE.BoxGeometry(11, 3.4, .2), new THREE.MeshStandardMaterial({map: H.wallTex, roughness: 1}), X, 1.7, -5.1, false));
-  R.add(mesh(new THREE.BoxGeometry(11, 3.4, .2), wallM, X, 1.7, 5.1, false));
-  for (const sx of [-1, 1]) R.add(mesh(new THREE.BoxGeometry(.2, 3.4, 11), wallM, X + sx * 5.5, 1.7, 0, false));
+  const ce = mesh(new THREE.PlaneGeometry(11, 11), wallM, X, 6.2, 0, false); ce.rotation.x = Math.PI / 2; R.add(ce);
+  R.add(mesh(new THREE.BoxGeometry(11, 6.2, .2), new THREE.MeshStandardMaterial({map: H.wallTex, roughness: 1}), X, 3.1, -5.1, false));
+  R.add(mesh(new THREE.BoxGeometry(11, 6.2, .2), wallM, X, 3.1, 5.1, false));
+  for (const sx of [-1, 1]) R.add(mesh(new THREE.BoxGeometry(.2, 6.2, 11), wallM, X + sx * 5.5, 3.1, 0, false));
   R.add(mesh(new THREE.BoxGeometry(1.6, 2.8, .1), std(0x2a1a12), X, 1.4, 4.98, false));   // 들어온 문
   // 책상 · 모니터 (개발자 자리)
   R.add(mesh(new THREE.BoxGeometry(2.2, .08, 1), std(0x3a2a1c), X - 4, .9, 2.5));
@@ -6104,10 +6107,10 @@ function buildDevRoom(H, root){
   pts.forEach((p, k) => { segs.push(p, tgtPin); if (k) segs.push(pts[k - 1], p); });
   R.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(segs), new THREE.LineBasicMaterial({color: 0xc01010})));
   // 흔들리는 전구 하나 · 사진 벽 조명
-  R.add(mesh(new THREE.SphereGeometry(.1, 8, 6), new THREE.MeshBasicMaterial({color: 0xffe0a0}), X, 3, 0, false));
-  H.devBulb = new THREE.PointLight(0xffd8a0, 1.1, 14); H.devBulb.position.set(X, 2.9, 0); R.add(H.devBulb);
-  const wl = new THREE.PointLight(0xffe0c0, .9, 7); wl.position.set(X, 2.4, -3); R.add(wl);
-  H.dev = makeDeveloper(); H.dev.visible = false; R.add(H.dev);
+  R.add(mesh(new THREE.SphereGeometry(.1, 8, 6), new THREE.MeshBasicMaterial({color: 0xffe0a0}), X, 5.4, 0, false));
+  H.devBulb = new THREE.PointLight(0xffd8a0, 1.25, 18); H.devBulb.position.set(X, 5.3, 0); R.add(H.devBulb);
+  const wl = new THREE.PointLight(0xffe0c0, .9, 9); wl.position.set(X, 3.2, -3); R.add(wl);
+  H.dev = makeDeveloper(); H.dev.scale.setScalar(DEV_SCALE); H.dev.visible = false; R.add(H.dev);
   // 자막 · 검은 화면
   const sub = document.createElement('div'); sub.id = 'cutSub'; sub.hidden = true; document.body.appendChild(sub);
   const blk = document.createElement('div'); blk.id = 'cutBlack'; document.body.appendChild(blk);
@@ -6140,8 +6143,8 @@ function syncDevCut(dt){
     yaw = t < 13.4 ? lerp(-.1, Math.atan2(-2.9, 3.8), sm(ease(12.8, 13.4))) : lerp(Math.atan2(-2.9, 3.8), 0, w);
     pitch = lerp(.2, .1, w);
     if (t > 16.3){ pitch = lerp(.1, -.28, sm(ease(16.3, 17))); z -= sm(ease(16.3, 17)) * .3; }
-    if (t > 19.4){ const r = sm(ease(19.4, 20.8)); yaw = lerp(0, Math.PI, r); pitch = lerp(-.28, .16, r); }
-    if (t > 30.4){ const l = sm(ease(30.4, 31.6)); pitch = lerp(.16, .45, l); }
+    if (t > 19.4){ const r = sm(ease(19.4, 20.8)); yaw = lerp(0, Math.PI, r); pitch = lerp(-.28, .38, r); }
+    if (t > 30.4){ const l = sm(ease(30.4, 31.6)); pitch = lerp(.38, .62, l); }
   }
   const walking = (t > 3.6 && t < 6.2) || (t > 13.4 && t < 16);
   if (walking){ H.stepT -= dt * 3.2; if (H.stepT <= 0){ H.stepT = 2.2; sfx.step(.03); } }
