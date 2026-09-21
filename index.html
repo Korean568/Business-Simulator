@@ -5361,11 +5361,11 @@ const FIN_CAM = [
 function makePistol(dark){
   const g = new THREE.Group();
   const body = std(dark ? 0x23232a : 0x54545e, {metalness: .6, roughness: .35});
-  g.add(mesh(new THREE.BoxGeometry(.14, .22, .62), body, 0, 0, .16, false));         // 몸통
-  g.add(mesh(new THREE.BoxGeometry(.11, .11, .4), body, 0, .03, .58, false));        // 총열
-  g.add(mesh(new THREE.BoxGeometry(.16, .06, .2), body, 0, .13, .1, false));         // 조준선
-  const grip = mesh(new THREE.BoxGeometry(.13, .38, .2), std(0x3a2418), 0, -.24, -.06, false); grip.rotation.x = -.22; g.add(grip);
-  const tip = g.userData.tip = new THREE.Object3D(); tip.position.set(0, .03, .8); g.add(tip);   // 총구
+  g.add(mesh(new THREE.BoxGeometry(.14, .22, .62), body, 0, .24, .22, false));       // 몸통
+  g.add(mesh(new THREE.BoxGeometry(.11, .11, .4), body, 0, .27, .64, false));        // 총열
+  g.add(mesh(new THREE.BoxGeometry(.16, .06, .2), body, 0, .37, .16, false));        // 조준선
+  const grip = mesh(new THREE.BoxGeometry(.13, .38, .2), std(0x3a2418), 0, 0, 0, false); grip.rotation.x = -.22; g.add(grip);   // 손잡이 = 기준점
+  const tip = g.userData.tip = new THREE.Object3D(); tip.position.set(0, .27, .86); g.add(tip);   // 총구
   return g;
 }
 function finPerson(scale){
@@ -5400,9 +5400,9 @@ function buildFinale(){
   F.man = makeMaskedMan(); F.man.scale.setScalar(MAN_SCALE); F.man.position.set(X + 7.5, 0, .6); F.man.rotation.y = -Math.PI / 2 + .55; R.add(F.man);
   F.man.userData.key.visible = false;
   // 총은 손(팔 끝)에 매달아요 · 팔이 올라가면 앞을 겨눠요
-  F.manGun = makePistol(true); F.manGun.position.set(0, -1.06, 0); F.manGun.rotation.x = Math.PI / 2;
+  F.manGun = makePistol(true); F.manGun.position.set(0, -1.02, .02); F.manGun.rotation.x = Math.PI / 2;
   F.man.userData.arms[1].add(F.manGun);
-  F.myGun = makePistol(false); F.myGun.position.set(0, -1.14, 0); F.myGun.rotation.x = Math.PI / 2;
+  F.myGun = makePistol(false); F.myGun.position.set(0, -.98, .02); F.myGun.rotation.x = Math.PI / 2;
   F.me.userData.armR.add(F.myGun); F.myGun.visible = false;
   // 총구 불빛
   F.flash = mesh(new THREE.SphereGeometry(.16, 8, 6), new THREE.MeshBasicMaterial({color: 0xfff0a0}), 0, 0, 0, false);
