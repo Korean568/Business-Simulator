@@ -1831,7 +1831,7 @@ const DEMO = {
 
 function cookTime(){ return [7, 5.2, 3.8][G.up.fire]; }
 function unlockedTops(){ return TOPPINGS.filter(t => t.unlock <= G.day); }
-function rentToday(){ return 10000 + (G.day - 1) * 1500; }
+function rentToday(){ return 10000; }   // 가면남과 약속한 대로 하루 만원 고정
 function inPhase(p){ return G && G.phase === p; }
 // 1층 국밥집을 사장님이 직접 조작할 수 있을 때
 function canAct(){ return !!G && G.running && !G.paused && (G.phase === 'lunch' || (G.phase === 'open' && G.floor === 1 && G.lunchOn && !G.staff.gukbap)); }
