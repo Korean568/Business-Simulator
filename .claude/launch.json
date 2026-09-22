@@ -7,7 +7,9 @@
       "runtimeArgs": [
         "-m",
         "http.server",
-        "8000"
+        "8000",
+        "--directory",
+        "Restaurant-Management-Simulator"
       ],
       "port": 8000
     }
